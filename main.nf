@@ -30,9 +30,12 @@ params.help             = false
 
 // this prints the input parameters
 log.info """
-GENEID - NextflowPipeline
+GENEID+BLASTx - NextflowPipeline
 =============================================
 ENA_project_name    : ${params.ENA_project_name}
+output				: ${params.output}
+species				: ${params.species}
+genome				: ${params.genome}
 output				: ${params.output}
 """
 
@@ -49,6 +52,13 @@ if (params.help) {
  */
 OutputFolder = "${params.output}/${params.ENA_project_name}"
 
+
+genoom = file(params.genome)
+paar = file(params.param_f)
+proteins_file = file(params.prot_file)
+
+
+
 /*
  * Defining the module / subworkflow path, and include the elements
  */
@@ -60,9 +70,9 @@ include { parse_json } from "${subwork_folder}/files_to_download" addParams(OUTP
 
 include { DownloadFASTA_fromID } from "${subwork_folder}/download_fasta" addParams(OUTPUT: OutputFolder)
 
-include { geneid_WORKFLOW_single } from "${subwork_folder}/geneid_single" addParams(OUTPUT: OutputFolder)
+// include { geneid_WORKFLOW_single } from "${subwork_folder}/geneid_single" addParams(OUTPUT: OutputFolder)
 
-// include { geneid_WORKFLOW } from "${subwork_folder}/geneid" addParams(OUTPUT: geneid_OutputFolder, LABEL:'twocpus')
+include { geneid_WORKFLOW } from "${subwork_folder}/geneid" addParams(OUTPUT: OutputFolder, LABEL:'twocpus')
 // include { UncompressFASTA } from "${subwork_folder}/geneid" addParams(OUTPUT: geneid_OutputFolder, LABEL:'twocpus')
 // include { Index } from "${subwork_folder}/geneid" addParams(OUTPUT: geneid_OutputFolder, LABEL:'twocpus')
 // include { runGeneid_fetching } from "${subwork_folder}/geneid" addParams(OUTPUT: geneid_OutputFolder, LABEL:'twocpus')
@@ -74,12 +84,13 @@ include { geneid_WORKFLOW_single } from "${subwork_folder}/geneid_single" addPar
  */
 workflow {
 
-  channel.from(params.ENA_project_name) | list_files_to_download | parse_json | flatten | set {taxons_set}
+  // channel.from(params.ENA_project_name) | list_files_to_download | parse_json | flatten | set {taxons_set}
+  //
+  // downloaded_genome = DownloadFASTA_fromID(taxons_set)
 
-  downloaded_genome = DownloadFASTA_fromID(taxons_set)
 
   // we call the runGeneid_fetching module using the channel for the queries
-  predictions = geneid_WORKFLOW_single(downloaded_genome.genome, downloaded_genome.param_f)
+  predictions = geneid_WORKFLOW(genoom, paar)
 
 }
 

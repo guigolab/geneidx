@@ -36,8 +36,8 @@ process UncompressFASTA {
         echo "unzipping genome ${main_genome_file}.gz"
         gunzip -c ${main_genome_file}.gz > ${main_genome_file};
     fi
-    perl -i -lane 'if (/^>/) { (\$id, \$chr)=\$_=~/^>([\\w|.]+)[\\s\\w]+, [\\w]+: (\\w+)/; print ">".\$chr} else {print}' ${main_genome_file}
     """
+    // perl -i -lane 'if (/^>/) { (\$id, \$chr)=\$_=~/^>([\\w|.]+)[\\s\\w]+, [\\w]+: (\\w+)/; print ">".\$chr} else {print}' ${main_genome_file}
     // perl -i -lane 'if (/^>/) { ($id, $chr)=$_=~/^>([\w|.]+)[\s\w]+, chromosome: (\w+)/; print ">".$chr} else {print}' ${main_genome_file}
 }
 
@@ -157,10 +157,10 @@ workflow geneid_WORKFLOW {
     // index_filename.view()
 
     // we call the runGeneid_fetching module using the channel for the queries
-    predictions = runGeneid_fetching(genome_filename.first(), index_filename.first(), geneid_param.first(), ch)
+    // predictions = runGeneid_fetching(genome_filename.first(), index_filename.first(), geneid_param.first(), ch)
 
 
-    emit:
+    // emit:
     // index_filename
-    pred = predictions
+    // pred = predictions
 }
