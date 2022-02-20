@@ -3,7 +3,7 @@
 */
 
 // Parameter definitions
-// params.CONTAINER = "geneid_path"
+params.CONTAINER = "quay.io/guigolab/geneid:1.4.5"
 // params.OUTPUT = "geneid_output"
 // params.LABEL = ""
 
@@ -82,7 +82,7 @@ process runGeneid_fetching {
     publishDir(params.OUTPUT, pattern : '*.gff3')
 
     // indicates to use as container the value indicated in the parameter
-    // container params.CONTAINER
+    container params.CONTAINER
 
     // show in the log which input file is analysed
     // tag "${ref}"

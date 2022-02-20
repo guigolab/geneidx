@@ -3,7 +3,7 @@
 */
 
 // Parameter definitions
-// params.CONTAINER = "geneid_path"
+params.CONTAINER = "quay.io/guigolab/geneid:1.4.5"
 // params.OUTPUT = "geneid_output"
 // params.LABEL = ""
 
@@ -36,8 +36,8 @@ process UncompressFASTA {
         echo "unzipping genome ${main_genome_file}.gz"
         gunzip -c ${main_genome_file}.gz > ${main_genome_file};
     fi
-    perl -i -lane 'if (/^>/) { (\$id, \$chr)=\$_=~/^>([\\w|.]+)[\\s\\w]+, [\\w]+: (\\w+)/; print ">".\$chr} else {print}' ${main_genome_file}
     """
+    // perl -i -lane 'if (/^>/) { (\$id, \$chr)=\$_=~/^>([\\w|.]+)[\\s\\w]+, [\\w]+: (\\w+)/; print ">".\$chr} else {print}' ${main_genome_file}
     // perl -i -lane 'if (/^>/) { ($id, $chr)=$_=~/^>([\w|.]+)[\s\w]+, chromosome: (\w+)/; print ">".$chr} else {print}' ${main_genome_file}
 }
 
@@ -48,7 +48,7 @@ process runGeneid_single {
     publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff3')
 
     // indicates to use as container the value indicated in the parameter
-    // container params.CONTAINER
+    container params.CONTAINER
 
     // show in the log which input file is analysed
     // tag "${ref}"

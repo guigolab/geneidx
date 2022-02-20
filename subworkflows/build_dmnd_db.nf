@@ -3,9 +3,8 @@
 */
 
 // Parameter definitions
-// params.CONTAINER = "geneid_path"
-params.CONTAINER = "quay.io/biocontainers/bowtie:1.2.3--py37hc9558a2_0"
-// params.OUTPUT = "geneid_output"
+params.CONTAINER = "quay.io/biocontainers/diamond:2.0.14--hdcc8f71_0"
+params.OUTPUT = "protein_DBs"
 // params.LABEL = ""
 
 
@@ -44,46 +43,13 @@ process UncompressFASTA {
 
 
 
-// /*
-//  * Indexing if needed
-//  */
-//
-// process Index {
-//
-//     // where to store the results and in which way
-//     // publishDir(params.OUTPUT, pattern : '*.fa.i')
-//
-//     // // indicates to use as a container the value indicated in the parameter
-//     // container params.CONTAINER
-//
-//     // show in the log which input file is analysed
-//     tag "${main_genome_file}"
-//
-//     input:
-//     path main_genome_file
-//
-//     output:
-//     path ("${main_genome_file}.i")
-//
-//     script:
-//     """
-//     if [ ! -s  ${main_genome_file}.i ]; then
-//         echo "indexing genome ${main_genome_file}"
-//         fastaindex -f ${main_genome_file} -i ${main_genome_file}.i
-//     fi
-//     """
-//     // cut -d ' ' -f1 ${main_genome_file}.i >> ${main_genome_file}.list
-// }
-
-
-
 process runDIAMOND_makedb {
 
     // where to store the results and in which way
-    publishDir(params.OUTPUT, pattern : '*.gff3')
+    publishDir(params.OUTPUT, mode : 'copy', pattern : '*.dmnd')
 
     // indicates to use as container the value indicated in the parameter
-    // container params.CONTAINER
+    container params.CONTAINER
 
     // show in the log which input file is analysed
     // tag "${ref}"
@@ -102,7 +68,7 @@ process runDIAMOND_makedb {
     // we used this before when we were not cleaning the fasta identifiers
     // query_curated = query.toString().tokenize('|').get(1)
     """
-    diamond makedb --in ${reference_proteins_file} -d $prot_dbs/${main_proteins_name}
+    diamond makedb --in ${reference_proteins_file} -d ${main_proteins_name}
     rm ${reference_proteins_file}
     """
 }
@@ -119,22 +85,12 @@ workflow build_protein_DB {
     take:
     prot_file
 
-    // main part where we connect two modules, indexing and predicting
     main:
-
-
     // I SHOULD ADD A CONDITION HERE TO CHECK IF THE DMND FILE
     //    EXISTS IN THE CORRESPONDING FOLDER
 
     proteins_filename = UncompressFASTA(prot_file)
     // genome_filename.subscribe {  println "Got: $it"  }
-
-    // index_filename = Index(genome_filename)
-    // // index_filename.subscribe {  println "Got: $it"  }
-
-    // geneid_param.view()
-    // genome_filename.view()
-    // index_filename.view()
 
     // we call the runGeneid_fetching module using the channel for the queries
     protein_DB = runDIAMOND_makedb(proteins_filename)

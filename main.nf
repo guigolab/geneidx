@@ -50,7 +50,7 @@ if (params.help) {
 /*
  * Defining the output folders.
  */
-OutputFolder = "${params.output}/${params.ENA_project_name}"
+OutputFolder = "${params.output}"
 
 
 genoom = file(params.genome)
@@ -78,6 +78,11 @@ include { geneid_WORKFLOW } from "${subwork_folder}/geneid" addParams(OUTPUT: Ou
 // include { runGeneid_fetching } from "${subwork_folder}/geneid" addParams(OUTPUT: geneid_OutputFolder, LABEL:'twocpus')
 // include { concatenate_Outputs } from "${subwork_folder}/geneid_concatenate" addParams(OUTPUT: geneid_OutputFolder, LABEL:'twocpus')
 
+include { build_protein_DB } from "${subwork_folder}/build_dmnd_db" addParams(OUTPUT: OutputFolder, LABEL:'twocpus')
+include { alignGenome_Proteins } from "${subwork_folder}/runDMND_BLASTx" addParams(OUTPUT: OutputFolder, LABEL:'twocpus')
+
+
+
 
 /*
  * MAIN workflow definition.
@@ -87,10 +92,11 @@ workflow {
   // channel.from(params.ENA_project_name) | list_files_to_download | parse_json | flatten | set {taxons_set}
   //
   // downloaded_genome = DownloadFASTA_fromID(taxons_set)
+  protDB = build_protein_DB(proteins_file)
 
-
+  hsp_found = alignGenome_Proteins(protDB, genoom)
   // we call the runGeneid_fetching module using the channel for the queries
-  predictions = geneid_WORKFLOW(genoom, paar)
+  // predictions = geneid_WORKFLOW_single(genoom, paar)
 
 }
 
