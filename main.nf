@@ -32,11 +32,10 @@ params.help             = false
 log.info """
 GENEID+BLASTx - NextflowPipeline
 =============================================
-ENA_project_name    : ${params.ENA_project_name}
 output				: ${params.output}
 species				: ${params.species}
 genome				: ${params.genome}
-output				: ${params.output}
+prot_file			: ${params.prot_file}
 """
 
 // this prints the help in case you use --help parameter in the command line and it stops the pipeline
@@ -56,7 +55,7 @@ OutputFolder = "${params.output}"
 genoom = file(params.genome)
 paar = file(params.param_f)
 proteins_file = file(params.prot_file)
-
+// hsp_found = file(params.hsp_filee)
 
 
 /*
@@ -64,11 +63,11 @@ proteins_file = file(params.prot_file)
  */
 subwork_folder = "${projectDir}/subworkflows/"
 
-include { list_files_to_download } from "${subwork_folder}/files_to_download" addParams(OUTPUT: OutputFolder)
-include { parse_json } from "${subwork_folder}/files_to_download" addParams(OUTPUT: OutputFolder)
+// include { list_files_to_download } from "${subwork_folder}/files_to_download" addParams(OUTPUT: OutputFolder)
+// include { parse_json } from "${subwork_folder}/files_to_download" addParams(OUTPUT: OutputFolder)
 
 
-include { DownloadFASTA_fromID } from "${subwork_folder}/download_fasta" addParams(OUTPUT: OutputFolder)
+// include { DownloadFASTA_fromID } from "${subwork_folder}/download_fasta" addParams(OUTPUT: OutputFolder)
 
 // include { geneid_WORKFLOW_single } from "${subwork_folder}/geneid_single" addParams(OUTPUT: OutputFolder)
 
@@ -96,7 +95,8 @@ workflow {
 
   hsp_found = alignGenome_Proteins(protDB, genoom)
   // we call the runGeneid_fetching module using the channel for the queries
-  // predictions = geneid_WORKFLOW_single(genoom, paar)
+
+  predictions = geneid_WORKFLOW(genoom, paar, hsp_found)
 
 }
 

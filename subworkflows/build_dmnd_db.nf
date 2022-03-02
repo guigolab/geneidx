@@ -1,7 +1,3 @@
-/*
-*  Geneid module.
-*/
-
 // Parameter definitions
 params.CONTAINER = "quay.io/biocontainers/diamond:2.0.14--hdcc8f71_0"
 params.OUTPUT = "protein_DBs"

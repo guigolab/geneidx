@@ -1,26 +1,28 @@
 # Dockerfile for geneid
 #
-FROM debian:stretch AS builder
+FROM guigolab/geneid:1.4.5 as geneidbin
+FROM debian:stretch
 
-ARG GENEID_VER=1.4.5
+COPY --from=geneidbin /usr/local/bin/geneid /usr/local/bin/
 
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
-        curl \
-        ca-certificates \
-        build-essential \
-	exonerate
+    curl \
+    ca-certificates \
+    build-essential \
+    exonerate \
+    perl
 
-RUN curl -L https://github.com/guigolab/geneid/archive/v${GENEID_VER}.tar.gz | \
+RUN curl -L https://github.com/guigolab/blast2gff/archive/refs/heads/master.tar.gz | \
     tar xz && \
-    cd geneid-${GENEID_VER} && \
-    make BIN=/build
+    cd blast2gff-master && \
+    make && \
+    cp ./bin/blast2gff /usr/local/bin/
 
-FROM debian:stretch
+COPY ./sgp_getHSPSR.pl /usr/local/bin/
+RUN chmod +x /usr/local/bin/sgp_getHSPSR.pl
 
-LABEL author.name="Emilio Palumbo"
-LABEL author.email="emiliopalumbo@gmail.com"
-
-COPY --from=builder /build/geneid /usr/local/bin/
 
 ENTRYPOINT [ "/usr/local/bin/geneid" ]
+ENTRYPOINT [ "/usr/local/bin/blast2gff" ]
+ENTRYPOINT [ "/usr/local/bin/sgp_getHSPSR.pl" ]

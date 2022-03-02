@@ -3,7 +3,7 @@
 */
 
 // Parameter definitions
-params.CONTAINER = "quay.io/guigolab/geneid:1.4.5"
+params.CONTAINER = "ferriolcalvet/geneid-fetching"
 // params.OUTPUT = "geneid_output"
 // params.LABEL = ""
 
@@ -52,8 +52,9 @@ process Index {
     // where to store the results and in which way
     // publishDir(params.OUTPUT, pattern : '*.fa.i')
 
-    // // indicates to use as a container the value indicated in the parameter
-    // container params.CONTAINER
+    // indicates to use as a container the value indicated in the parameter
+    // container "quay.io/biocontainers/exonerate:2.4.0--h7c8e0dd_4"
+    container params.CONTAINER
 
     // show in the log which input file is analysed
     tag "${main_genome_file}"
@@ -94,6 +95,7 @@ process runGeneid_fetching {
     path(reference_genome_file)
     path(reference_genome_index)
     path(geneid_param)
+    path(protein_matches)
     val query
 
     output:
@@ -105,12 +107,62 @@ process runGeneid_fetching {
     // we used this before when we were not cleaning the fasta identifiers
     // query_curated = query.toString().tokenize('|').get(1)
     """
-    fastafetch -f ${reference_genome_file} -i ${reference_genome_index} -q \"${query}\" > ${main_genome_file}.${query_curated}
-    geneid -3P ${geneid_param} ${main_genome_file}.${query_curated} > ${main_genome_file}.${query_curated}.gff3
-    rm ${main_genome_file}.${query_curated}
+    # prepare sequence
+    fastafetch -f ${reference_genome_file} -i ${reference_genome_index} -q \"${query}\" > ${main_genome_file}.${query}
+
+    # prepare evidence
+    egrep -w \"^${query}\" ${protein_matches} > ${main_genome_file}.${query}.gff
+    blast2gff -vg ${main_genome_file}.${query}.gff > ${main_genome_file}.${query}.SR.gff
+    sgp_getHSPSR.pl \"${query}\" < ${main_genome_file}.${query}.SR.gff > ${main_genome_file}.${query}.HSP_SR.gff
+
+    rm ${main_genome_file}.${query}.gff
+    rm ${main_genome_file}.${query}.SR.gff
+
+    # run Geneid + protein evidence
+    geneid -3P ${geneid_param} -S ${main_genome_file}.${query}.HSP_SR.gff ${main_genome_file}.${query} \
+                | sed -e 's/geneid_v1.4/geneidblastx/g' | egrep 'CDS' | sort -k4,5n \
+                >> ${main_genome_file}.${query}.gff3
+
+    rm ${main_genome_file}.${query}.HSP_SR.gff
     """
+    // $projectDir/scripts/sgp_getHSPSR.pl \"${query}\" < ${main_genome_file}.${query}.SR.gff > ${main_genome_file}.${query}.HSP_SR.gff
 }
 
+
+process testBlast2gff {
+
+    // where to store the results and in which way
+    publishDir(params.OUTPUT, pattern : '*.gff')
+
+    // indicates to use as container the value indicated in the parameter
+    container params.CONTAINER
+
+    // show in the log which input file is analysed
+    // tag "${ref}"
+    tag "run blast2gff ${query}"
+
+    // MAYBE WE CAN ADD SOMETHING ABOUT THE TASK.CPUS HERE ??
+
+    input:
+    path(reference_genome_file)
+    path(reference_genome_index)
+    path(geneid_param)
+    path(protein_matches)
+    val query
+
+    output:
+    path ("${main_genome_file}*.gff")
+
+    script:
+    main_genome_file = reference_genome_file.BaseName
+    // we used this before when we were not cleaning the fasta identifiers
+    // query_curated = query.toString().tokenize('|').get(1)
+    """
+    # prepare evidence
+    egrep -w \"^${query}\" ${protein_matches} > ${main_genome_file}.${query}.gff
+    blast2gff -vg ${main_genome_file}.${query}.gff > ${main_genome_file}.${query}.SR.gff
+    """
+}
 
 
 /*
@@ -123,6 +175,7 @@ workflow geneid_WORKFLOW {
     take:
     ref_file
     geneid_param
+    hsp_file
 
     // main part where we connect two modules, indexing and predicting
     main:
@@ -144,12 +197,12 @@ workflow geneid_WORKFLOW {
     // ch -> 39 -> 40 -> mitochondrion
     // only process1 reads
     // ch -> mitochondrion
-    // process 2 finishes wiht the download
+    // process 2 finishes with the download
     // ch -> mitochondrion -> 33 -> W
     // process 1 and 2 read from here
 
-
-    ch.view()
+    //
+    // ch.view()
     ch.subscribe {  println "Got: $it"  }
 
     // geneid_param.view()
@@ -157,10 +210,19 @@ workflow geneid_WORKFLOW {
     // index_filename.view()
 
     // we call the runGeneid_fetching module using the channel for the queries
-    // predictions = runGeneid_fetching(genome_filename.first(), index_filename.first(), geneid_param.first(), ch)
+    // predictions = testBlast2gff(genome_filename,
+    //                             index_filename,
+    //                             geneid_param,
+    //                             hsp_file,
+    //                             ch)
+    predictions = runGeneid_fetching(genome_filename,
+                                      index_filename,
+                                      geneid_param,
+                                      hsp_file,
+                                      ch)
 
 
-    // emit:
+    emit:
     // index_filename
-    // pred = predictions
+    pred = predictions
 }
