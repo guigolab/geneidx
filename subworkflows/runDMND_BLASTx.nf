@@ -46,7 +46,7 @@ process UncompressFASTA {
 process runDIAMOND_getHSPs {
 
     // where to store the results and in which way
-    publishDir(params.OUTPUT, pattern : '*.out')
+    // publishDir(params.OUTPUT, pattern : '*.out')
 
     // indicates to use as container the value indicated in the parameter
     container params.CONTAINER
@@ -69,6 +69,7 @@ process runDIAMOND_getHSPs {
     main_genome_name = reference_genome_file.BaseName
     """
     fmt6_custom='6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qstrand qframe'
+    mkdir -p tmp;
     diamond blastx --db ${dmnd_database_file} \
                    --query ${reference_genome_file} \
                    --max-target-seqs 0 \
@@ -78,7 +79,10 @@ process runDIAMOND_getHSPs {
                    --block-size 0.01 \
                    --threads 4 \
                    --out ${main_genome_name}.${main_database_name}.hsp.out
+    rm ${reference_genome_file}
     """
+    // --tmpdir ./tmp/ \
+    // https://www.metagenomics.wiki/tools/blast/evalue
 }
 
 
@@ -128,9 +132,6 @@ workflow alignGenome_Proteins {
     //    EXISTS IN THE CORRESPONDING FOLDER
     genome_filename = UncompressFASTA(genome_file)
 
-    // index_filename = Index(genome_filename)
-    // // index_filename.subscribe {  println "Got: $it"  }
-
     // geneid_param.view()
     // genome_filename.view()
     // index_filename.view()
@@ -140,6 +141,6 @@ workflow alignGenome_Proteins {
     matchesGFF = matches_to_GFF(matches)
 
     emit:
-    // index_filename
     matchesGFF
+
 }

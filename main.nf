@@ -65,21 +65,19 @@ subwork_folder = "${projectDir}/subworkflows/"
 
 // include { list_files_to_download } from "${subwork_folder}/files_to_download" addParams(OUTPUT: OutputFolder)
 // include { parse_json } from "${subwork_folder}/files_to_download" addParams(OUTPUT: OutputFolder)
-
-
 // include { DownloadFASTA_fromID } from "${subwork_folder}/download_fasta" addParams(OUTPUT: OutputFolder)
-
-// include { geneid_WORKFLOW_single } from "${subwork_folder}/geneid_single" addParams(OUTPUT: OutputFolder)
-
-include { geneid_WORKFLOW } from "${subwork_folder}/geneid" addParams(OUTPUT: OutputFolder, LABEL:'twocpus')
-// include { UncompressFASTA } from "${subwork_folder}/geneid" addParams(OUTPUT: geneid_OutputFolder, LABEL:'twocpus')
-// include { Index } from "${subwork_folder}/geneid" addParams(OUTPUT: geneid_OutputFolder, LABEL:'twocpus')
-// include { runGeneid_fetching } from "${subwork_folder}/geneid" addParams(OUTPUT: geneid_OutputFolder, LABEL:'twocpus')
-// include { concatenate_Outputs } from "${subwork_folder}/geneid_concatenate" addParams(OUTPUT: geneid_OutputFolder, LABEL:'twocpus')
 
 include { build_protein_DB } from "${subwork_folder}/build_dmnd_db" addParams(OUTPUT: OutputFolder, LABEL:'twocpus')
 include { alignGenome_Proteins } from "${subwork_folder}/runDMND_BLASTx" addParams(OUTPUT: OutputFolder, LABEL:'twocpus')
 
+// include { geneid_WORKFLOW_single } from "${subwork_folder}/geneid_single" addParams(OUTPUT: OutputFolder)
+include { geneid_WORKFLOW } from "${subwork_folder}/geneid" addParams(OUTPUT: OutputFolder, LABEL:'twocpus')
+
+// include { UncompressFASTA } from "${subwork_folder}/geneid" addParams(OUTPUT: geneid_OutputFolder, LABEL:'twocpus')
+// include { Index } from "${subwork_folder}/geneid" addParams(OUTPUT: geneid_OutputFolder, LABEL:'twocpus')
+// include { runGeneid_fetching } from "${subwork_folder}/geneid" addParams(OUTPUT: geneid_OutputFolder, LABEL:'twocpus')
+
+include { concatenate_Outputs } from "${subwork_folder}/geneid_concatenate" addParams(OUTPUT: OutputFolder, LABEL:'twocpus')
 
 
 
@@ -89,7 +87,7 @@ include { alignGenome_Proteins } from "${subwork_folder}/runDMND_BLASTx" addPara
 workflow {
 
   // channel.from(params.ENA_project_name) | list_files_to_download | parse_json | flatten | set {taxons_set}
-  //
+
   // downloaded_genome = DownloadFASTA_fromID(taxons_set)
   protDB = build_protein_DB(proteins_file)
 
@@ -97,6 +95,20 @@ workflow {
   // we call the runGeneid_fetching module using the channel for the queries
 
   predictions = geneid_WORKFLOW(genoom, paar, hsp_found)
+
+
+  // prepare concatenation
+  main_database_name = proteins_file.BaseName.toString().replaceAll(".fa", "")
+  main_genome_name = genoom.BaseName.toString().replaceAll(".fa", "")
+
+  out_filename = "${main_genome_name}.${main_database_name}.gff3"
+  // println out_filename
+
+  output_file = file(OutputFolder + "/" + out_filename)
+
+  final_output = concatenate_Outputs(predictions, output_file)
+
+
 
 }
 

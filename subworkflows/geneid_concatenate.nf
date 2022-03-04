@@ -1,11 +1,7 @@
 process concatenate_Outputs {
-/*
-
-POTENTIAL PROBLEM, MUTLIPLE PROCESSES ACCESSING AND GENERATING THE SAME FILE
-
-*/
-
-
+    /*
+    POTENTIAL PROBLEM, MUTLIPLE PROCESSES ACCESSING AND GENERATING THE SAME FILE
+    */
 
     // where to store the results and in which way
     publishDir(params.OUTPUT, mode: "copy", pattern : "*.gff3")
@@ -20,20 +16,21 @@ POTENTIAL PROBLEM, MUTLIPLE PROCESSES ACCESSING AND GENERATING THE SAME FILE
 
     input:
     path (gffs_outputs)
-    val species_name
-    val assembly_name
-
+    path (output_file)
 
     output:
-    path ("${main_genome_file}.gff3")
+    path ("${output_file}")
 
     script:
-    main_genome_file = "${species_name}.${assembly_name}"
-    partial_filename = gffs_outputs.name
-    // location_files = params.OUTPUT
+    // main_genome_file = matches_file.BaseName.toString().replaceAll(".hsp", "")
+    // partial_filename = gffs_outputs.name
     // cat ${gffs_outputs} | grep -v '#' | sort -k1,1 >> ${main_genome_file}.gff3
     """
-    cat ${params.OUTPUT}/${main_genome_file}*.gff3 | grep -v '#' | sort -u | sort -k1,1 >> ${main_genome_file}.gff3
-    rm ${params.OUTPUT}/${partial_filename}
+    cat ${gffs_outputs} | grep -v '#' | sort -u | sort -k1,1 >> ${output_file}
+    rm ${gffs_outputs}
     """
+    // cat ${params.OUTPUT}/${main_genome_file}*.gff3 | grep -v '#' | sort -u | sort -k1,1 >> ${main_genome_file}.gff3
+    // rm ${params.OUTPUT}/${partial_filename}
+    // rm ${gffs_outputs}
+
 }
