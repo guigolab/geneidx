@@ -91,8 +91,8 @@ process matches_to_GFF {
     // where to store the results and in which way
     publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff')
 
-
-    container "quay.io/guigolab/geneid:1.4.5"
+    // default container already has awk
+    // container "quay.io/guigolab/geneid:1.4.5"
 
     // show in the log which input file is analysed
     // tag "${ref}"

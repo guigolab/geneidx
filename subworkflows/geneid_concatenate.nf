@@ -26,7 +26,7 @@ process concatenate_Outputs {
     // partial_filename = gffs_outputs.name
     // cat ${gffs_outputs} | grep -v '#' | sort -k1,1 >> ${main_genome_file}.gff3
     """
-    cat ${gffs_outputs} | grep -v '#' | sort -u | sort -k1,1 >> ${output_file}
+    cat ${gffs_outputs} | grep -v '#' | sort -u | sort -k1,1 -k4,5n >> ${output_file}
     rm ${gffs_outputs}
     """
     // cat ${params.OUTPUT}/${main_genome_file}*.gff3 | grep -v '#' | sort -u | sort -k1,1 >> ${main_genome_file}.gff3

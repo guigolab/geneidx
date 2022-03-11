@@ -11,7 +11,8 @@ RUN apt-get update && \
     ca-certificates \
     build-essential \
     exonerate \
-    perl
+    perl \
+    procps
 
 RUN curl -L https://github.com/guigolab/blast2gff/archive/refs/heads/master.tar.gz | \
     tar xz && \

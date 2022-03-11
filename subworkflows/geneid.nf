@@ -72,7 +72,8 @@ process Index {
 process runGeneid_fetching {
 
     // where to store the results and in which way
-    publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff3')
+    // publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff3')
+    publishDir(params.OUTPUT, pattern : '*.gff3')
 
     // indicates to use as container the value indicated in the parameter
     container params.CONTAINER
