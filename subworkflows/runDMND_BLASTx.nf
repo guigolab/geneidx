@@ -4,6 +4,7 @@
 
 // Parameter definitions
 params.CONTAINER = "quay.io/biocontainers/diamond:2.0.14--hdcc8f71_0"
+// params.CONTAINER = "quay.io/biocontainers/diamond:0.9.30--h56fc30b_0"
 // params.OUTPUT = "protein_DBs"
 // params.LABEL = ""
 
@@ -73,14 +74,14 @@ process runDIAMOND_getHSPs {
     diamond blastx --db ${dmnd_database_file} \
                    --query ${reference_genome_file} \
                    --max-target-seqs 0 \
-                   --max-hsps 0  \
                    --outfmt \$fmt6_custom \
                    --evalue 0.0001 \
-                   --block-size 0.01 \
+                   --block-size 2.0 \
                    --threads 4 \
                    --out ${main_genome_name}.${main_database_name}.hsp.out
     rm ${reference_genome_file}
     """
+                   // --max-hsps 0  \
     // --tmpdir ./tmp/ \
     // https://www.metagenomics.wiki/tools/blast/evalue
 }

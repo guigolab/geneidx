@@ -105,19 +105,42 @@ process runGeneid_fetching {
     fastafetch -f ${reference_genome_file} -i ${reference_genome_index} -q \"${query}\" > ${main_genome_file}.${query}
 
     # prepare evidence
-    egrep -w \"^${query}\" ${protein_matches} > ${main_output_file}.${query}.gff
-    blast2gff -vg ${main_output_file}.${query}.gff > ${main_output_file}.${query}.SR.gff
-    sgp_getHSPSR.pl \"${query}\" < ${main_output_file}.${query}.SR.gff > ${main_output_file}.${query}.HSP_SR.gff
+    egrep -w \"^${query}\" ${protein_matches} > ${main_output_file}.${query}.hsp.gff
 
-    rm ${main_output_file}.${query}.gff
-    rm ${main_output_file}.${query}.SR.gff
+    # check if the evidence file is empty
+    if [ ! -s ${main_output_file}.${query}.hsp.gff ];  then
+        echo "Run Geneid alone";
 
-    # run Geneid + protein evidence
-    geneid -3P ${geneid_param} -S ${main_output_file}.${query}.HSP_SR.gff ${main_genome_file}.${query} \
-                | sed -e 's/geneid_v1.4/geneidblastx/g' | egrep 'CDS' | sort -k4,5n \
-                >> ${main_output_file}.${query}.gff3
+        # run Geneid alone
+        geneid -3P ${geneid_param} ${main_genome_file}.${query} \
+                    | sed -e 's/geneid_v1.4/geneidblastx/g' | egrep 'CDS' | sort -k4,5n \
+                    >> ${main_output_file}.${query}.gff3
 
-    rm ${main_output_file}.${query}.HSP_SR.gff
+    else
+        echo "Run Geneid with protein evidence";
+
+        blast2gff -vg ${main_output_file}.${query}.hsp.gff > ${main_output_file}.${query}.SR.gff
+        sgp_getHSPSR.pl \"${query}\" < ${main_output_file}.${query}.SR.gff > ${main_output_file}.${query}.HSP_SR.gff
+
+        # run Geneid + protein evidence
+        geneid -3P ${geneid_param} -S ${main_output_file}.${query}.HSP_SR.gff ${main_genome_file}.${query} \
+                    | sed -e 's/geneid_v1.4/geneidblastx/g' | egrep 'CDS' | sort -k4,5n \
+                    >> ${main_output_file}.${query}.gff3
+
+        rm ${main_output_file}.${query}.SR.gff
+        rm ${main_output_file}.${query}.HSP_SR.gff
+
+    fi
+
+
+    ## check if the output file is empty, if so, fill it with a comment
+    #if [ ! -s ${main_output_file}.${query}.gff3 ];  then
+    #    echo "# empty file" >> ${main_output_file}.${query}.gff3;
+    #fi
+
+
+    rm ${main_output_file}.${query}.hsp.gff
+    rm ${main_output_file}.${query}
     """
     // $projectDir/scripts/sgp_getHSPSR.pl \"${query}\" < ${main_genome_file}.${query}.SR.gff > ${main_genome_file}.${query}.HSP_SR.gff
 }
