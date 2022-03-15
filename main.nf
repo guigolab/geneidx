@@ -33,15 +33,15 @@ log.info """
 GENEID+BLASTx - NextflowPipeline
 =============================================
 output				: ${params.output}
-species				: ${params.species}
 genome				: ${params.genome}
 prot_file			: ${params.prot_file}
+param_file		: ${params.param_f}
 """
 
 // this prints the help in case you use --help parameter in the command line and it stops the pipeline
 if (params.help) {
-    log.info 'This is Geneid\'s test pipeline in Nextflow'
-    log.info 'Please define the ENA PROJECT ID and output!\n'
+    log.info 'This is the Geneid+BLASTx test pipeline in Nextflow'
+    log.info 'Please define the genome file, the protein file,\n\t\tthe parameter file and the output!\n'
     log.info '\n'
     exit 1
 }
@@ -51,11 +51,9 @@ if (params.help) {
  */
 OutputFolder = "${params.output}"
 
-
 genoom = file(params.genome)
 paar = file(params.param_f)
 proteins_file = file(params.prot_file)
-// hsp_found = file(params.hsp_filee)
 
 
 /*
@@ -63,21 +61,18 @@ proteins_file = file(params.prot_file)
  */
 subwork_folder = "${projectDir}/subworkflows/"
 
-// include { list_files_to_download } from "${subwork_folder}/files_to_download" addParams(OUTPUT: OutputFolder)
-// include { parse_json } from "${subwork_folder}/files_to_download" addParams(OUTPUT: OutputFolder)
-// include { DownloadFASTA_fromID } from "${subwork_folder}/download_fasta" addParams(OUTPUT: OutputFolder)
 
-include { build_protein_DB } from "${subwork_folder}/build_dmnd_db" addParams(OUTPUT: OutputFolder, LABEL:'twocpus')
-include { alignGenome_Proteins } from "${subwork_folder}/runDMND_BLASTx" addParams(OUTPUT: OutputFolder, LABEL:'twocpus')
+include { build_protein_DB } from "${subwork_folder}/build_dmnd_db" addParams(OUTPUT: OutputFolder,
+  LABEL:'fourcpus')
 
-// include { geneid_WORKFLOW_single } from "${subwork_folder}/geneid_single" addParams(OUTPUT: OutputFolder)
-include { geneid_WORKFLOW } from "${subwork_folder}/geneid" addParams(OUTPUT: OutputFolder, LABEL:'twocpus')
+include { alignGenome_Proteins } from "${subwork_folder}/runDMND_BLASTx" addParams(OUTPUT: OutputFolder,
+  LABEL:'fourcpus')
 
-// include { UncompressFASTA } from "${subwork_folder}/geneid" addParams(OUTPUT: geneid_OutputFolder, LABEL:'twocpus')
-// include { Index } from "${subwork_folder}/geneid" addParams(OUTPUT: geneid_OutputFolder, LABEL:'twocpus')
-// include { runGeneid_fetching } from "${subwork_folder}/geneid" addParams(OUTPUT: geneid_OutputFolder, LABEL:'twocpus')
+include { geneid_WORKFLOW } from "${subwork_folder}/geneid" addParams(OUTPUT: OutputFolder,
+  LABEL:'singlecpu')
 
-include { concatenate_Outputs } from "${subwork_folder}/geneid_concatenate" addParams(OUTPUT: OutputFolder, LABEL:'twocpus')
+include { concatenate_Outputs } from "${subwork_folder}/geneid_concatenate" addParams(OUTPUT: OutputFolder,
+  LABEL:'singlecpu')
 
 
 
@@ -86,29 +81,27 @@ include { concatenate_Outputs } from "${subwork_folder}/geneid_concatenate" addP
  */
 workflow {
 
-  // channel.from(params.ENA_project_name) | list_files_to_download | parse_json | flatten | set {taxons_set}
-
-  // downloaded_genome = DownloadFASTA_fromID(taxons_set)
+  // Build protein database for DIAMOND
   protDB = build_protein_DB(proteins_file)
 
+  // Run DIAMOND to find matches between genome and proteins
   hsp_found = alignGenome_Proteins(protDB, genoom)
-  // we call the runGeneid_fetching module using the channel for the queries
 
+  // Run Geneid
   predictions = geneid_WORKFLOW(genoom, paar, hsp_found)
 
-
-  // prepare concatenation
+  // Prepare concatenation
   main_database_name = proteins_file.BaseName.toString().replaceAll(".fa", "")
   main_genome_name = genoom.BaseName.toString().replaceAll(".fa", "")
 
+  // This is the name of the final GFF3 file
   out_filename = "${main_genome_name}.${main_database_name}.gff3"
-  // println out_filename
 
+  // Create the path to the file
   output_file = file(OutputFolder + "/" + out_filename)
 
+  // Run concatenation of individual GFF3 files
   final_output = concatenate_Outputs(predictions, output_file)
-
-
 
 }
 

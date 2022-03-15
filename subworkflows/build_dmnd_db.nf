@@ -1,8 +1,5 @@
 // Parameter definitions
 params.CONTAINER = "quay.io/biocontainers/diamond:2.0.14--hdcc8f71_0"
-params.OUTPUT = "protein_DBs"
-// params.LABEL = ""
-
 
 /*
  * Uncompressing if needed
@@ -44,14 +41,15 @@ process runDIAMOND_makedb {
     // where to store the results and in which way
     publishDir(params.OUTPUT, mode : 'copy', pattern : '*.dmnd')
 
+    // indicates to use as a label the value indicated in the parameter
+    label (params.LABEL)
+
     // indicates to use as container the value indicated in the parameter
     container params.CONTAINER
 
     // show in the log which input file is analysed
     // tag "${ref}"
     tag "building ${main_proteins_name} database"
-
-    // MAYBE WE CAN ADD SOMETHING ABOUT THE TASK.CPUS HERE ??
 
     input:
     path(reference_proteins_file)
@@ -64,8 +62,10 @@ process runDIAMOND_makedb {
     // we used this before when we were not cleaning the fasta identifiers
     // query_curated = query.toString().tokenize('|').get(1)
     """
-    diamond makedb --in ${reference_proteins_file} -d ${main_proteins_name}
-    rm ${reference_proteins_file}
+    if [ ! -s ${params.OUTPUT}/${main_proteins_name}.dmnd ]; then
+        diamond makedb --in ${reference_proteins_file} -d ${main_proteins_name};
+    fi
+    rm ${reference_proteins_file};
     """
 }
 
@@ -76,23 +76,14 @@ process runDIAMOND_makedb {
  */
 
 workflow build_protein_DB {
-
-    // definition of input
     take:
     prot_file
 
     main:
-    // I SHOULD ADD A CONDITION HERE TO CHECK IF THE DMND FILE
-    //    EXISTS IN THE CORRESPONDING FOLDER
-
     proteins_filename = UncompressFASTA(prot_file)
-    // genome_filename.subscribe {  println "Got: $it"  }
 
-    // we call the runGeneid_fetching module using the channel for the queries
     protein_DB = runDIAMOND_makedb(proteins_filename)
 
-
     emit:
-    // index_filename
     protein_DB
 }

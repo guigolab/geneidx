@@ -19,6 +19,9 @@ process UncompressFASTA {
     // show in the log which input file is analysed
     tag "${ref_to_index}"
 
+    // indicates to use as a label the value indicated in the parameter
+    label (params.LABEL)
+
     input:
     file (ref_to_index)
 
@@ -49,6 +52,9 @@ process Index {
     // indicates to use as a container the value indicated in the parameter
     container params.CONTAINER
 
+    // indicates to use as a label the value indicated in the parameter
+    label (params.LABEL)
+
     // show in the log which input file is analysed
     tag "${main_genome_file}"
 
@@ -73,7 +79,10 @@ process runGeneid_fetching {
 
     // where to store the results and in which way
     // publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff3')
-    publishDir(params.OUTPUT, pattern : '*.gff3')
+    // publishDir(params.OUTPUT, pattern : '*.gff3')
+
+    // indicates to use as a label the value indicated in the parameter
+    label (params.LABEL)
 
     // indicates to use as container the value indicated in the parameter
     container params.CONTAINER
@@ -132,15 +141,8 @@ process runGeneid_fetching {
 
     fi
 
-
-    ## check if the output file is empty, if so, fill it with a comment
-    #if [ ! -s ${main_output_file}.${query}.gff3 ];  then
-    #    echo "# empty file" >> ${main_output_file}.${query}.gff3;
-    #fi
-
-
     rm ${main_output_file}.${query}.hsp.gff
-    rm ${main_output_file}.${query}
+    rm ${main_genome_file}.${query}
     """
     // $projectDir/scripts/sgp_getHSPSR.pl \"${query}\" < ${main_genome_file}.${query}.SR.gff > ${main_genome_file}.${query}.HSP_SR.gff
 }
@@ -177,7 +179,6 @@ workflow geneid_WORKFLOW {
     // ch.view()
     // ch.subscribe {  println "Got: $it"  }
 
-    // geneid_param.view()
     // genome_filename.view()
     // index_filename.view()
 
@@ -190,5 +191,5 @@ workflow geneid_WORKFLOW {
 
 
     emit:
-    pred = predictions
+    predictions
 }

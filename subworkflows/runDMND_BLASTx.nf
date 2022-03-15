@@ -52,10 +52,11 @@ process runDIAMOND_getHSPs {
     // indicates to use as container the value indicated in the parameter
     container params.CONTAINER
 
-    // show in the log which input file is analysed
-    // tag "${ref}"
-    tag "${main_genome_name} against ${main_database_name}"
+    // indicates to use as a label the value indicated in the parameter
+    label (params.LABEL)
 
+    // show in the log which input file is analysed
+    tag "${main_genome_name} against ${main_database_name}"
 
     input:
     path(dmnd_database_file)
@@ -63,14 +64,12 @@ process runDIAMOND_getHSPs {
 
     output:
     path ("${main_genome_name}.${main_database_name}.hsp.out")
-    // ${genome}.${proteins_DB}.blastx.out
 
     script:
     main_database_name = dmnd_database_file.BaseName
     main_genome_name = reference_genome_file.BaseName
     """
     fmt6_custom='6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qstrand qframe'
-    mkdir -p tmp;
     diamond blastx --db ${dmnd_database_file} \
                    --query ${reference_genome_file} \
                    --max-target-seqs 0 \
@@ -82,6 +81,7 @@ process runDIAMOND_getHSPs {
     rm ${reference_genome_file}
     """
                    // --max-hsps 0  \
+    // mkdir -p tmp;
     // --tmpdir ./tmp/ \
     // https://www.metagenomics.wiki/tools/blast/evalue
 }
@@ -95,8 +95,6 @@ process matches_to_GFF {
     // default container already has awk
     // container "quay.io/guigolab/geneid:1.4.5"
 
-    // show in the log which input file is analysed
-    // tag "${ref}"
     tag "building ${main_matches_name} database"
 
 
@@ -126,16 +124,13 @@ workflow alignGenome_Proteins {
     prot_DB_file
     genome_file
 
-    // main part where we connect two modules, indexing and predicting
     main:
 
     // I SHOULD ADD A CONDITION HERE TO CHECK IF THE DMND FILE
     //    EXISTS IN THE CORRESPONDING FOLDER
     genome_filename = UncompressFASTA(genome_file)
 
-    // geneid_param.view()
     // genome_filename.view()
-    // index_filename.view()
 
     // we call the runGeneid_fetching module using the channel for the queries
     matches = runDIAMOND_getHSPs(prot_DB_file, genome_filename)
