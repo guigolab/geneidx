@@ -95,13 +95,15 @@ workflow {
   main_genome_name = genoom.BaseName.toString().replaceAll(".fa", "")
 
   // This is the name of the final GFF3 file
-  out_filename = "${main_genome_name}.${main_database_name}.gff3"
+  out_filename = "${main_genome_name}.-.${main_database_name}.gff3"
 
   // Create the path to the file
   output_file = file(OutputFolder + "/" + out_filename)
 
   // Run concatenation of individual GFF3 files
   final_output = concatenate_Outputs(predictions, output_file)
+
+  // add header
 
 }
 
