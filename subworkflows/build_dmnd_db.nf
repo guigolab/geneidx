@@ -63,7 +63,11 @@ process runDIAMOND_makedb {
     // query_curated = query.toString().tokenize('|').get(1)
     """
     if [ ! -s ${params.OUTPUT}/${main_proteins_name}.dmnd ]; then
+        echo "Building ${main_proteins_name}.dmnd database"
         diamond makedb --in ${reference_proteins_file} -d ${main_proteins_name};
+    else
+        echo "${main_proteins_name}.dmnd database already built"
+        ln -s ${params.OUTPUT}/${main_proteins_name}.dmnd ${main_proteins_name}.dmnd;
     fi
     rm ${reference_proteins_file};
     """
