@@ -78,7 +78,6 @@ process Index {
 process runGeneid_fetching {
 
     // where to store the results and in which way
-    // publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff3')
     // publishDir(params.OUTPUT, pattern : '*.gff3')
 
     // indicates to use as a label the value indicated in the parameter
@@ -90,8 +89,6 @@ process runGeneid_fetching {
     // show in the log which input file is analysed
     // tag "${ref}"
     tag "run Geneid ${query}"
-
-    // MAYBE WE CAN ADD SOMETHING ABOUT THE TASK.CPUS HERE ??
 
     input:
     path(reference_genome_file)
@@ -118,30 +115,25 @@ process runGeneid_fetching {
 
     # check if the evidence file is empty
     if [ ! -s ${main_output_file}.${query}.hsp.gff ];  then
-        echo "Run Geneid alone";
-
-        # run Geneid alone
-        geneid -3P ${geneid_param} ${main_genome_file}.${query} \
-                    | sed -e 's/geneid_v1.4/geneidblastx/g' | egrep 'CDS' | sort -k4,5n \
-                    >> ${main_output_file}.${query}.gff3
-
+        echo "No protein evidence";
     else
-        echo "Run Geneid with protein evidence";
-
-        blast2gff -vg ${main_output_file}.${query}.hsp.gff > ${main_output_file}.${query}.SR.gff
-        sgp_getHSPSR.pl \"${query}\" < ${main_output_file}.${query}.SR.gff > ${main_output_file}.${query}.HSP_SR.gff
-
-        # run Geneid + protein evidence
-        geneid -3P ${geneid_param} -S ${main_output_file}.${query}.HSP_SR.gff ${main_genome_file}.${query} \
-                    | sed -e 's/geneid_v1.4/geneidblastx/g' | egrep 'CDS' | sort -k4,5n \
-                    >> ${main_output_file}.${query}.gff3
-
-        rm ${main_output_file}.${query}.SR.gff
-        rm ${main_output_file}.${query}.HSP_SR.gff
-
+        echo "Great, there is protein evidence";
     fi
 
+    blast2gff -vg ${main_output_file}.${query}.hsp.gff > ${main_output_file}.${query}.SR.gff
+    sgp_getHSPSR.pl \"${query}\" < ${main_output_file}.${query}.SR.gff > ${main_output_file}.${query}.HSP_SR.gff
+
     rm ${main_output_file}.${query}.hsp.gff
+    rm ${main_output_file}.${query}.SR.gff
+
+    # run Geneid + protein evidence
+    geneid -3P ${geneid_param} -S ${main_output_file}.${query}.HSP_SR.gff ${main_genome_file}.${query} \
+                | sed -e 's/geneid_v1.4/geneidblastx/g' | egrep 'CDS' | sort -k4,5n \
+                >> ${main_output_file}.${query}.gff3
+
+
+    rm ${main_output_file}.${query}.HSP_SR.gff
+
     rm ${main_genome_file}.${query}
     """
     // $projectDir/scripts/sgp_getHSPSR.pl \"${query}\" < ${main_genome_file}.${query}.SR.gff > ${main_genome_file}.${query}.HSP_SR.gff

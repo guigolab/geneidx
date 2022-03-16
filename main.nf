@@ -87,6 +87,12 @@ workflow {
   // Run DIAMOND to find matches between genome and proteins
   hsp_found = alignGenome_Proteins(protDB, genoom)
 
+  // **TO DO**
+  // Evaluate matches and ORFs in matches
+  // First to get an idea of how good/bad we are getting those regions
+  //    later on we will generate a parameter file and use that file
+  //    for running Geneid
+
   // Run Geneid
   predictions = geneid_WORKFLOW(genoom, paar, hsp_found)
 

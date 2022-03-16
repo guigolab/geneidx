@@ -1,10 +1,14 @@
-# Geneid in Nextflow
+# Geneid+BLASTx in Nextflow
 
-Using the [Nexflow tutorial for the Elixir workflow workshop](https://nextflow-io.github.io/elixir-workshop-21/docs/) taking place on November 2021, as an initial template, we are integrating Geneid into Nextflow so that it can be run easily in parallel.
+Using the [Nexflow tutorial for the Elixir workflow workshop](https://nextflow-io.github.io/elixir-workshop-21/docs/) taking place on November 2021, as an initial template, we are integrating Geneid+BLASTx into Nextflow so that it can be run easily with almost no requirements.
 
 
 ## Schema
-1. Make sure docker or singularity and Nextflow are installed in your computer.
+1. **Make sure ( Docker or Singularity ) and Nextflow are installed in your computer.**
+  - [Docker](https://docs.docker.com/engine/install/)
+  - [Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html#)
+  - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
+
 2. **Receive the FASTA file, the parameter file and the set of proteins to use as a reference as input in the params.config file.**
 3. **Uncompress the FASTA file (keeping the compressed file).**
 
@@ -19,17 +23,19 @@ This is done in parallel for each independent sequence inside the genome FASTA f
   - Remove the files from the internal steps.
 8. **Concatenate all the outputs into a single GFF3 file that is sorted by coordinates and without the lines starting with #.**
 
-This is the schema of the process, but we should also take care of:
-- Making it suitable for running in the cluster.
-- Choosing the number of CPUs and the memory.
-
 DETAILS:
 - **The name of the sequences in the FASTA file cannot contain unusual characters.**
+- **The input genome file must be a gzip-compressed FASTA file.**
+
+
+DOING:
+-  Optimizing the memory and CPU requirements for it to run smoothly on the cluster.
 
 
 PENDING:
-- Define accurate memory limits (dynamic or static based on genome sizes?).
+- Define accurate memory limits (dynamic based on genome sizes?).
 - Tune DIAMOND parameters to make the most of the resources available and to adapt to the capacity of each computer.
 - **Choose the parameter file appropriately:**
 	- **Have a dictionary of taxid2parameter file.**
 	- **Using the taxid of the species to annotate, identify the closest parameter file.**
+- **Auto-train the parameter file.**
