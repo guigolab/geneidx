@@ -61,6 +61,7 @@ proteins_file = file(params.prot_file)
  */
 subwork_folder = "${projectDir}/subworkflows/"
 
+include { UncompressFASTA } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolder)
 
 include { build_protein_DB } from "${subwork_folder}/build_dmnd_db" addParams(OUTPUT: OutputFolder,
   LABEL:'fourcpus')
@@ -83,6 +84,11 @@ workflow {
 
   // Build protein database for DIAMOND
   protDB = build_protein_DB(proteins_file)
+
+  // Uncompress FASTA file in here so that I can provide it
+  //    uncompressed to the downstream modules
+  // uncompressed_genome = UncompressFASTA(genoom)
+
 
   // Run DIAMOND to find matches between genome and proteins
   hsp_found = alignGenome_Proteins(protDB, genoom)

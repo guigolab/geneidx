@@ -127,14 +127,21 @@ workflow alignGenome_Proteins {
 
     main:
 
-    // I SHOULD ADD A CONDITION HERE TO CHECK IF THE DMND FILE
-    //    EXISTS IN THE CORRESPONDING FOLDER
+    /*
+    * Compressed file as input
+    */
     genome_filename = UncompressFASTA(genome_file)
 
-    // genome_filename.view()
-
-    // we call the runGeneid_fetching module using the channel for the queries
     matches = runDIAMOND_getHSPs(prot_DB_file, genome_filename)
+
+
+    /*
+    * Uncompressed file as input
+
+    matches = runDIAMOND_getHSPs(prot_DB_file, genome_file)
+    */
+
+    // Merge the BLASTx matches with each other
     matchesGFF = matches_to_GFF(matches)
 
     emit:
