@@ -15,6 +15,11 @@ params.CONTAINER = "ferriolcalvet/training-modules"
 /*
  * Merge the DIAMOND BLASTx matches and correct the scores
  * also change format to GFF3
+ THIS COULD BE EASILY PARALLELIZABLE BUT I AM NOT SURE
+ WHAT IS THE BEST WAY TO DO IT IN NEXTFLOW
+
+ Requirement: blast2gff docker
+
  */
 process mergeMatches {
 
@@ -38,12 +43,26 @@ process mergeMatches {
     main_genome_file = gff3_file.BaseName
 
     """
-    blast2gff -vg ${main_output_file}.hsp.gff > ${main_output_file}.SR.gff
+    # get the sequences that have matches
+    cut -f1 ${main_output_file}.hsp.gff | sort -u > ${main_output_file}.hsp.seqs
 
-    // change format from GFF to GFF3
-    grep -v '#' ${main_output_file}.SR.gff | \
-                awk '{\$3="CDS";print \$0,"ID="NR";Parent="NR";"}' | \
-                sed -e 's/ /\t/g' > ${main_output_file}.hsp.gff3
+    # iterate the sequences with matches, running blast2gff for each of them
+    while read seq; do
+        var=\$(echo "^\$seq")
+        egrep -w \$var ${main_output_file}.hsp.gff > \${seq}.gff
+        blast2gff -vg \${seq}.gff >> ${main_output_file}.hsp.SR.gff
+        rm \${seq}.gff
+    #    break
+    done < ${main_output_file}.hsp.seqs;
+
+    # remove the header rows of all files
+    grep -v '#' ${main_output_file}.hsp.SR.gff > ${main_output_file}.hsp.SR.gff.tmp;
+    mv ${main_output_file}.hsp.SR.gff.tmp ${main_output_file}.hsp.SR.gff;
+
+    # change from GFF to GFF3 making each line a different "transcript"
+    grep -v '#' ${main_output_file}.hsp.SR.gff | \
+            awk '{\$3="CDS";print \$0,"ID="NR";Parent="NR";"}' | \
+            sed -e 's/ /\t/g' > ${main_output_file}.hsp.gff3
     """
 }
 
@@ -54,7 +73,6 @@ process mergeMatches {
 process filter_by_score {
 
     // // indicates to use as a container the value indicated in the parameter
-    // build the docker container with blast2gff alone
     // container params.CONTAINER
 
     // show in the log which input file is analysed
@@ -83,6 +101,10 @@ process filter_by_score {
 /*
  * Evaluate against a reference GFF3
  * Provide as output a TSV with the stats?
+
+  Requirement: gffcompare docker
+
+  ideally I could add some command to parse the output and get SNn and SPn
  */
 process evaluateGFF3 {
 
@@ -99,7 +121,7 @@ process evaluateGFF3 {
     path (main_genome_file)
 
     output:
-    path ("${main_genome_file}.fai")
+    stdout // not sure this is correct
 
     script:
     """
@@ -108,12 +130,18 @@ process evaluateGFF3 {
     rm ${query_GFF3}.out.annotated.gtf
     rm ${query_GFF3}.out.combined.gtf
     rm ${query_GFF3}.out.tracking
+    metricsN=\$(grep 'Base level' ${query_GFF3}.out.stats | tr -s ' ' '\t' | cut -f 4,6)
+    SNn=\$(echo "\$metricsN" | cut -f1)
+    SPn=\$(echo "\$metricsN" | cut -f2)
+    printf "\$SNn\t\$SPn\n";
     """
 }
 
 
 /*
  * Uncompressing if needed
+ This could be used for uncompressing the genome
+ from which we want to get the sequence
  */
 process UncompressFASTA {
 
@@ -131,7 +159,6 @@ process UncompressFASTA {
 
     script:
     main_genome_file = ref_to_index.BaseName
-
     """
     if [ ! -s  ${main_genome_file} ]; then
         echo "unzipping genome ${main_genome_file}.gz"
@@ -140,41 +167,14 @@ process UncompressFASTA {
     """
 }
 
-/*
- * Get sequence of transcripts from GFF3 file
- */
-process getFASTA {
-
-    // // indicates to use as a container the value indicated in the parameter
-    // container params.CONTAINER
-
-    // show in the log which input file is analysed
-    tag "${gff3_file}"
-
-    // indicates to use as a label the value indicated in the parameter
-    label (params.LABEL)
-
-    input:
-    path (gff3_file)
-    path (ref_genome)
-    path (ref_genome_index)
-
-    output:
-    path ("${main_gff3_file}.fa")
-
-    script:
-    main_gff3_file = gff3_file.BaseName
-    """
-    gffread -x ${main_gff3_file}.fa -g ${ref_genome} ${gff3_file};
-    """
-}
-
-
 
 /*
  * Indexing if needed
  */
 process Index {
+
+    // copy output file
+    // publishDir
 
     // indicates to use as a container the value indicated in the parameter
     container params.CONTAINER
@@ -204,6 +204,45 @@ process Index {
 
 
 /*
+ * Get sequence of transcripts from GFF3 file
+ Requirements: gffread
+ the container must have gffread
+
+ it would also be interesting to have a .fai index
+ so that the query process can be faster
+ */
+process getFASTA {
+
+    // // indicates to use as a container the value indicated in the parameter
+    // container params.CONTAINER
+
+    // show in the log which input file is analysed
+    tag "${gff3_file}"
+
+    // indicates to use as a label the value indicated in the parameter
+    label (params.LABEL)
+
+    input:
+    path (gff3_file)
+    path (ref_genome)
+    path (ref_genome_index)
+
+    output:
+    path ("${main_gff3_file}.fa")
+
+    script:
+    main_gff3_file = gff3_file.BaseName
+    """
+    gffread -x ${main_gff3_file}.fa -g ${ref_genome} ${gff3_file};
+    """
+}
+
+
+
+
+
+
+/*
  * Find ORFs
  */
 process ORF_finder {
@@ -222,7 +261,7 @@ process ORF_finder {
     val min_orf_len
 
     output:
-    path ("${main_genome_file}.fai")
+    path ("${seqs_file}_longest.bed")
 
     script:
     """
@@ -230,6 +269,7 @@ process ORF_finder {
                         --min ${min_orf_len} --between-stops
                         --outdir .
     rm ${seqs_file}.bed
+
     # remove log also
     ls -l *.log | head -1 | xargs -n 1 rm
     """
@@ -237,6 +277,13 @@ process ORF_finder {
 
 /*
  * ORFs relative coordinates to absolute
+
+ Requirement:
+ python modules for the script to run
+ sys, pandas
+
+ and have the python script in the container also
+ see docker with "sgp_getHSPSR.pl" file for an example on how to do it.
  */
 process updateGFFcoords {
 
@@ -259,8 +306,9 @@ process updateGFFcoords {
     script:
     original_gff3_basename = original_gff3.BaseName
     """
-    # change relative to absolute coordinates
-    python python_script ${relative_coords_file} ${original_gff3} ${original_gff3_basename}.ORFs.gff3
+    python ORFcoords_rel2absolute.py ${relative_coords_file} \
+                                      ${original_gff3} \
+                                      ${original_gff3_basename}.ORFs.gff3
     """
 }
 
@@ -279,7 +327,7 @@ process trainHexFreq {
 
     // show in the log which input file is analysed
     // tag "${ref}"
-    tag "run Geneid ${query}"
+    tag "compute Markov 5 order"
 
     input:
     path(seq_file)
@@ -288,43 +336,9 @@ process trainHexFreq {
     path ("${main_genome_file}.*.gff3")
 
     script:
-    main_genome_file = reference_genome_file.BaseName
-    main_output_file = protein_matches.BaseName.toString().replaceAll(".hsp", "")
+    main_genome_file = seq_file.BaseName
     """
-    #!/bin/bash
-
-    ##########################
-    # Building coding statistic (Markov model order 5)
-    #Generating the initial and transition matrices
-    # without stop codon
-    #################
-    #markov5
-    ##################
-
-    gawk '{print \$1,substr(\$2,1,length(\$2)-3)}' all.cds_filter1.tbl | gawk -f MarkovMatrices.awk 5 set1.cds
-
-    sort +1 -2  -o set1.cds.5.initial set1.cds.5.initial
-    sort +1 -2  -o set1.cds.5.transition set1.cds.5.transition
-
-    gawk -f MarkovMatrices-noframe.awk 5  set1.intron all.intron_filter1.tbl
-
-    sort -o set1.intron.5.initial set1.intron.5.initial
-    sort -o  set1.intron.5.transition set1.intron.5.transition
-
-
-    ##  Compute log-likelihood exon matrices, assuming intron
-    ##  matrices describing background probabilities
-
-    gawk -f pro2log_ini.awk set1.intron.5.initial set1.cds.5.initial \
-      >  set1.cds-intron.5.initial
-    gawk -f pro2log_tran.awk set1.intron.5.transition set1.cds.5.transition \
-      >  set1.cds-intron.5.transition
-
-    gawk 'BEGIN {p=-1}{if (((NR+2) % 3)==0) p+=1; print \$2,p,\$1,\$3}' \
-      set1.cds-intron.5.initial > set1.cds-intron.5.initial.geneid
-    gawk 'BEGIN {p=-1}{if (((NR+2) % 3)==0) p+=1; print \$2,p,\$1,\$4}' \
-      set1.cds-intron.5.transition > set1.cds-intron.5.transition.geneid
-
+    # template in computeMarkov5_coding.sh
     """
     // https://genome.crg.es/software/geneid/training.html
 }
@@ -351,16 +365,18 @@ process updateParamFile {
     path(geneid_param)
 
     output:
-    path ("${main_genome_file}.*.gff3")
+    path ("${species}.self_training.param")
 
     script:
     main_genome_file = reference_genome_file.BaseName
     main_output_file = protein_matches.BaseName.toString().replaceAll(".hsp", "")
-    query_curated = query
     // we used this before when we were not cleaning the fasta identifiers
     // query_curated = query.toString().tokenize('|').get(1)
     """
-    blast2gff -vg ${main_output_file}.${query}.hsp.gff > ${main_output_file}.${query}.SR.gff
+    cat ${first_part_param_file} \
+            ${coding_matrix} \
+            ${intron_matrix} \
+            ${second_part_param_file} > ${specific_param_file};
     """
     // $projectDir/scripts/sgp_getHSPSR.pl \"${query}\" < ${main_genome_file}.${query}.SR.gff > ${main_genome_file}.${query}.HSP_SR.gff
 }
