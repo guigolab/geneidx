@@ -139,7 +139,7 @@ process runDIAMOND_getHSPs_GFF {
     main_database_name = dmnd_database_file.BaseName
     main_genome_name = reference_genome_file.BaseName
     """
-    if [ ! -s ${params.OUTPUT}/${main_genome_name}.${main_database_name}.hsp.gff]; then
+    if [ ! -s ${params.OUTPUT}/${main_genome_name}.${main_database_name}.hsp.gff ]; then
         echo "Running matches ${main_genome_name}.${main_database_name}"
         fmt6_custom='6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qstrand qframe'
         diamond blastx --db ${dmnd_database_file} \
@@ -201,7 +201,7 @@ workflow alignGenome_Proteins {
 
     // directly generate the GFF file
     //  it also checks if the GFF file is already present in the output
-    matches_GFF = runDIAMOND_getHSPs_GFF(prot_DB_file, genome_filename)
+    matchesGFF = runDIAMOND_getHSPs_GFF(prot_DB_file, genome_filename)
 
     emit:
     matchesGFF

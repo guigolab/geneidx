@@ -330,15 +330,17 @@ process trainHexFreq {
     tag "compute Markov 5 order"
 
     input:
-    path(seq_file)
+    path(cds_seq_file)
+    path(intron_seq_file)
 
     output:
-    path ("${main_genome_file}.*.gff3")
+    path ("${main_genome_file}.matrices")
 
     script:
-    main_genome_file = seq_file.BaseName
+    main_genome_file = cds_seq_file.BaseName
     """
     # template in computeMarkov5_coding.sh
+    # until having the two matrices in the same file
     """
     // https://genome.crg.es/software/geneid/training.html
 }
@@ -365,8 +367,8 @@ process updateParamFile {
     path(geneid_param)
 
     output:
-    path ("${species}.self_training.param")
-
+    path ("${specific_param_file}")
+    
     script:
     main_genome_file = reference_genome_file.BaseName
     main_output_file = protein_matches.BaseName.toString().replaceAll(".hsp", "")
@@ -374,8 +376,7 @@ process updateParamFile {
     // query_curated = query.toString().tokenize('|').get(1)
     """
     cat ${first_part_param_file} \
-            ${coding_matrix} \
-            ${intron_matrix} \
+            ${hex_freq_file} \
             ${second_part_param_file} > ${specific_param_file};
     """
     // $projectDir/scripts/sgp_getHSPSR.pl \"${query}\" < ${main_genome_file}.${query}.SR.gff > ${main_genome_file}.${query}.HSP_SR.gff
@@ -410,6 +411,30 @@ workflow matchAssessment {
 
 
     // get matches from previous steps
+
+
+
+    sort -k1,1 -k4,5n -k9,9 ${main_genome_name}.${main_database_name}.hsp.gff | \
+              awk '!found[$1"\t"$2"\t"$3"\t"$4]++' | \
+              awk '!found[$1"\t"$2"\t"$3"\t"$5]++' > ${main_genome_name}.${main_database_name}.hsp.summarized_matches.gff
+
+    awk 'OFS="\t"{print $1, $4-40, $5+40, $9$7}' \
+                ${main_genome_name}.${main_database_name}.hsp.summarized_matches.gff | \
+                sort -k1,1 -k4,4 -k2,2n > ${main_genome_name}.${main_database_name}.hsp.summarized_matches.gff.resorted
+
+    python compute_introns.py ${main_genome_name}.${main_database_name}.hsp.summarized_matches.gff.resorted \
+                              ${main_genome_name}.${main_database_name}.hsp.summarized_matches.gff.introns \
+                              10000
+
+    awk '!found[$1"\t"$2"\t"$3"\t"$4"\t"$5]++' ${main_genome_name}.${main_database_name}.hsp.summarized_matches.gff.introns | \
+                 sort -k1,1 -k4,5n > ${main_genome_name}.${main_database_name}.hsp.summarized_matches.gff.introns.non_redundant
+
+    bedtools intersect -a ${main_genome_name}.${main_database_name}.hsp.summarized_matches.gff.introns.non_redundant \
+                       -b ${main_genome_name}.${main_database_name}.hsp.gff \
+                       -v > ${main_genome_name}.${main_database_name}.hsp.summarized_matches.gff.introns.non_redundant.non_overlapping_matches
+
+
+
 
     // pass matches through blast2gff
     // change format from gff to GFF3

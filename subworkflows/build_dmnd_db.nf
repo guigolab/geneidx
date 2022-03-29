@@ -1,5 +1,6 @@
 // Parameter definitions
-params.CONTAINER = "quay.io/biocontainers/diamond:2.0.14--hdcc8f71_0"
+// params.CONTAINER = "quay.io/biocontainers/diamond:2.0.14--hdcc8f71_0"
+params.CONTAINER = "quay.io/biocontainers/diamond:0.9.30--h56fc30b_0"
 
 /*
  * Uncompressing if needed

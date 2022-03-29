@@ -99,6 +99,11 @@ workflow {
   //    later on we will generate a parameter file and use that file
   //    for running Geneid
 
+  // Automatic computation of the parameter file
+  // new_param = matchAssessment(genoom, paar, hsp_found)
+
+
+
   // Run Geneid
   predictions = geneid_WORKFLOW(genoom, paar, hsp_found)
 
