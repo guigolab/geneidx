@@ -9,70 +9,17 @@ params.CONTAINER = "ferriolcalvet/geneid-fetching"
 
 
 /*
- * Uncompressing if needed
+ * Defining the output folders.
  */
-process UncompressFASTA {
-
-    // // indicates to use as a container the value indicated in the parameter
-    // container params.CONTAINER
-
-    // show in the log which input file is analysed
-    tag "${ref_to_index}"
-
-    // indicates to use as a label the value indicated in the parameter
-    label (params.LABEL)
-
-    input:
-    file (ref_to_index)
-
-    output:
-    path ("${main_genome_file}")
-
-    script:
-    main_genome_file = ref_to_index.BaseName
-
-    """
-    if [ ! -s  ${main_genome_file} ]; then
-        echo "unzipping genome ${main_genome_file}.gz"
-        gunzip -c ${main_genome_file}.gz > ${main_genome_file};
-    fi
-    """
-    // perl -i -lane 'if (/^>/) { (\$id, \$chr)=\$_=~/^>([\\w|.]+)[\\s\\w]+, [\\w]+: (\\w+)/; print ">".\$chr} else {print}' ${main_genome_file}
-    // perl -i -lane 'if (/^>/) { ($id, $chr)=$_=~/^>([\w|.]+)[\s\w]+, chromosome: (\w+)/; print ">".$chr} else {print}' ${main_genome_file}
-}
-
-
+OutputFolder = "${params.output}"
 
 /*
- * Indexing if needed
+ * Defining the module / subworkflow path, and include the elements
  */
+subwork_folder = "${projectDir}/subworkflows/"
 
-process Index {
-
-    // indicates to use as a container the value indicated in the parameter
-    container params.CONTAINER
-
-    // indicates to use as a label the value indicated in the parameter
-    label (params.LABEL)
-
-    // show in the log which input file is analysed
-    tag "${main_genome_file}"
-
-    input:
-    path main_genome_file
-
-    output:
-    path ("${main_genome_file}.i")
-
-    script:
-    """
-    if [ ! -s  ${main_genome_file}.i ]; then
-        echo "indexing genome ${main_genome_file}"
-        fastaindex -f ${main_genome_file} -i ${main_genome_file}.i
-    fi
-    """
-}
-
+include { UncompressFASTA } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolder)
+include { Index_i } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolder)
 
 
 process runGeneid_fetching {
@@ -155,13 +102,13 @@ workflow geneid_WORKFLOW {
 
     main:
 
-    genome_filename = UncompressFASTA(ref_file)
+    // genome_filename = UncompressFASTA(ref_file)
     // genome_filename.subscribe {  println "Got: $it"  }
 
-    index_filename = Index(genome_filename)
+    index_filename = Index_i(ref_file)
     // index_filename.subscribe {  println "Got: $it"  }
 
-    genome_filename.splitFasta( record: [id: true] )
+    ref_file.splitFasta( record: [id: true] )
                    // .subscribe {  println "Got: $it"  }
                    .map{x -> x.toString().tokenize(':]').get(1)}
                    .set{ch}
@@ -175,7 +122,7 @@ workflow geneid_WORKFLOW {
     // index_filename.view()
 
     // we call the runGeneid_fetching module using the channel for the queries
-    predictions = runGeneid_fetching(genome_filename,
+    predictions = runGeneid_fetching(ref_file,
                                       index_filename,
                                       geneid_param,
                                       hsp_file,

@@ -63,6 +63,7 @@ process runDIAMOND_makedb {
     // we used this before when we were not cleaning the fasta identifiers
     // query_curated = query.toString().tokenize('|').get(1)
     """
+    echo "${params.OUTPUT}/${main_proteins_name}.dmnd"
     if [ ! -s ${params.OUTPUT}/${main_proteins_name}.dmnd ]; then
         echo "Building ${main_proteins_name}.dmnd database"
         diamond makedb --in ${reference_proteins_file} -d ${main_proteins_name};

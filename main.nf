@@ -82,16 +82,18 @@ include { concatenate_Outputs } from "${subwork_folder}/geneid_concatenate" addP
  */
 workflow {
 
+  // Uncompress FASTA file in here so that I can provide it
+  //    uncompressed to the downstream modules
+  uncompressed_genome = UncompressFASTA(genoom)
+
+
+
   // Build protein database for DIAMOND
   protDB = build_protein_DB(proteins_file)
 
-  // Uncompress FASTA file in here so that I can provide it
-  //    uncompressed to the downstream modules
-  // uncompressed_genome = UncompressFASTA(genoom)
-
 
   // Run DIAMOND to find matches between genome and proteins
-  hsp_found = alignGenome_Proteins(protDB, genoom)
+  hsp_found = alignGenome_Proteins(protDB, uncompressed_genome)
 
   // **TO DO**
   // Evaluate matches and ORFs in matches
@@ -105,7 +107,7 @@ workflow {
 
 
   // Run Geneid
-  predictions = geneid_WORKFLOW(genoom, paar, hsp_found)
+  predictions = geneid_WORKFLOW(uncompressed_genome, paar, hsp_found)
 
   // Prepare concatenation
   main_database_name = proteins_file.BaseName.toString().replaceAll(".fa", "")

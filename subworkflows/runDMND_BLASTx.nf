@@ -9,39 +9,19 @@ params.CONTAINER = "quay.io/biocontainers/diamond:0.9.30--h56fc30b_0"
 // params.LABEL = ""
 
 
+
 /*
- * Uncompressing if needed
+ * Defining the output folders.
  */
-process UncompressFASTA {
+OutputFolder = "${params.output}"
 
-    // where to store the results and in which way
-    // publishDir(params.OUTPUT, pattern : '*.fa')
 
-    // // indicates to use as a container the value indicated in the parameter
-    // container params.CONTAINER
+/*
+ * Defining the module / subworkflow path, and include the elements
+ */
+subwork_folder = "${projectDir}/subworkflows/"
 
-    // show in the log which input file is analysed
-    tag "${ref_to_index}"
-
-    input:
-    file (ref_to_index)
-
-    output:
-    path ("${main_genome_file}")
-
-    script:
-    main_genome_file = ref_to_index.BaseName
-
-    """
-    if [ ! -s  ${main_genome_file} ]; then
-        echo "unzipping genome ${main_genome_file}.gz"
-        gunzip -c ${main_genome_file}.gz > ${main_genome_file};
-    fi
-    """
-    // perl -i -lane 'if (/^>/) { (\$id, \$chr)=\$_=~/^>([\\w|.]+)[\\s\\w]+, [\\w]+: (\\w+)/; print ">".\$chr} else {print}' ${main_genome_file}
-    // perl -i -lane 'if (/^>/) { ($id, $chr)=$_=~/^>([\w|.]+)[\s\w]+, chromosome: (\w+)/; print ">".$chr} else {print}' ${main_genome_file}
-}
-
+include { UncompressFASTA } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolder)
 
 
 process runDIAMOND_getHSPs {
@@ -187,7 +167,7 @@ workflow alignGenome_Proteins {
     /*
     * Compressed file as input
     */
-    genome_filename = UncompressFASTA(genome_file)
+    // genome_filename = UncompressFASTA(genome_file)
     /*
     matches = runDIAMOND_getHSPs(prot_DB_file, genome_filename)
     matchesGFF = matches_to_GFF(matches)
@@ -201,7 +181,8 @@ workflow alignGenome_Proteins {
 
     // directly generate the GFF file
     //  it also checks if the GFF file is already present in the output
-    matchesGFF = runDIAMOND_getHSPs_GFF(prot_DB_file, genome_filename)
+    // matchesGFF = runDIAMOND_getHSPs_GFF(prot_DB_file, genome_filename)
+    matchesGFF = runDIAMOND_getHSPs_GFF(prot_DB_file, genome_file)
 
     emit:
     matchesGFF
