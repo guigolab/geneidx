@@ -1,0 +1,89 @@
+# geneid parameter file: human, 1 isochores
+# Comment lines must start with '#'
+
+# Non-homology -0.35
+NO_SCORE
+-0.40
+
+# Number of isochores
+number_of_isochores
+1
+
+# PARAMETERS FROM THE SINGLE ISOCHORE
+
+# %GC
+boundaries_of_isochore
+0  100
+
+# Exons score: cutoffs
+Absolute_cutoff_exons
+-15 -15 -15 -15
+
+Coding_cutoff_oligos
+-10 -15 -15 -15
+
+# Exon score: factors
+Site_factor
+1.51483 1.51483 1.51483 1.51483
+
+Exon_factor
+1.37056 1.37056 1.37056 1.37056
+
+HSP_factor
+0.19 0.19 0.19 0.19
+
+Exon_weights
+-11 -12 -12 -12
+
+# Site prediction: Position Weight Arrays
+# Lenght, Offset, Cutoff and order (Markov model)
+
+$start
+
+$acceptor
+
+$donor
+
+$stop
+
+
+# Exon prediction: Markov model
+# Initial probabilities at every codon position
+Markov_oligo_logs_file
+5
+$initial_probability_matrix
+
+
+
+# Transition probabilities at every codon position
+$transition_probability_matrix
+
+
+# Donors per acceptor to build exons
+maximum_number_of_donors_per_acceptor_site
+5
+
+
+# GENE MODEL: Rules about gene assembling (GenAmic)
+General_Gene_Model
+# INTRAgenic connections
+First+:Internal+                Internal+:Terminal+             20:40000 block
+Terminal-:Internal-             First-:Internal-                20:40000 blockr
+First+                          Intron+                         1:1 block
+Internal+                       Intron+                         1:1 block
+Intron+                         Internal+                       1:1 block
+Intron+                         Terminal+                       1:1 block
+Intron-                         First-                          1:1 block
+Intron-                         Internal-                       1:1 block
+Internal-                       Intron-                         1:1 block
+Terminal-                       Intron-                         1:1 block
+# External features
+Promoter+                       First+:Single+                  50:4000
+Terminal+:Single+               aataaa+                         50:4000
+First-:Single-                  Promoter-                       50:4000
+aataaa-                         Single-:Terminal-               50:4000
+# INTERgenic conections
+aataaa+:Terminal+:Single+       Single+:First+:Promoter+        500:Infinity
+aataaa+:Terminal+:Single+       Single-:Terminal-:aataaa-       500:Infinity
+Promoter-:First-:Single-        Single+:First+:Promoter+        500:Infinity
+Promoter-:First-:Single-        Single-:Terminal-:aataaa-       500:Infinity

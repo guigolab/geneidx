@@ -3,7 +3,7 @@
 */
 
 // Parameter definitions
-params.CONTAINER = "ferriolcalvet/training-modules"
+params.CONTAINER = "ferriolcalvet/training-geneid-params"
 // params.OUTPUT = "geneid_output"
 // params.LABEL = ""
 
@@ -25,175 +25,165 @@ include { intron_workflow } from "${subwork_folder}/introns_estimates" addParams
 include { cds_workflow } from "${subwork_folder}/CDS_estimates" addParams(OUTPUT: OutputFolder)
 
 
-//
-//
-// /*
-//  * Get the initial and transition probability matrices of the CDS
-//  */
-// process getCDS_matrices {
-//
-//     // indicates to use as a container the value indicated in the parameter
-//     container "custom_container"
-//
-//     // MarkovMatrices.awk // see how can I include this file
-//     // FastaToTbl
-//
-//     // indicates to use as a label the value indicated in the parameter
-//     label (params.LABEL)
-//
-//     // show in the log which input file is analysed
-//     tag "${introns_name}"
-//
-//     input:
-//     path (cds)
-//
-//     output:
-//     path ("${cds_name}.5.initial")
-//     path ("${cds_name}.5.transition")
-//
-//     script:
-//     cds_name = cds.BaseName
-//     """
-//     FastaToTbl ${cds} > ${cds_name}.tbl
-//
-//     gawk '{print \$1,substr(\$2,1,length(\$2)-3)}' ${cds_name}.tbl | \
-//                     gawk -f MarkovMatrices.awk 5 ${cds_name}
-//
-//     sort +1 -2  -o ${cds_name}.5.initial ${cds_name}.5.initial
-//     sort +1 -2  -o ${cds_name}.5.transition ${cds_name}.5.transition
-//
-//     rm ${cds_name}.tbl
-//     """
-// }
-//
-//
-//
-//
-//
-// /*
-//  * Get the initial and transition probability matrices of the introns
-//  */
-// process getIntron_matrices {
-//
-//     // indicates to use as a container the value indicated in the parameter
-//     container "custom_container"
-//
-//     // MarkovMatrices.awk // see how can I include this file
-//     // FastaToTbl
-//
-//     // indicates to use as a label the value indicated in the parameter
-//     label (params.LABEL)
-//
-//     // show in the log which input file is analysed
-//     tag "${introns_name}"
-//
-//     input:
-//     path (introns)
-//
-//     output:
-//     path ("${introns_name}.5.initial")
-//     path ("${introns_name}.5.transition")
-//
-//     script:
-//     introns_name = introns.BaseName
-//     """
-//     FastaToTbl ${introns} > ${introns_name}.tbl
-//
-//     gawk -f MarkovMatrices-noframe.awk 5 ${introns_name} ${introns_name}.tbl
-//
-//     sort +1 -2  -o ${introns_name}.5.initial ${introns_name}.5.initial
-//     sort +1 -2  -o ${introns_name}.5.transition ${introns_name}.5.transition
-//
-//     rm ${introns_name}.tbl
-//     """
-// }
-//
-//
-//
-//
-// /*
-//  * Get the initial probability matrices of the introns
-//  */
-// process CombineIni {
-//
-//     // indicates to use as a container the value indicated in the parameter
-//     container "custom_container"
-//
-//     // MarkovMatrices.awk // see how can I include this file
-//     // FastaToTbl
-//
-//     // indicates to use as a label the value indicated in the parameter
-//     label (params.LABEL)
-//
-//     // show in the log which input file is analysed
-//     tag "${introns_name}"
-//
-//     input:
-//     path (cds_mats_ini)
-//     path (intron_mats_ini)
-//
-//     output:
-//     path ("${cds_name}.cds-intron.5.initial.geneid")
-//
-//     script:
-//     cds_name = cds_mats_ini.BaseName
-//     """
-//     ##  Compute log-likelihood exon matrices, assuming intron
-//     ##  matrices describing background probabilities
-//
-//     gawk -f pro2log_ini.awk ${intron_mats_ini} ${cds_mats_ini} \
-//           >  ${cds_name}.cds-intron.5.initial
-//
-//     gawk 'BEGIN {p=-1}{if (((NR+2) % 3)==0) p+=1; print \$2,p,\$1,\$3}' \
-//       ${cds_name}.cds-intron.5.initial > ${cds_name}.cds-intron.5.initial.geneid
-//
-//     """
-// }
-//
-//
-//
-//
-// /*
-//  * Get the transition probability matrices of the introns
-//  */
-// process CombineTrans {
-//
-//     // indicates to use as a container the value indicated in the parameter
-//     container "custom_container"
-//
-//     // MarkovMatrices.awk // see how can I include this file
-//     // FastaToTbl
-//
-//     // indicates to use as a label the value indicated in the parameter
-//     label (params.LABEL)
-//
-//     // show in the log which input file is analysed
-//     tag "${introns_name}"
-//
-//     input:
-//     path (cds_mats_trans)
-//     path (intron_mats_trans)
-//
-//     output:
-//     path ("${cds_name}.cds-intron.5.transition.geneid")
-//
-//     script:
-//     cds_name = cds_mats_trans.BaseName
-//     """
-//     ##  Compute log-likelihood exon matrices, assuming intron
-//     ##  matrices describing background probabilities
-//
-//     gawk -f pro2log_tran.awk ${intron_mats_trans} ${cds_mats_trans} \
-//           >  ${cds_name}.cds-intron.5.transition
-//
-//     gawk 'BEGIN {p=-1}{if (((NR+2) % 3)==0) p+=1; print \$2,p,\$1,\$4}' \
-//       ${cds_name}.cds-intron.5.transition > ${cds_name}.cds-intron.5.transition.geneid
-//     """
-// }
-//
-//
-//
-//
+
+
+/*
+ * Get the initial and transition probability matrices of the CDS
+ */
+process getCDS_matrices {
+
+    // indicates to use as a container the value indicated in the parameter
+    container params.CONTAINER
+
+    // indicates to use as a label the value indicated in the parameter
+    label (params.LABEL)
+
+    // show in the log which input file is analysed
+    tag "${cds_name}"
+
+    input:
+    path (cds)
+
+    output:
+    path ("${cds_name}.5.initial"), emit: initial
+    path ("${cds_name}.5.transition"), emit: transition
+
+    script:
+    cds_name = cds.BaseName
+    """
+    FastaToTbl ${cds} > ${cds_name}.tbl
+
+    gawk '{print \$1,substr(\$2,1,length(\$2)-3)}' ${cds_name}.tbl | \
+                    gawk -f /scripts/MarkovMatrices.awk 5 ${cds_name}
+
+    sort +1 -2  -o ${cds_name}.5.initial ${cds_name}.5.initial
+    sort +1 -2  -o ${cds_name}.5.transition ${cds_name}.5.transition
+
+    rm ${cds_name}.tbl
+    """
+}
+
+
+
+
+
+/*
+ * Get the initial and transition probability matrices of the introns
+ */
+process getIntron_matrices {
+
+    // indicates to use as a container the value indicated in the parameter
+    container params.CONTAINER
+
+    // indicates to use as a label the value indicated in the parameter
+    label (params.LABEL)
+
+    // show in the log which input file is analysed
+    tag "${introns_name}"
+
+    input:
+    path (introns)
+
+    output:
+    path ("${introns_name}.5.initial"), emit: initial
+    path ("${introns_name}.5.transition"), emit: transition
+
+    script:
+    introns_name = introns.BaseName
+    """
+    FastaToTbl ${introns} > ${introns_name}.tbl
+
+    gawk -f /scripts/MarkovMatrices-noframe.awk 5 ${introns_name} ${introns_name}.tbl
+
+    sort +1 -2  -o ${introns_name}.5.initial ${introns_name}.5.initial
+    sort +1 -2  -o ${introns_name}.5.transition ${introns_name}.5.transition
+
+    rm ${introns_name}.tbl
+    """
+}
+
+
+
+
+/*
+ * Get the initial probability matrices of the introns
+ */
+process CombineIni {
+
+    // indicates to use as a container the value indicated in the parameter
+    container params.CONTAINER
+
+    // indicates to use as a label the value indicated in the parameter
+    label (params.LABEL)
+
+    // show in the log which input file is analysed
+    tag "${cds_name}"
+
+    input:
+    path (cds_mats_ini)
+    path (intron_mats_ini)
+
+    output:
+    path ("${cds_name}.cds-intron.5.initial.geneid")
+
+    script:
+    cds_name = cds_mats_ini.BaseName
+    """
+    ##  Compute log-likelihood exon matrices, assuming intron
+    ##  matrices describing background probabilities
+
+    gawk -f /scripts/pro2log_ini.awk ${intron_mats_ini} ${cds_mats_ini} \
+          >  ${cds_name}.cds-intron.5.initial
+
+    gawk 'BEGIN {p=-1}{if (((NR+2) % 3)==0) p+=1; print \$2,p,\$1,\$3}' \
+      ${cds_name}.cds-intron.5.initial > ${cds_name}.cds-intron.5.initial.geneid
+
+    sed -i '1 i\\Markov_Initial_probability_matrix' ${cds_name}.cds-intron.5.initial.geneid
+    """
+}
+
+
+
+
+/*
+ * Get the transition probability matrices of the introns
+ */
+process CombineTrans {
+
+    // indicates to use as a container the value indicated in the parameter
+    container params.CONTAINER
+
+    // indicates to use as a label the value indicated in the parameter
+    label (params.LABEL)
+
+    // show in the log which input file is analysed
+    tag "${cds_name}"
+
+    input:
+    path (cds_mats_trans)
+    path (intron_mats_trans)
+
+    output:
+    path ("${cds_name}.cds-intron.5.transition.geneid")
+
+    script:
+    cds_name = cds_mats_trans.BaseName
+    """
+    ##  Compute log-likelihood exon matrices, assuming intron
+    ##  matrices describing background probabilities
+
+    gawk -f /scripts/pro2log_tran.awk ${intron_mats_trans} ${cds_mats_trans} \
+          >  ${cds_name}.cds-intron.5.transition
+
+    gawk 'BEGIN {p=-1}{if (((NR+2) % 3)==0) p+=1; print \$2,p,\$1,\$4}' \
+      ${cds_name}.cds-intron.5.transition > ${cds_name}.cds-intron.5.transition.geneid
+
+    sed -i '1 i\\Markov_Transition_probability_matrix' ${cds_name}.cds-intron.5.transition.geneid
+    """
+}
+
+
+
 // /*
 //  * Update an empty parameter file
 //  */
@@ -239,19 +229,22 @@ workflow matchAssessment {
 
     main:
 
-    // // requirements:
-    // dependencies of the Geneid training part
+    // requirements:
     ref_file_ind = Index_fai(ref_file)
 
     cds_seq = cds_workflow(ref_file, ref_file_ind, hsp_file)
-    // cds_mats_ini, cds_mats_trans = getCDS_matrices(cds_seq)
-    //
-    // introns_seq = intron_workflow(ref_file, ref_file_ind, hsp_file)
-    // intron_mats_ini, intron_mats_trans = getIntron_matrices(introns_seq)
-    //
-    //
-    // combine_matrices_ini = CombineIni(cds_mats_ini, intron_mats_ini)
-    // combine_matrices_trans = CombineTrans(cds_mats_trans, intron_mats_trans)
+    cds_mats = getCDS_matrices(cds_seq)
+    cds_mats_ini = cds_mats.initial
+    cds_mats_trans = cds_mats.transition
+
+    introns_seq = intron_workflow(ref_file, ref_file_ind, hsp_file)
+    intron_mats = getIntron_matrices(introns_seq)
+    intron_mats_ini = intron_mats.initial
+    intron_mats_trans = intron_mats.transition
+
+    combine_matrices_ini = CombineIni(cds_mats_ini, intron_mats_ini)
+    combine_matrices_trans = CombineTrans(cds_mats_trans, intron_mats_trans)
+
     //
     // /*  WE NEED TO DEFINE THIS VARIABLE  */
     // // empty_param
@@ -269,5 +262,5 @@ workflow matchAssessment {
 
     emit:
     // new_param
-    cds_seq
+    introns_seq
 }

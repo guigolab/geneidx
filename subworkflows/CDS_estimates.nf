@@ -213,7 +213,7 @@ process updateGFFcoords {
     label (params.LABEL)
 
     // show in the log which input file is analysed
-    tag "${main_genome_file}"
+    tag "${original_gff3}"
 
     input:
     path (original_gff3)
@@ -275,16 +275,7 @@ workflow cds_workflow {
 
     main:
 
-    // // requirements:
-    // gffcompare only for version 0.11 I am using version 0.12.6 in the cluster, maybe create a new container
-    // gffread quay.io/biocontainers/gffread:0.12.7--hd03093a_1
-    // python + modules pandas and some others
-    // orfipy  quay.io/biocontainers/orfipy:0.0.4--py38h4a32c8e_1
-    // (samtools)
-    // dependencies of the Geneid training part
-
-
-    // pass matches through blast2gff
+    // pass matches through blast2gff &
     // change format from gff to GFF3
     original_HSP_gff3 = mergeMatches(hsp_file)
 
@@ -296,24 +287,17 @@ workflow cds_workflow {
     // metrics1 = evaluateGFF3(filtered_HSPs_gff3, reference_gff3)
 
     // use gffread for obtaining the sequences of the matches
-    // if the genome has an index next to it gffread goes much faster
-    // samtools faidx genome.fa
-    // reference_genome_unc = UncompressFASTA(reference_genome)
-    // reference_genome_ind = Index(reference_genome_unc)
-
     matches_seqs = getFASTA(filtered_HSPs_gff3, ref_file, ref_file_ind)
 
-
     // use orfipy for obtaining the longest ORFs of each match
-    // use python script for computing the absolute coordinates
     minORF = 100
     hsp_rel_ORFs_coords = ORF_finder(matches_seqs, minORF)
 
+    // use python script for computing the absolute coordinates
     hsp_abs_ORFs_coords = updateGFFcoords(original_HSP_gff3, hsp_rel_ORFs_coords)
 
     // evaluate the newly generated GFF3
     // metrics2 = evaluateGFF3(hspORFs_coords, reference_gff3)
-
 
     // get the sequences of the ORFs using gffread again
     hspORFs_seqs = getFASTA2(hsp_abs_ORFs_coords, ref_file, ref_file_ind)
@@ -321,74 +305,4 @@ workflow cds_workflow {
     emit:
     hspORFs_seqs
 
-}
-
-
-/*
- * Use gffread to get the sequence of the introns
- */
-process getIntrons_sequence {
-
-    // indicates to use as a container the value indicated in the parameter
-    container "quay.io/biocontainers/gffread:0.12.7--hd03093a_1"
-
-    // indicates to use as a label the value indicated in the parameter
-    label (params.LABEL)
-
-    // show in the log which input file is analysed
-    tag "${introns_name}"
-
-    input:
-    path (ref_file)
-    path (introns)
-
-    output:
-    path ("${introns_name}.fa")
-
-    script:
-    main_genome_name = ref_file.BaseName
-    introns_name = introns.BaseName
-    """
-    gffread -x ${introns_name}.fa -g ${ref_file} ${introns}
-    """
-}
-
-
-
-/*
- * Get the initial and transition probability matrices of the introns
- */
-process getIntron_matrices {
-
-    // indicates to use as a container the value indicated in the parameter
-    container "custom_container"
-
-    // MarkovMatrices.awk // see how can I include this file
-    // FastaToTbl
-
-    // indicates to use as a label the value indicated in the parameter
-    label (params.LABEL)
-
-    // show in the log which input file is analysed
-    tag "${introns_name}"
-
-    input:
-    path (introns)
-
-    output:
-    path ("${introns_name}.5.initial")
-    path ("${introns_name}.5.transition")
-
-    script:
-    introns_name = introns.BaseName
-    """
-    FastaToTbl ${introns} > ${introns_name}.tbl
-
-    gawk -f MarkovMatrices-noframe.awk 5 ${introns_name} ${introns_name}.tbl
-
-    sort +1 -2  -o ${introns_name}.5.initial ${introns_name}.5.initial
-    sort +1 -2  -o ${introns_name}.5.transition ${introns_name}.5.transition
-
-    rm ${introns_name}.tbl
-    """
 }
