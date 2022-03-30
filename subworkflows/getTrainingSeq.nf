@@ -183,38 +183,6 @@ process CombineTrans {
 }
 
 
-
-// /*
-//  * Update an empty parameter file
-//  */
-// process updateParamFile {
-//
-//     // // indicates to use as a container the value indicated in the parameter
-//     // container params.CONTAINER
-//
-//     // indicates to use as a label the value indicated in the parameter
-//     label (params.LABEL)
-//
-//     // show in the log which input file is analysed
-//     tag "${introns_name}"
-//
-//     input:
-//     path (empty_par)
-//     path (initial_PM)
-//     path (transition_PM)
-//     path (output_param)
-//
-//     output:
-//     path ("${output_param}")
-//
-//     script:
-//     """
-//     cat ${empty_par} ## see how we modify this
-//     """
-// }
-//
-
-
 /*
  * Workflow connecting the different pieces
  */
@@ -245,22 +213,8 @@ workflow matchAssessment {
     combine_matrices_ini = CombineIni(cds_mats_ini, intron_mats_ini)
     combine_matrices_trans = CombineTrans(cds_mats_trans, intron_mats_trans)
 
-    //
-    // /*  WE NEED TO DEFINE THIS VARIABLE  */
-    // // empty_param
-    //
-    // // allow for the modification of some parameters apart from the matrices
-    //
-    // // This is the name of the final GFF3 file
-    // output_param = "${species}.${ref_file}.self_training.param"
-    //
-    // new_param = updateParamFile(empty_param,
-    //                             combine_matrices_ini,
-    //                             combine_matrices_trans,
-    //                             output_param)
-
 
     emit:
-    // new_param
-    introns_seq
+    ini_comb = combine_matrices_ini
+    trans_comb = combine_matrices_trans
 }

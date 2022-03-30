@@ -10,7 +10,9 @@
 /*
  * Update an empty parameter file
  */
-process beginningParamFile {
+process creatingParamFile {
+    // where to store the results and in which way
+    publishDir(params.OUTPUT, mode : 'copy', pattern : '*.param')
 
     // indicates to use as a label the value indicated in the parameter
     label (params.LABEL)
@@ -41,7 +43,7 @@ process beginningParamFile {
     path ("${output_param}")
 
     script:
-    ini_exon_weight = exon_weight - 1
+    ini_exon_weight = exon_weight + 1
     output_param = "manually_created.param"
 
     """

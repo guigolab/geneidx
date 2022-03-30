@@ -50,6 +50,7 @@ if (params.help) {
  * Defining the output folders.
  */
 OutputFolder = "${params.output}"
+paramOutputFolder = "${params.output}/params"
 
 genoom = file(params.genome)
 paar = file(params.param_f)
@@ -78,6 +79,12 @@ include { concatenate_Outputs } from "${subwork_folder}/geneid_concatenate" addP
 include { matchAssessment } from "${subwork_folder}/getTrainingSeq" addParams(OUTPUT: OutputFolder,
   LABEL:'singlecpu')
 
+include { creatingParamFile } from "${subwork_folder}/modifyParamFile" addParams(OUTPUT: paramOutputFolder,
+  LABEL:'singlecpu')
+
+
+
+
 /*
  * MAIN workflow definition.
  */
@@ -103,12 +110,34 @@ workflow {
   //    for running Geneid
 
   // Automatic computation of the parameter file
-  new_param = matchAssessment(uncompressed_genome, paar, hsp_found)
+  new_mats = matchAssessment(uncompressed_genome, paar, hsp_found)
+
+
+  new_param = creatingParamFile(params.no_score,
+                                params.site_factor,
+                                params.exon_factor,
+                                params.hsp_factor,
+                                params.exon_weight,
+
+                                params.min_intron_size,
+                                params.max_intron_size,
+
+                                params.start_pwm,
+                                params.acceptor_pwm,
+                                params.donor_pwm,
+                                params.stop_pwm,
+
+                                new_mats.ini_comb,
+                                new_mats.trans_comb
+
+                                // params.initial_probability_matrix,
+                                // params.transition_probability_matrix
+                                )
 
 
 
   // Run Geneid
-  predictions = geneid_WORKFLOW(uncompressed_genome, paar, hsp_found)
+  predictions = geneid_WORKFLOW(uncompressed_genome, new_param, hsp_found)
 
   // Prepare concatenation
   main_database_name = proteins_file.BaseName.toString().replaceAll(".fa", "")
