@@ -75,7 +75,8 @@ include { geneid_WORKFLOW } from "${subwork_folder}/geneid" addParams(OUTPUT: Ou
 include { concatenate_Outputs } from "${subwork_folder}/geneid_concatenate" addParams(OUTPUT: OutputFolder,
   LABEL:'singlecpu')
 
-
+include { matchAssessment } from "${subwork_folder}/getTrainingSeq" addParams(OUTPUT: OutputFolder,
+  LABEL:'singlecpu')
 
 /*
  * MAIN workflow definition.
@@ -102,7 +103,7 @@ workflow {
   //    for running Geneid
 
   // Automatic computation of the parameter file
-  // new_param = matchAssessment(genoom, paar, hsp_found)
+  new_param = matchAssessment(uncompressed_genome, paar, hsp_found)
 
 
 

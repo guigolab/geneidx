@@ -3,7 +3,6 @@
  */
 process UncompressFASTA {
 
-
     // show in the log which input file is analysed
     tag "${ref_to_index}"
 
@@ -72,7 +71,7 @@ process Index_fai {
     // publishDir
 
     // indicates to use as a container the value indicated in the parameter
-    container params.CONTAINER
+    container "quay.io/biocontainers/samtools:1.15--h1170115_1"
 
     // indicates to use as a label the value indicated in the parameter
     label (params.LABEL)

@@ -2,9 +2,6 @@
 import sys
 import pandas as pd
 
-# USAGE :
-# python3 ORFcoords2gff_Test.py relative_coordinates.bed coordinates_initial_sequences.bed.gff3 absolute_coordinates_ORFs.gff3
-
 orf_coords = sys.argv[1] # Relative ORF coordinates
 gff3_file = sys.argv[2] # initial gff3
 output = sys.argv[3] # output orf gff3
@@ -15,9 +12,9 @@ read_gff3_file = pd.read_csv(gff3_file, sep='\t', header=None)
 read_orf_coords.columns = ["id", "rel_start", "rel_end", "info", "frame2", "strand_ORF"]
 read_gff3_file.columns = ["chr", "program", "region", "start", "end", "value", "strand", "frame", "id"]
 read_orf_coords.loc[:,"id"] = 'ID='+ read_orf_coords.loc[:,"id"].astype(str) + ';Parent='+ read_orf_coords.loc[:,"id"].astype(str) + ';'
-# print(read_orf_coords)
+
 merged_orf_gff3 = read_gff3_file.merge(read_orf_coords, on='id', how='inner')
-# print(merged_orf_gff3)
+
 
 
 
@@ -30,8 +27,6 @@ def fix_coords(x):
 fixed_coords = merged_orf_gff3.apply(fix_coords, axis=1)
 fixed_coords = pd.DataFrame(fixed_coords.to_list())
 # print(fixed_coords)
-
-# print('*******************')
 
 merged_orf_gff3.loc[:,"start"] = fixed_coords.iloc[:,0]
 merged_orf_gff3.loc[:,"end"]   = fixed_coords.iloc[:,1]

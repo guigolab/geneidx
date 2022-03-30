@@ -182,7 +182,6 @@ workflow intron_workflow {
     take:
     ref_file
     ref_file_ind
-    geneid_param
     hsp_file
 
 
