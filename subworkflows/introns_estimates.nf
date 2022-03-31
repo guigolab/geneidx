@@ -183,8 +183,8 @@ process removeProtOverlappingIntrons {
     sort -k1,1 -k4,5n ${introns} > ${introns}.sorted;
     sort -k1,1 -k4,5n ${main_matches} > ${main_matches}.sorted;
 
-    bedtools intersect -sorted -a ${introns} \
-                       -b ${main_matches} \
+    bedtools intersect -sorted -a ${introns}.sorted \
+                       -b ${main_matches}.sorted \
                        -v > ${introns_name}.non_overlapping_matches.gff
     """
 }

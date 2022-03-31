@@ -129,9 +129,6 @@ workflow {
 
                                 new_mats.ini_comb,
                                 new_mats.trans_comb
-
-                                // params.initial_probability_matrix,
-                                // params.transition_probability_matrix
                                 )
 
 
