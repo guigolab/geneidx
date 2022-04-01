@@ -82,7 +82,7 @@ include { matchAssessment } from "${subwork_folder}/getTrainingSeq" addParams(OU
 include { creatingParamFile } from "${subwork_folder}/modifyParamFile" addParams(OUTPUT: paramOutputFolder,
   LABEL:'singlecpu')
 
-
+// include { mergeMatches } from "${subwork_folder}/CDS_estimates" addParams(OUTPUT: OutputFolder)
 
 
 /*
@@ -109,8 +109,21 @@ workflow {
   //    later on we will generate a parameter file and use that file
   //    for running Geneid
 
+
+  // // pass matches through blast2gff &
+  // // change format from gff to GFF3
+  // merged_HSP_gff3 = mergeMatches(hsp_found)
+  //
+  //
+  //
+  // new_mats = matchAssessment(uncompressed_genome, paar, merged_HSP_gff3,
   // Automatic computation of the parameter file
-  new_mats = matchAssessment(uncompressed_genome, paar, hsp_found)
+  new_mats = matchAssessment(uncompressed_genome, paar, hsp_found,
+                                  params.match_score_min,
+                                  params.match_ORF_min,
+                                  params.intron_margin,
+                                  params.min_intron_size,
+                                  params.max_intron_size)
 
 
   new_param = creatingParamFile(params.no_score,

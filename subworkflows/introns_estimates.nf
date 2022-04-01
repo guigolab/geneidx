@@ -3,7 +3,7 @@
 */
 
 // Parameter definitions
-params.CONTAINER = "ferriolcalvet/training-modules"
+// params.CONTAINER = "ferriolcalvet/training-modules"
 // params.OUTPUT = "geneid_output"
 // params.LABEL = ""
 
@@ -59,9 +59,6 @@ process summarizeMatches {
 
     rm ${main_matches}.summarized_matches
     """
-    // awk -v exmar="${exon_margin}" 'OFS="\t"{print \$1, \$4-exmar, \$5+exmar, \$9\$7}' \
-    //             ${main_matches}.summarized_matches | \
-    //             sort -k1,1 -k4,4 -k2,2n > ${main_matches_name}.modified_exons.gff
 }
 
 
@@ -201,17 +198,17 @@ workflow intron_workflow {
     ref_file
     ref_file_ind
     hsp_file
+    intron_margins
+    min_size
+    max_size
 
 
     main:
-    // // requirements:
-    // gffread quay.io/biocontainers/gffread:0.12.7--hd03093a_1
-    // python + modules pandas and some others
-    exon_margins = 40
-    gff_reduced = summarizeMatches(hsp_file, exon_margins)
+    // intron_margins = 40
+    gff_reduced = summarizeMatches(hsp_file, intron_margins)
 
-    min_size = 0
-    max_size = 10000
+    // min_size = 0
+    // max_size = 10000
     computed_introns = pyComputeIntrons(gff_reduced, min_size, max_size)
 
     non_overlapping_introns = removeProtOverlappingIntrons(hsp_file, computed_introns)

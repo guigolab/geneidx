@@ -54,17 +54,20 @@ process mergeMatches {
 
     script:
     main_output_file = gff_file.BaseName
+    // awk -F '\t' -v myvar=\$seq '\$1==myvar {print > (myvar".gff"); next} {print > ("REST.txt")}' ${main_output_file}.gff;
 
+    // var=$(echo "^$seq")
+    // egrep -w \$var ${main_output_file}.gff > \${seq}.gff
     """
     # get the sequences that have matches
-    cut -f1 ${main_output_file}.gff | sort -u > ${main_output_file}.seqs
+    cut -f1 ${main_output_file}.gff | uniq | sort -u > ${main_output_file}.seqs
 
     # iterate the sequences with matches, running blast2gff for each of them
     while read seq; do
-        var=\$(echo "^\$seq")
-        egrep -w \$var ${main_output_file}.gff > \${seq}.gff
-        blast2gff -vg \${seq}.gff >> ${main_output_file}.SR.gff
-        rm \${seq}.gff
+        awk -F '\t' -v myvar=\$seq '\$1==myvar {print > (myvar".gff"); next} {print > ("REST.txt")}' ${main_output_file}.gff;
+        mv REST.txt ${main_output_file}.gff;
+        blast2gff -vg \${seq}.gff >> ${main_output_file}.SR.gff;
+        rm \${seq}.gff;
     #    break
     done < ${main_output_file}.seqs;
 
@@ -162,7 +165,6 @@ process evaluateGFF3 {
  */
 process ORF_finder {
 
-
     // indicates to use as a container the value indicated in the parameter
     container "quay.io/biocontainers/orfipy:0.0.4--py38h8c62d01_0"
 
@@ -204,7 +206,7 @@ process ORF_finder {
 process updateGFFcoords {
 
     // where to store the results and in which way
-    publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff3')
+    // publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff3')
 
     // indicates to use as a container the value indicated in the parameter
     container "ferriolcalvet/python-modules"
@@ -271,6 +273,8 @@ workflow cds_workflow {
     ref_file
     ref_file_ind
     hsp_file
+    min_Match_score
+    minMatchORF
 
 
     main:
@@ -280,8 +284,8 @@ workflow cds_workflow {
     original_HSP_gff3 = mergeMatches(hsp_file)
 
     // filter the HSPs by the score
-    score = 200
-    filtered_HSPs_gff3 = filter_by_score(original_HSP_gff3, score)
+    // score = 200
+    filtered_HSPs_gff3 = filter_by_score(original_HSP_gff3, min_Match_score)
 
     // report first metrics using gffcompare
     // metrics1 = evaluateGFF3(filtered_HSPs_gff3, reference_gff3)
@@ -290,8 +294,8 @@ workflow cds_workflow {
     matches_seqs = getFASTA(filtered_HSPs_gff3, ref_file, ref_file_ind)
 
     // use orfipy for obtaining the longest ORFs of each match
-    minORF = 100
-    hsp_rel_ORFs_coords = ORF_finder(matches_seqs, minORF)
+    // minORF = 100
+    hsp_rel_ORFs_coords = ORF_finder(matches_seqs, minMatchORF)
 
     // use python script for computing the absolute coordinates
     hsp_abs_ORFs_coords = updateGFFcoords(original_HSP_gff3, hsp_rel_ORFs_coords)

@@ -7,7 +7,10 @@ RUN apt-get update && \
     curl \
     ca-certificates \
     build-essential \
-    gawk
+    procps \
+    gawk \
+    perl
+
 
 ADD MarkovMatrices.awk scripts/
 ADD MarkovMatrices-noframe.awk scripts/

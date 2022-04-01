@@ -193,19 +193,25 @@ workflow matchAssessment {
     ref_file
     geneid_param
     hsp_file
-
+    min_match_score
+    min_match_ORF
+    intron_margins
+    min_intron
+    max_intron
 
     main:
 
     // requirements:
     ref_file_ind = Index_fai(ref_file)
 
-    cds_seq = cds_workflow(ref_file, ref_file_ind, hsp_file)
+    cds_seq = cds_workflow(ref_file, ref_file_ind, hsp_file,
+                            min_match_score, min_match_ORF)
     cds_mats = getCDS_matrices(cds_seq)
     cds_mats_ini = cds_mats.initial
     cds_mats_trans = cds_mats.transition
 
-    introns_seq = intron_workflow(ref_file, ref_file_ind, hsp_file)
+    introns_seq = intron_workflow(ref_file, ref_file_ind, hsp_file,
+                            intron_margins, min_intron, max_intron)
     intron_mats = getIntron_matrices(introns_seq)
     intron_mats_ini = intron_mats.initial
     intron_mats_trans = intron_mats.transition

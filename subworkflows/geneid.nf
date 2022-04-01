@@ -102,11 +102,8 @@ workflow geneid_WORKFLOW {
 
     main:
 
-    // genome_filename = UncompressFASTA(ref_file)
-    // genome_filename.subscribe {  println "Got: $it"  }
-
     index_filename = Index_i(ref_file)
-    // index_filename.subscribe {  println "Got: $it"  }
+    // index_filename.view()
 
     ref_file.splitFasta( record: [id: true] )
                    // .subscribe {  println "Got: $it"  }
@@ -114,12 +111,6 @@ workflow geneid_WORKFLOW {
                    .set{ch}
                    // .subscribe {  println "Got: $it"  }
                    // .flatten()
-
-    // ch.view()
-    // ch.subscribe {  println "Got: $it"  }
-
-    // genome_filename.view()
-    // index_filename.view()
 
     // we call the runGeneid_fetching module using the channel for the queries
     predictions = runGeneid_fetching(ref_file,
