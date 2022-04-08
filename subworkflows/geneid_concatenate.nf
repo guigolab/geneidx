@@ -1,3 +1,14 @@
+/*
+ * Defining the output folders.
+ */
+OutputFolder = "${params.output}"
+
+/*
+ * Defining the module / subworkflow path, and include the elements
+ */
+subwork_folder = "${projectDir}/subworkflows/"
+
+
 process concatenate_Outputs {
     /*
     POTENTIAL PROBLEM, MUTLIPLE PROCESSES ACCESSING AND GENERATING THE SAME FILE
@@ -36,4 +47,34 @@ process concatenate_Outputs {
     // rm ${params.OUTPUT}/${partial_filename}
     // rm ${gffs_outputs}
 
+}
+
+
+/*
+ * Workflow connecting the different pieces
+ */
+
+workflow concatenateGeneidfiles {
+    take:
+    indv_gff_file
+    prot_file
+    genom_file
+
+    main:
+
+    // Prepare concatenation
+    main_database_name = prot_file.BaseName.toString().replaceAll(".fa", "")
+    main_genome_name = genom_file.BaseName.toString().replaceAll(".fa", "")
+    // This is the name of the final GFF3 file
+    out_filename = "${main_genome_name}.-.${main_database_name}.gff3"
+
+    // Create the path to the file
+    output_file = file(OutputFolder + "/" + out_filename)
+    
+
+
+    final_gff3 = concatenate_Outputs(indv_gff_file, output_file)
+
+    emit:
+    final_gff3
 }

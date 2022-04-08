@@ -2,39 +2,18 @@
 // params.CONTAINER = "quay.io/biocontainers/diamond:2.0.14--hdcc8f71_0"
 params.CONTAINER = "quay.io/biocontainers/diamond:0.9.30--h56fc30b_0"
 
+
 /*
- * Uncompressing if needed
+ * Defining the output folders.
  */
-process UncompressFASTA {
+OutputFolder = "${params.output}"
 
-    // where to store the results and in which way
-    // publishDir(params.OUTPUT, pattern : '*.fa')
+/*
+ * Defining the module / subworkflow path, and include the elements
+ */
+subwork_folder = "${projectDir}/subworkflows/"
 
-    // // indicates to use as a container the value indicated in the parameter
-    // container params.CONTAINER
-
-    // show in the log which input file is analysed
-    tag "${ref_to_index}"
-
-    input:
-    file (ref_to_index)
-
-    output:
-    path ("${main_genome_file}")
-
-    script:
-    main_genome_file = ref_to_index.BaseName
-
-    """
-    if [ ! -s  ${main_genome_file} ]; then
-        echo "unzipping genome ${main_genome_file}.gz"
-        gunzip -c ${main_genome_file}.gz > ${main_genome_file};
-    fi
-    """
-    // perl -i -lane 'if (/^>/) { (\$id, \$chr)=\$_=~/^>([\\w|.]+)[\\s\\w]+, [\\w]+: (\\w+)/; print ">".\$chr} else {print}' ${main_genome_file}
-    // perl -i -lane 'if (/^>/) { ($id, $chr)=$_=~/^>([\w|.]+)[\s\w]+, chromosome: (\w+)/; print ">".$chr} else {print}' ${main_genome_file}
-}
-
+include { UncompressFASTA } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolder)
 
 
 process runDIAMOND_makedb {

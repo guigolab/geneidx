@@ -51,10 +51,11 @@ if (params.help) {
  */
 OutputFolder = "${params.output}"
 paramOutputFolder = "${params.output}/params"
+protDataFolder = "${params.proteinDataFolder}"
 
 genoom = file(params.genome)
 paar = file(params.param_f)
-proteins_file = file(params.prot_file)
+// proteins_file = file(params.prot_file)
 
 
 /*
@@ -75,6 +76,8 @@ include { geneid_WORKFLOW } from "${subwork_folder}/geneid" addParams(OUTPUT: Ou
 
 include { concatenate_Outputs } from "${subwork_folder}/geneid_concatenate" addParams(OUTPUT: OutputFolder,
   LABEL:'singlecpu')
+// include { concatenateGeneidfiles } from "${subwork_folder}/geneid_concatenate" addParams(OUTPUT: OutputFolder,
+//     LABEL:'singlecpu')
 
 include { matchAssessment } from "${subwork_folder}/getTrainingSeq" addParams(OUTPUT: OutputFolder,
   LABEL:'singlecpu')
@@ -82,7 +85,9 @@ include { matchAssessment } from "${subwork_folder}/getTrainingSeq" addParams(OU
 include { creatingParamFile } from "${subwork_folder}/modifyParamFile" addParams(OUTPUT: paramOutputFolder,
   LABEL:'singlecpu')
 
-// include { mergeMatches } from "${subwork_folder}/CDS_estimates" addParams(OUTPUT: OutputFolder)
+include { get_tax_rank_ID } from "${subwork_folder}/downloadFile"
+
+include { getProteinFile } from "${subwork_folder}/downloadFile" addParams(OUTPUT: protDataFolder)
 
 
 /*
@@ -94,7 +99,8 @@ workflow {
   //    uncompressed to the downstream modules
   uncompressed_genome = UncompressFASTA(genoom)
 
-
+  rank_tax_id = get_tax_rank_ID(params.taxid, "class")
+  proteins_file = getProteinFile(rank_tax_id)
 
   // Build protein database for DIAMOND
   protDB = build_protein_DB(proteins_file)
@@ -150,17 +156,20 @@ workflow {
   predictions = geneid_WORKFLOW(uncompressed_genome, new_param, hsp_found)
 
   // Prepare concatenation
-  main_database_name = proteins_file.BaseName.toString().replaceAll(".fa", "")
+  // main_database_name = "UniRef90.${params.taxid}.150+"
+  main_database_name = "UniRef90.${rank_tax_id.last()}.150+"
   main_genome_name = genoom.BaseName.toString().replaceAll(".fa", "")
-
   // This is the name of the final GFF3 file
   out_filename = "${main_genome_name}.-.${main_database_name}.gff3"
 
   // Create the path to the file
   output_file = file(OutputFolder + "/" + out_filename)
+  println( output_file)
 
   // Run concatenation of individual GFF3 files
   final_output = concatenate_Outputs(predictions, output_file)
+  // final_output = concatenateGeneidfiles(predictions, proteins_file, genoom)
+
 
   // add header
 
