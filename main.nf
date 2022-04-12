@@ -1,15 +1,5 @@
 #!/usr/bin/env nextflow
 
-/*
- *   This file was adapted from a part of 'nextflow-io/elixir-workshop-21'
- *   A course whose materials were prepared by Luca Cozzuto <lucacozzuto@gmail.com>
- */
-
-
-/*
- * This code enables the new Nextflow dsl (domain-specific language).
- */
-
 nextflow.enable.dsl=2
 
 
@@ -20,9 +10,11 @@ nextflow.enable.dsl=2
  */
 
 /*
- * Input parameters: ENA project name and output
- * The configuration is in nextflow.config file
+ * Input parameters: genome, protein evidences, parameter file,
+ * additional values for the generation of the parameter file.
  * Params are stored in the params.config file
+ *
+ * The configuration is in nextflow.config file
  */
 
 // this prevents a warning of undefined parameter
@@ -35,13 +27,13 @@ GENEID+BLASTx - NextflowPipeline
 output				: ${params.output}
 genome				: ${params.genome}
 prot_file			: ${params.prot_file}
-param_file		: ${params.param_f}
 """
+// param_file		: ${params.param_f}
 
 // this prints the help in case you use --help parameter in the command line and it stops the pipeline
 if (params.help) {
     log.info 'This is the Geneid+BLASTx test pipeline in Nextflow'
-    log.info 'Please define the genome file, the protein file,\n\t\tthe parameter file and the output!\n'
+    log.info 'Please define the genome file, the protein file,\n\t\tthe parameter files and the output!\n'
     log.info '\n'
     exit 1
 }
@@ -51,11 +43,9 @@ if (params.help) {
  */
 OutputFolder = "${params.output}"
 paramOutputFolder = "${params.output}/params"
-protDataFolder = "${params.proteinDataFolder}"
 
 genoom = file(params.genome)
-paar = file(params.param_f)
-// proteins_file = file(params.prot_file)
+proteins_file = file(params.prot_file)
 
 
 /*
@@ -76,18 +66,12 @@ include { geneid_WORKFLOW } from "${subwork_folder}/geneid" addParams(OUTPUT: Ou
 
 include { concatenate_Outputs } from "${subwork_folder}/geneid_concatenate" addParams(OUTPUT: OutputFolder,
   LABEL:'singlecpu')
-// include { concatenateGeneidfiles } from "${subwork_folder}/geneid_concatenate" addParams(OUTPUT: OutputFolder,
-//     LABEL:'singlecpu')
 
 include { matchAssessment } from "${subwork_folder}/getTrainingSeq" addParams(OUTPUT: OutputFolder,
   LABEL:'singlecpu')
 
 include { creatingParamFile } from "${subwork_folder}/modifyParamFile" addParams(OUTPUT: paramOutputFolder,
   LABEL:'singlecpu')
-
-include { get_tax_rank_ID } from "${subwork_folder}/downloadFile"
-
-include { getProteinFile } from "${subwork_folder}/downloadFile" addParams(OUTPUT: protDataFolder)
 
 
 /*
@@ -99,9 +83,6 @@ workflow {
   //    uncompressed to the downstream modules
   uncompressed_genome = UncompressFASTA(genoom)
 
-  rank_tax_id = get_tax_rank_ID(params.taxid, "class")
-  proteins_file = getProteinFile(rank_tax_id)
-
   // Build protein database for DIAMOND
   protDB = build_protein_DB(proteins_file)
 
@@ -109,22 +90,15 @@ workflow {
   // Run DIAMOND to find matches between genome and proteins
   hsp_found = alignGenome_Proteins(protDB, uncompressed_genome)
 
-  // **TO DO**
+  // **TO DO** NOT PRIORITY
   // Evaluate matches and ORFs in matches
   // First to get an idea of how good/bad we are getting those regions
   //    later on we will generate a parameter file and use that file
   //    for running Geneid
 
 
-  // // pass matches through blast2gff &
-  // // change format from gff to GFF3
-  // merged_HSP_gff3 = mergeMatches(hsp_found)
-  //
-  //
-  //
-  // new_mats = matchAssessment(uncompressed_genome, paar, merged_HSP_gff3,
   // Automatic computation of the parameter file
-  new_mats = matchAssessment(uncompressed_genome, paar, hsp_found,
+  new_mats = matchAssessment(uncompressed_genome, hsp_found,
                                   params.match_score_min,
                                   params.match_ORF_min,
                                   params.intron_margin,
@@ -138,8 +112,8 @@ workflow {
                                 params.hsp_factor,
                                 params.exon_weight,
 
-                                params.min_intron_size,
-                                params.max_intron_size,
+                                params.min_intron_size_geneid,
+                                params.max_intron_size_geneid,
 
                                 params.start_pwm,
                                 params.acceptor_pwm,
@@ -156,20 +130,16 @@ workflow {
   predictions = geneid_WORKFLOW(uncompressed_genome, new_param, hsp_found)
 
   // Prepare concatenation
-  // main_database_name = "UniRef90.${params.taxid}.150+"
-  main_database_name = "UniRef90.${rank_tax_id.last()}.150+"
-  main_genome_name = genoom.BaseName.toString().replaceAll(".fa", "")
+  main_database_name = proteins_file.BaseName.toString().replaceAll("\\.fa", "")
+  main_genome_name = genoom.BaseName.toString().replaceAll("\\.fa", "")
   // This is the name of the final GFF3 file
   out_filename = "${main_genome_name}.-.${main_database_name}.gff3"
 
   // Create the path to the file
   output_file = file(OutputFolder + "/" + out_filename)
-  println( output_file)
 
   // Run concatenation of individual GFF3 files
   final_output = concatenate_Outputs(predictions, output_file)
-  // final_output = concatenateGeneidfiles(predictions, proteins_file, genoom)
-
 
   // add header
 

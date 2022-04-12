@@ -191,7 +191,6 @@ workflow matchAssessment {
     // definition of input
     take:
     ref_file
-    geneid_param
     hsp_file
     min_match_score
     min_match_ORF

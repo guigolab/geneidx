@@ -45,23 +45,26 @@ process creatingParamFile {
     script:
     ini_exon_weight = exon_weight + 1
     output_param = "manually_created.param"
-
     """
     cat <<EOF > ${output_param}
     # geneid parameter file: human, 1 isochores
-    # ${no_score}
-    # ${site_factor}
-    # ${exon_factor}
-    # ${hsp_factor}
-    # ${exon_weight}
-    # ${min_intron_size}
-    # ${max_intron_size}
-    # ${start_pwm}
-    # ${acceptor_pwm}
-    # ${donor_pwm}
-    # ${stop_pwm}
-    # ${initial_probability_matrix}
-    # ${transition_probability_matrix}
+    # NO SCORE: ${no_score}
+    # SITE FACTOR: ${site_factor}
+    # EXON FACTOR: ${exon_factor}
+    # HSP FACTOR: ${hsp_factor}
+    # EXON WEIGHT: ${exon_weight}
+    #
+    # MIN INTRON SIZE: ${min_intron_size}
+    # MAX INTRON SIZE: ${max_intron_size}
+    #
+    # START PWM: ${start_pwm}
+    # ACCEPTOR PWM: ${acceptor_pwm}
+    # DONOR PWM: ${donor_pwm}
+    # STOP PWM: ${stop_pwm}
+    #
+    # INITIAL PWM: ${initial_probability_matrix}
+    # TRANSITION PWM: ${transition_probability_matrix}
+    #
     # Comment lines must start with '#'
 
     # Non-homology -0.35

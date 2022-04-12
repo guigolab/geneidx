@@ -44,7 +44,7 @@ process runDIAMOND_getHSPs_GFF {
                        --max-hsps 0  \
                        --outfmt \$fmt6_custom \
                        --evalue 0.0001 \
-                       --block-size 2.0 \
+                       --block-size 0.8 \
                        --threads 4 \
                        --out ${main_genome_name}.${main_database_name}.hsp.out
 
