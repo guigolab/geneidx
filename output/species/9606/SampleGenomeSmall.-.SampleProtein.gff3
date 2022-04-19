@@ -1,0 +1,94 @@
+###
+##gff-version 3
+##sequence-region 1 1 180000
+##sequence-region 10 1 180000
+##sequence-region 11 1 180000
+##sequence-region 12 1 180000
+##sequence-region 13 1 180000
+##sequence-region 14 1 180000
+##sequence-region 15 1 180000
+##sequence-region 15_random 1 180000
+##sequence-region 16 1 180000
+##sequence-region 17 1 180000
+##sequence-region 18 1 180000
+##sequence-region 19 1 180000
+##sequence-region 1_random 1 180000
+##sequence-region 2 1 180000
+##sequence-region 20 1 180000
+##sequence-region 21 1 180000
+##sequence-region 21_random 1 180000
+##sequence-region 2_random 1 180000
+##sequence-region 3 1 180000
+##sequence-region 4 1 180000
+##sequence-region 5 1 180000
+##sequence-region 6 1 180000
+##sequence-region 7 1 180000
+##sequence-region 8 1 180000
+##sequence-region 9 1 180000
+##sequence-region MT 1 16462
+##sequence-region Un_random 1 180000
+15_random	geneidblastx	CDS	66253	66295	4.98	-	0	ID=cds_15_random_1;Parent=mRNA_15_random_1;Target=geneidblastx_predicted_protein_15_random_1 1 15;3_prime_partial=true;exon_type=First;start_score=7.20;donor_score=3.44;coding_potential=2.22;homology_score=-16.73
+15_random	geneidblastx	exon	66253	66295	4.98	-	.	ID=exon_15_random_1.1;Parent=mRNA_15_random_1;3_prime_partial=true;donor_score=3.44;homology_score=-16.73
+15_random	geneidblastx	gene	66253	66295	4.98	-	.	ID=15_random_1;Name=15_random_1
+15_random	geneidblastx	mRNA	66253	66295	4.98	-	.	ID=mRNA_15_random_1;Parent=15_random_1
+15_random	geneidblastx	CDS	78143	78566	360.14	-	1	ID=cds_15_random_2;Parent=mRNA_15_random_2;Target=geneidblastx_predicted_protein_15_random_2 7 148;exon_type=Terminal;acceptor_score=-0.81;coding_potential=271.29;homology_score=8.20
+15_random	geneidblastx	exon	78143	78566	360.14	-	.	ID=exon_15_random_2.2;Parent=mRNA_15_random_2;acceptor_score=-0.81;homology_score=8.20
+15_random	geneidblastx	gene	78143	90574	361.57	-	.	ID=15_random_2;Name=15_random_2
+15_random	geneidblastx	mRNA	78143	90574	361.57	-	.	ID=mRNA_15_random_2;Parent=15_random_2
+15_random	geneidblastx	CDS	90555	90574	1.42	-	0	ID=cds_15_random_2;Parent=mRNA_15_random_2;Target=geneidblastx_predicted_protein_15_random_2 1 7;exon_type=First;start_score=5.62;donor_score=-1.23;coding_potential=5.26;homology_score=-7.57
+15_random	geneidblastx	exon	90555	90574	1.42	-	.	ID=exon_15_random_2.1;Parent=mRNA_15_random_2;donor_score=-1.23;homology_score=-7.57
+18	geneidblastx	CDS	173673	173700	1.76	-	0	ID=cds_18_1;Parent=mRNA_18_1;Target=geneidblastx_predicted_protein_18_1 1 10;5_prime_partial=true;3_prime_partial=true;exon_type=Internal;acceptor_score=5.07;donor_score=2.25;coding_potential=3.44;homology_score=-10.80
+18	geneidblastx	exon	173673	173700	1.76	-	.	ID=exon_18_1.1;Parent=mRNA_18_1;5_prime_partial=true;3_prime_partial=true;acceptor_score=5.07;donor_score=2.25;homology_score=-10.80
+18	geneidblastx	gene	173673	173700	1.76	-	.	ID=18_1;Name=18_1
+18	geneidblastx	mRNA	173673	173700	1.76	-	.	ID=mRNA_18_1;Parent=18_1
+2	geneidblastx	CDS	6945	7023	0.87	+	1	ID=cds_2_1;Parent=mRNA_2_1;Target=geneidblastx_predicted_protein_2_1 1 27;5_prime_partial=true;exon_type=Terminal;acceptor_score=4.56;coding_potential=8.51;homology_score=-29.99
+2	geneidblastx	exon	6945	7023	0.87	+	.	ID=exon_2_1.1;Parent=mRNA_2_1;5_prime_partial=true;acceptor_score=4.56;homology_score=-29.99
+2	geneidblastx	gene	6945	7023	0.87	+	.	ID=2_1;Name=2_1
+2	geneidblastx	mRNA	6945	7023	0.87	+	.	ID=mRNA_2_1;Parent=2_1
+2	geneidblastx	CDS	49353	50444	891.87	+	0	ID=cds_2_2;Parent=mRNA_2_2;Target=geneidblastx_predicted_protein_2_2 1 364;exon_type=Single;start_score=2.00;coding_potential=647.27;homology_score=72.25
+2	geneidblastx	exon	49353	50444	891.87	+	.	ID=exon_2_2.1;Parent=mRNA_2_2;start_score=2.00;homology_score=72.25
+2	geneidblastx	gene	49353	50444	891.87	+	.	ID=2_2;Name=2_2
+2	geneidblastx	mRNA	49353	50444	891.87	+	.	ID=mRNA_2_2;Parent=2_2
+2	geneidblastx	CDS	61294	61302	-4.37	+	0	ID=cds_2_3;Parent=mRNA_2_3;Target=geneidblastx_predicted_protein_2_3 1 3;exon_type=First;start_score=3.24;donor_score=0.71;coding_potential=0.91;homology_score=-3.20
+2	geneidblastx	exon	61294	61302	-4.37	+	.	ID=exon_2_3.1;Parent=mRNA_2_3;donor_score=0.71;homology_score=-3.20
+2	geneidblastx	gene	61294	87631	387.27	+	.	ID=2_3;Name=2_3
+2	geneidblastx	mRNA	61294	87631	387.27	+	.	ID=mRNA_2_3;Parent=2_3
+2	geneidblastx	CDS	62634	63107	386.81	+	0	ID=cds_2_3;Parent=mRNA_2_3;Target=geneidblastx_predicted_protein_2_3 4 161;exon_type=Internal;acceptor_score=1.62;donor_score=0.56;coding_potential=282.18;homology_score=46.19
+2	geneidblastx	exon	62634	63107	386.81	+	.	ID=exon_2_3.2;Parent=mRNA_2_3;acceptor_score=1.62;donor_score=0.56;homology_score=46.19
+2	geneidblastx	CDS	87568	87631	4.82	+	0	ID=cds_2_3;Parent=mRNA_2_3;Target=geneidblastx_predicted_protein_2_3 162 182;3_prime_partial=true;exon_type=Internal;acceptor_score=5.15;donor_score=4.76;coding_potential=4.82;homology_score=-25.22
+2	geneidblastx	exon	87568	87631	4.82	+	.	ID=exon_2_3.3;Parent=mRNA_2_3;3_prime_partial=true;acceptor_score=5.15;donor_score=4.76;homology_score=-25.22
+21_random	geneidblastx	CDS	47469	47525	6.11	+	0	ID=cds_21_random_1;Parent=mRNA_21_random_1;Target=geneidblastx_predicted_protein_21_random_1 1 19;exon_type=First;start_score=2.15;donor_score=3.86;coding_potential=5.49;homology_score=2.52
+21_random	geneidblastx	exon	47469	47525	6.11	+	.	ID=exon_21_random_1.1;Parent=mRNA_21_random_1;donor_score=3.86;homology_score=2.52
+21_random	geneidblastx	gene	47469	95179	9.82	+	.	ID=21_random_1;Name=21_random_1
+21_random	geneidblastx	mRNA	47469	95179	9.82	+	.	ID=mRNA_21_random_1;Parent=21_random_1
+21_random	geneidblastx	CDS	58801	58929	2.98	+	0	ID=cds_21_random_1;Parent=mRNA_21_random_1;Target=geneidblastx_predicted_protein_21_random_1 20 62;exon_type=Internal;acceptor_score=2.77;donor_score=2.53;coding_potential=3.44;homology_score=11.75
+21_random	geneidblastx	exon	58801	58929	2.98	+	.	ID=exon_21_random_1.2;Parent=mRNA_21_random_1;acceptor_score=2.77;donor_score=2.53;homology_score=11.75
+21_random	geneidblastx	CDS	69862	69951	4.31	+	0	ID=cds_21_random_1;Parent=mRNA_21_random_1;Target=geneidblastx_predicted_protein_21_random_1 63 92;exon_type=Internal;acceptor_score=4.58;donor_score=3.86;coding_potential=2.06;homology_score=3.65
+21_random	geneidblastx	exon	69862	69951	4.31	+	.	ID=exon_21_random_1.3;Parent=mRNA_21_random_1;acceptor_score=4.58;donor_score=3.86;homology_score=3.65
+21_random	geneidblastx	CDS	71083	71116	1.83	+	0	ID=cds_21_random_1;Parent=mRNA_21_random_1;Target=geneidblastx_predicted_protein_21_random_1 93 104;exon_type=Internal;acceptor_score=3.31;donor_score=1.06;coding_potential=4.90;homology_score=2.58
+21_random	geneidblastx	exon	71083	71116	1.83	+	.	ID=exon_21_random_1.4;Parent=mRNA_21_random_1;acceptor_score=3.31;donor_score=1.06;homology_score=2.58
+21_random	geneidblastx	CDS	95154	95179	-5.41	+	2	ID=cds_21_random_1;Parent=mRNA_21_random_1;Target=geneidblastx_predicted_protein_21_random_1 104 112;exon_type=Terminal;acceptor_score=2.58;coding_potential=3.17;homology_score=-8.77
+21_random	geneidblastx	exon	95154	95179	-5.41	+	.	ID=exon_21_random_1.5;Parent=mRNA_21_random_1;acceptor_score=2.58;homology_score=-8.77
+21_random	geneidblastx	CDS	112958	113005	7.14	+	0	ID=cds_21_random_2;Parent=mRNA_21_random_2;Target=geneidblastx_predicted_protein_21_random_2 1 16;3_prime_partial=true;exon_type=First;start_score=6.40;donor_score=1.85;coding_potential=3.68;homology_score=3.12
+21_random	geneidblastx	exon	112958	113005	7.14	+	.	ID=exon_21_random_2.1;Parent=mRNA_21_random_2;3_prime_partial=true;donor_score=1.85;homology_score=3.12
+21_random	geneidblastx	gene	112958	113005	7.14	+	.	ID=21_random_2;Name=21_random_2
+21_random	geneidblastx	mRNA	112958	113005	7.14	+	.	ID=mRNA_21_random_2;Parent=21_random_2
+2_random	geneidblastx	CDS	151819	151889	10.27	-	2	ID=cds_2_random_1;Parent=mRNA_2_random_1;Target=geneidblastx_predicted_protein_2_random_1 1 23;5_prime_partial=true;3_prime_partial=true;exon_type=Internal;acceptor_score=3.41;donor_score=4.16;coding_potential=7.67;homology_score=1.50
+2_random	geneidblastx	exon	151819	151889	10.27	-	.	ID=exon_2_random_1.1;Parent=mRNA_2_random_1;5_prime_partial=true;3_prime_partial=true;acceptor_score=3.41;donor_score=4.16;homology_score=1.50
+2_random	geneidblastx	gene	151819	151889	10.27	-	.	ID=2_random_1;Name=2_random_1
+2_random	geneidblastx	mRNA	151819	151889	10.27	-	.	ID=mRNA_2_random_1;Parent=2_random_1
+3	geneidblastx	CDS	103515	103551	1.61	-	0	ID=cds_3_1;Parent=mRNA_3_1;Target=geneidblastx_predicted_protein_3_1 9 21;3_prime_partial=true;exon_type=Internal;acceptor_score=4.17;donor_score=5.16;coding_potential=1.62;homology_score=-14.41
+3	geneidblastx	exon	103515	103551	1.61	-	.	ID=exon_3_1.2;Parent=mRNA_3_1;3_prime_partial=true;acceptor_score=4.17;donor_score=5.16;homology_score=-14.41
+3	geneidblastx	gene	103515	132466	3.43	-	.	ID=3_1;Name=3_1
+3	geneidblastx	mRNA	103515	132466	3.43	-	.	ID=mRNA_3_1;Parent=3_1
+3	geneidblastx	CDS	132443	132466	1.82	-	0	ID=cds_3_1;Parent=mRNA_3_1;Target=geneidblastx_predicted_protein_3_1 1 8;exon_type=First;start_score=4.57;donor_score=2.02;coding_potential=1.95;homology_score=0.85
+3	geneidblastx	exon	132443	132466	1.82	-	.	ID=exon_3_1.1;Parent=mRNA_3_1;donor_score=2.02;homology_score=0.85
+3	geneidblastx	CDS	178790	178885	4.37	+	0	ID=cds_3_2;Parent=mRNA_3_2;Target=geneidblastx_predicted_protein_3_2 1 32;3_prime_partial=true;exon_type=First;start_score=3.14;donor_score=-2.17;coding_potential=15.38;homology_score=-37.85
+3	geneidblastx	exon	178790	178885	4.37	+	.	ID=exon_3_2.1;Parent=mRNA_3_2;3_prime_partial=true;donor_score=-2.17;homology_score=-37.85
+3	geneidblastx	gene	178790	178885	4.37	+	.	ID=3_2;Name=3_2
+3	geneidblastx	mRNA	178790	178885	4.37	+	.	ID=mRNA_3_2;Parent=3_2
+Un_random	geneidblastx	CDS	123756	123774	4.46	+	0	ID=cds_Un_random_1;Parent=mRNA_Un_random_1;Target=geneidblastx_predicted_protein_Un_random_1 1 6;3_prime_partial=true;exon_type=First;start_score=6.39;donor_score=0.59;coding_potential=4.57;homology_score=-7.17
+Un_random	geneidblastx	exon	123756	123774	4.46	+	.	ID=exon_Un_random_1.1;Parent=mRNA_Un_random_1;3_prime_partial=true;donor_score=0.59;homology_score=-7.17
+Un_random	geneidblastx	gene	123756	123774	4.46	+	.	ID=Un_random_1;Name=Un_random_1
+Un_random	geneidblastx	mRNA	123756	123774	4.46	+	.	ID=mRNA_Un_random_1;Parent=Un_random_1
+###

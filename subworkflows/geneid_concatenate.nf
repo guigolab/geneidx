@@ -10,10 +10,7 @@ process concatenate_Outputs {
     publishDir(params.OUTPUT, mode: "copy", pattern : "*.gff3")
 
     // indicates to use as a label the value indicated in the parameter
-    // label (params.LABEL)
-
-    // indicates to use as container the value indicated in the parameter
-    // container params.CONTAINER
+    label (params.LABEL)
 
     // show in the log which input file is analysed
     tag "concatenating ${gffs_outputs}"
@@ -28,8 +25,11 @@ process concatenate_Outputs {
 
     script:
     """
-    cat ${gffs_outputs} | grep -v '#' | sort -u | sort -k1,1 -k4,5n >> ${output_file}
+    egrep -v '^# ' ${gffs_outputs} | egrep -vw '###' >> ${output_file}
     rm ${gffs_outputs}
     """
+    // egrep -v '^# ' ${gffs_outputs} >> ${output_file}
+    // cat ${gffs_outputs} | grep -v '#' | sort -u | sort -k1,1 -k4,5n >> ${output_file}
+    // rm ${gffs_outputs}
 
 }

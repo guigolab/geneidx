@@ -3,17 +3,20 @@
 params.CONTAINER = "quay.io/biocontainers/diamond:0.9.30--h56fc30b_0"
 
 
-/*
- * Defining the output folders.
- */
-OutputFolder = "${params.output}"
+// /*
+//  * Defining the output folders.
+//  */
+// OutputFolder = "${params.output}"
+// OutputFolderInternal = "${OutputFolder}/internal"
+
 
 /*
  * Defining the module / subworkflow path, and include the elements
  */
 subwork_folder = "${projectDir}/subworkflows/"
 
-include { UncompressFASTA } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolder)
+include { UncompressFASTA } from "${subwork_folder}/tools"
+// include { UncompressFASTA } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolder)
 
 
 process runDIAMOND_makedb {

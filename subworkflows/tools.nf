@@ -67,9 +67,6 @@ process Index_i {
  */
 process Index_fai {
 
-    // copy output file
-    // publishDir
-
     // indicates to use as a container the value indicated in the parameter
     container "quay.io/biocontainers/samtools:1.15--h1170115_1"
 
@@ -93,6 +90,95 @@ process Index_fai {
     fi
     """
 }
+
+
+
+
+
+
+/*
+ * Compressing fasta for the portal
+ */
+process compress_n_indexFASTA {
+
+    // possible requirement:
+    // sudo apt-get install tabix
+    // indicates to use as a container the value indicated in the parameter
+    container "quay.io/biocontainers/samtools:1.15--h1170115_1"
+
+    // where to store the results and in which way
+    publishDir(params.OUTPUT, mode : 'copy')
+
+    tag "${genome_file}"
+
+    input:
+    file (genome_file)
+
+    output:
+    path ("${genome_file}.gz")
+    path ("${genome_file}.gz.gzi")
+    path ("${genome_file}.gz.fai")
+
+    script:
+    """
+    echo "compressing ${genome_file}";
+    bgzip -i ${genome_file};
+
+    echo "Indexing ${genome_file}";
+    samtools faidx ${genome_file}.gz;
+    """
+}
+
+
+
+
+/*
+ * Indexing for the portal
+ */
+process gff34portal {
+
+    // where to store the results and in which way
+    publishDir(params.OUTPUT, mode : 'copy')
+    // publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff3.gz*')
+
+    // indicates to use as a container the value indicated in the parameter
+    container "quay.io/biocontainers/samtools:1.15--h1170115_1"
+
+    // indicates to use as a label the value indicated in the parameter
+    // label (params.LABEL)
+
+    // show in the log which input file is analysed
+    tag "${annotations_file}"
+
+    input:
+    path (annotations_file)
+
+    output:
+    path ("${annotations_file}")
+    path ("${annotations_file}.gz")
+    path ("${annotations_file}.gz.tbi")
+
+    script:
+    """
+    egrep '^##' ${annotations_file} | sort -u > ${annotations_file}.head;
+    egrep -v '^#' ${annotations_file} | sort -u | sort -k1,1 -k4,5n > ${annotations_file}.content;
+
+    cat ${annotations_file}.head ${annotations_file}.content <(echo '###') > ${annotations_file};
+
+    rm ${annotations_file}.head;
+    rm ${annotations_file}.content;
+
+    echo "Compressing ${annotations_file}";
+    bgzip -c ${annotations_file} > ${annotations_file}.gz;
+
+    echo "Indexing ${annotations_file}.gz";
+    tabix -p gff ${annotations_file}.gz;
+    """
+
+
+}
+
+
 
 
 

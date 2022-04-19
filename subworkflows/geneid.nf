@@ -75,7 +75,7 @@ process runGeneid_fetching {
 
     # run Geneid + protein evidence
     geneid -3P ${geneid_param} -S ${main_output_file}.${query}.HSP_SR.gff ${main_genome_file}.${query} \
-                | sed -e 's/geneid_v1.4/geneidblastx/g' | egrep 'CDS' | sort -k4,5n \
+                | sed -e 's/geneid_v1.4/geneidblastx/g' \
                 >> ${main_output_file}.${query}.gff3
 
 
@@ -84,6 +84,9 @@ process runGeneid_fetching {
     rm ${main_genome_file}.${query}
     """
     // $projectDir/scripts/sgp_getHSPSR.pl \"${query}\" < ${main_genome_file}.${query}.SR.gff > ${main_genome_file}.${query}.HSP_SR.gff
+    // geneid -3P ${geneid_param} -S ${main_output_file}.${query}.HSP_SR.gff ${main_genome_file}.${query} \
+    //             | sed -e 's/geneid_v1.4/geneidblastx/g' | egrep 'CDS' | sort -k4,5n \
+    //             >> ${main_output_file}.${query}.gff3
 }
 
 

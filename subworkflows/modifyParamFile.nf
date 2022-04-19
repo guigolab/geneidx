@@ -44,7 +44,7 @@ process creatingParamFile {
 
     script:
     ini_exon_weight = exon_weight + 1
-    output_param = "manually_created.param"
+    output_param = file(params.genome).BaseName.toString() + ".${params.match_score_min}.${params.match_ORF_min}.manually_created.param"
     """
     cat <<EOF > ${output_param}
     # geneid parameter file: human, 1 isochores

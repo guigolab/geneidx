@@ -13,8 +13,8 @@
 # DONOR PWM: donor_profile.human
 # STOP PWM: stop_profile.human
 #
-# INITIAL PWM: SampleGenomeSmall.SampleProtein.hsp.ORFs.5.cds-intron.5.initial.geneid
-# TRANSITION PWM: SampleGenomeSmall.SampleProtein.hsp.ORFs.5.cds-intron.5.transition.geneid
+# INITIAL PWM: SampleGenomeSmall.0.000005.SampleProtein.hsp.ORFs.5.cds-intron.5.initial.geneid
+# TRANSITION PWM: SampleGenomeSmall.0.000005.SampleProtein.hsp.ORFs.5.cds-intron.5.transition.geneid
 #
 # Comment lines must start with '#'
 
