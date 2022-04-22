@@ -25,7 +25,7 @@ process concatenate_Outputs {
 
     script:
     """
-    egrep -v '^# ' ${gffs_outputs} | egrep -vw '###' >> ${output_file}
+    egrep -v '^# ' ${gffs_outputs} | egrep -vw '###' | sort -u >> ${output_file}
     rm ${gffs_outputs}
     """
     // egrep -v '^# ' ${gffs_outputs} >> ${output_file}

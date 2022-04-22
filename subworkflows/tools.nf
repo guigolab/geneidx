@@ -101,14 +101,13 @@ process Index_fai {
  */
 process compress_n_indexFASTA {
 
-    // possible requirement:
-    // sudo apt-get install tabix
-    // indicates to use as a container the value indicated in the parameter
-    container "quay.io/biocontainers/samtools:1.15--h1170115_1"
-
     // where to store the results and in which way
     publishDir(params.OUTPUT, mode : 'copy')
 
+    // indicates to use as a container the value indicated in the parameter
+    container "quay.io/biocontainers/samtools:1.15--h1170115_1"
+
+    // show in the log which input file is analysed
     tag "${genome_file}"
 
     input:
@@ -139,7 +138,6 @@ process gff34portal {
 
     // where to store the results and in which way
     publishDir(params.OUTPUT, mode : 'copy')
-    // publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff3.gz*')
 
     // indicates to use as a container the value indicated in the parameter
     container "quay.io/biocontainers/samtools:1.15--h1170115_1"

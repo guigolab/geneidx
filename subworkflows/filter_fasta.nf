@@ -2,7 +2,7 @@
 params.CONTAINER = "ferriolcalvet/filter-genome"
 
 
-
+// it would be good to keep track of the restriction that we applied
 process filter_Fasta_by_length {
 
     // where to store the results and in which way

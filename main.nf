@@ -51,8 +51,10 @@ OutputFolderSpeciesTaxid = "${OutputFolder}/species/${params.taxid}"
 // fasta.gz.fai
 // gff3.gz
 // gff3.gz.tbi
+// hsp.gff
+// param
 
-paramOutputFolder = "${params.output}/params"
+// paramOutputFolder = "${params.output}/params"
 
 genoom = file(params.genome)
 proteins_file = file(params.prot_file)
@@ -72,7 +74,7 @@ include { filter_Fasta_by_length } from "${subwork_folder}/filter_fasta" addPara
 include { build_protein_DB } from "${subwork_folder}/build_dmnd_db" addParams(OUTPUT: OutputFolderInternal,
   LABEL:'fourcpus')
 
-include { alignGenome_Proteins } from "${subwork_folder}/runDMND_BLASTx" addParams(OUTPUT: OutputFolder,
+include { alignGenome_Proteins } from "${subwork_folder}/runDMND_BLASTx" addParams(OUTPUT: OutputFolderSpeciesTaxid,
   LABEL:'fourcpus')
 
 include { geneid_WORKFLOW } from "${subwork_folder}/geneid" addParams( LABEL:'singlecpu' )
@@ -83,7 +85,7 @@ include { concatenate_Outputs } from "${subwork_folder}/geneid_concatenate" addP
 include { matchAssessment } from "${subwork_folder}/getTrainingSeq" addParams(OUTPUT: OutputFolder,
   LABEL:'singlecpu')
 
-include { creatingParamFile } from "${subwork_folder}/modifyParamFile" addParams(OUTPUT: paramOutputFolder,
+include { creatingParamFile } from "${subwork_folder}/modifyParamFile" addParams(OUTPUT: OutputFolderSpeciesTaxid,
   LABEL:'singlecpu')
 
 // compress and index fastas to be stored and published to the cluster
@@ -101,27 +103,22 @@ workflow {
   //    uncompressed to the downstream modules
   uncompressed_genome = UncompressFASTA(genoom)
 
+  // none of the returned objects is used by downsteam processes
   compress_n_indexFASTA(uncompressed_genome)
 
   // Remove contigs that are too small (user chooses threshold)
-  filtered_genome = filter_Fasta_by_length(uncompressed_genome, params.min_seq_length)
+  // filtered_genome = filter_Fasta_by_length(uncompressed_genome, params.min_seq_length)
 
   // Build protein database for DIAMOND
   protDB = build_protein_DB(proteins_file)
 
 
   // Run DIAMOND to find matches between genome and proteins
-  hsp_found = alignGenome_Proteins(protDB, filtered_genome)
-
-  // **TO DO** NOT PRIORITY
-  // Evaluate matches and ORFs in matches
-  // First to get an idea of how good/bad we are getting those regions
-  //    later on we will generate a parameter file and use that file
-  //    for running Geneid
+  hsp_found = alignGenome_Proteins(protDB, uncompressed_genome)
 
 
   // Automatic computation of the parameter file
-  new_mats = matchAssessment(filtered_genome, hsp_found,
+  new_mats = matchAssessment(uncompressed_genome, hsp_found,
                                   params.match_score_min,
                                   params.match_ORF_min,
                                   params.intron_margin,
@@ -150,7 +147,7 @@ workflow {
 
 
   // Run Geneid
-  predictions = geneid_WORKFLOW(filtered_genome, new_param, hsp_found)
+  predictions = geneid_WORKFLOW(uncompressed_genome, new_param, hsp_found)
 
   // Prepare concatenation
   main_database_name = proteins_file.BaseName.toString().replaceAll("\\.fa", "")
@@ -164,7 +161,7 @@ workflow {
   // Run concatenation of individual GFF3 files
   final_output = concatenate_Outputs(predictions, output_file)
 
-  // add header
+  // fix gff3 file and compress it for the portal
   gff34portal(final_output.last())
 
 }
