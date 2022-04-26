@@ -89,7 +89,8 @@ include { creatingParamFile } from "${subwork_folder}/modifyParamFile" addParams
   LABEL:'singlecpu')
 
 // compress and index fastas to be stored and published to the cluster
-include { compress_n_indexFASTA } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolderSpeciesTaxid)
+include { compress_n_indexFASTA } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolderSpeciesTaxid,
+  LABEL:'singlecpu')
 
 // compress and index gff3s to be stored and published to the cluster
 include { gff34portal } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolderSpeciesTaxid)
@@ -156,7 +157,7 @@ workflow {
   out_filename = "${main_genome_name}.-.${main_database_name}.gff3"
 
   // Create the path to the file
-  output_file = file(OutputFolder + "/" + out_filename)
+  output_file = file(OutputFolderSpeciesTaxid + "/" + out_filename)
 
   // Run concatenation of individual GFF3 files
   final_output = concatenate_Outputs(predictions, output_file)

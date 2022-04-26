@@ -75,7 +75,7 @@ process runGeneid_fetching {
 
     # run Geneid + protein evidence
     geneid -3P ${geneid_param} -S ${main_output_file}.${query}.HSP_SR.gff ${main_genome_file}.${query} \
-                | sed -e 's/geneid_v1.4/geneidblastx/g' \
+                | sed -e 's/geneid_v1.4/geneidblastx/g' | egrep -v '^# ' | grep -vFw '###' \
                 >> ${main_output_file}.${query}.gff3
 
 

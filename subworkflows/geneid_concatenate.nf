@@ -7,7 +7,7 @@ process concatenate_Outputs {
     */
 
     // where to store the results and in which way
-    publishDir(params.OUTPUT, mode: "copy", pattern : "*.gff3")
+    // publishDir(params.OUTPUT, mode: "copy", pattern : "*.gff3")
 
     // indicates to use as a label the value indicated in the parameter
     label (params.LABEL)
