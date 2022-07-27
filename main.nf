@@ -57,16 +57,18 @@ OutputFolderSpeciesTaxid = "${OutputFolder}/species/${params.taxid}"
 // paramOutputFolder = "${params.output}/params"
 
 genoom = file(params.genome)
-proteins_file = file(params.prot_file)
+// proteins_file = file(params.prot_file)
 
 
 /*
  * Defining the module / subworkflow path, and include the elements
  */
-subwork_folder = "${projectDir}/subworkflows/"
+subwork_folder = "${projectDir}/subworkflows"
 
 include { UncompressFASTA } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolder)
 
+include { prot_down_workflow } from "${subwork_folder}/getProteins" addParams(OUTPUT: OutputFolder,
+  LABEL:'singlecpu')
 
 include { filter_Fasta_by_length } from "${subwork_folder}/filter_fasta" addParams(OUTPUT: OutputFolder,
   LABEL:'singlecpu')
@@ -79,7 +81,13 @@ include { alignGenome_Proteins } from "${subwork_folder}/runDMND_BLASTx" addPara
 
 include { geneid_WORKFLOW } from "${subwork_folder}/geneid" addParams( LABEL:'singlecpu' )
 
+include { prep_concat } from "${subwork_folder}/prepare_concatenation" addParams(OUTPUT: OutputFolderSpeciesTaxid,
+  LABEL:'singlecpu')
+
 include { concatenate_Outputs } from "${subwork_folder}/geneid_concatenate" addParams(OUTPUT: OutputFolder,
+  LABEL:'singlecpu')
+
+include { concatenate_Outputs_once } from "${subwork_folder}/geneid_concatenate" addParams(OUTPUT: OutputFolder,
   LABEL:'singlecpu')
 
 include { matchAssessment } from "${subwork_folder}/getTrainingSeq" addParams(OUTPUT: OutputFolder,
@@ -100,6 +108,13 @@ include { gff34portal } from "${subwork_folder}/tools" addParams(OUTPUT: OutputF
  */
 workflow {
 
+  // launch genome assembly cleaner
+  // clean_assembly =
+
+  // launch genome assembly masker with the appropriate params
+  // masked_genome = masking(clean_assembly)
+
+
   // Uncompress FASTA file in here so that I can provide it
   //    uncompressed to the downstream modules
   uncompressed_genome = UncompressFASTA(genoom)
@@ -109,6 +124,14 @@ workflow {
 
   // Remove contigs that are too small (user chooses threshold)
   // filtered_genome = filter_Fasta_by_length(uncompressed_genome, params.min_seq_length)
+
+
+
+  // if proteins_file provided use proteins file
+  // else, use taxon to download the proteins_file
+  // both conditions are evaluated inside the execution of this workflow
+  proteins_file = prot_down_workflow(params.taxid)
+
 
   // Build protein database for DIAMOND
   protDB = build_protein_DB(proteins_file)
@@ -151,16 +174,15 @@ workflow {
   predictions = geneid_WORKFLOW(uncompressed_genome, new_param, hsp_found)
 
   // Prepare concatenation
-  main_database_name = proteins_file.BaseName.toString().replaceAll("\\.fa", "")
-  main_genome_name = genoom.BaseName.toString().replaceAll("\\.fa", "")
-  // This is the name of the final GFF3 file
-  out_filename = "${main_genome_name}.-.${main_database_name}.gff3"
+  // This will initialize the final GFF3 file
+  output_file = prep_concat(proteins_file, genoom)
 
-  // Create the path to the file
-  output_file = file(OutputFolderSpeciesTaxid + "/" + out_filename)
+
 
   // Run concatenation of individual GFF3 files
-  final_output = concatenate_Outputs(predictions, output_file)
+  // final_output = concatenate_Outputs(predictions, output_file)
+  final_output = concatenate_Outputs_once(predictions.collect(), output_file)
+
 
   // fix gff3 file and compress it for the portal
   gff34portal(final_output.last())
