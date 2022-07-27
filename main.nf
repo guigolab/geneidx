@@ -24,9 +24,10 @@ params.help             = false
 log.info """
 GENEID+BLASTx - NextflowPipeline
 =============================================
-output				: ${params.output}
-genome				: ${params.genome}
-prot_file			: ${params.prot_file}
+output			: ${params.output}
+genome			: ${params.genome}
+prot_file		: ${params.prot_file}
+taxon			: ${params.taxid}
 """
 // param_file		: ${params.param_f}
 
@@ -130,8 +131,11 @@ workflow {
   // if proteins_file provided use proteins file
   // else, use taxon to download the proteins_file
   // both conditions are evaluated inside the execution of this workflow
-  proteins_file = prot_down_workflow(params.taxid)
-
+  if (params.prot_file) {
+    proteins_file = file(params.prot_file)
+  } else {
+    proteins_file = prot_down_workflow(params.taxid)
+  }
 
   // Build protein database for DIAMOND
   protDB = build_protein_DB(proteins_file)
