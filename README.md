@@ -1,32 +1,50 @@
 # Geneid+BLASTx in Nextflow
 
-Using the [Nexflow tutorial for the Elixir workflow workshop](https://nextflow-io.github.io/elixir-workshop-21/docs/) taking place on November 2021, as an initial template, we are integrating Geneid+BLASTx into Nextflow so that it can be run easily with almost no requirements.
+Implementation of the Geneid+BLASTx ab initio gene prediction method.
 
+Nextflow allows a fully portable and scalable implementation.
 
-## Schema
+## Before running Geneid+BLASTx
 1. **Make sure ( Docker or Singularity ) and Nextflow are installed in your computer.**
   - [Docker](https://docs.docker.com/engine/install/)
   - [Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html#)
   - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
 
-2. Receive the FASTA file, the parameter file and the set of proteins to use as a reference as input in the params.config file.
-3. Uncompress and index the FASTA file.
+2. Define the input parameters:
+  - Compressed FASTA file with `.fa.gz` termination.
+  - Taxid of the species to annotate or from the closest relative described.
+  - Proteins from closely related species: (choose one of these options)
+      - Provide a compressed FASTA file with the proteins selected.
+      - Let the pipeline download the proteins automatically from UniRef90 (nothing should be provided in this case.)
+  - Tune parameters for the gene prediction process.
+      - Indicate the PWMs defining the start, end, donor and acceptor sites. (this can be obtained from the parameter files listed here [GENEID parameter files](https://genome.crg.es/software/geneid/index.html#parameters))
 
-4. *MISSING: RepeatMasking!!*
 
-5. Create the protein database for DIAMOND to use it as a source.
-6. Align the provided genome against the database created using DIAMOND BLASTx flavour.
-7. Run the auto-training process:
+## Running Geneid+BLASTx
+Having defined the parameters and ensuring that Nextflow and a container technology.
+
+`nextflow run main.nf -with-(docker|singularity)`
+
+
+## Schema
+Which steps are taking place as part of this pipeline?
+
+1. Uncompress and index the FASTA file.
+2. Get the set of proteins to be used for the protein-to-genome alignments.
+3. Create the protein database for DIAMOND to use it as a source.
+4. Align the provided genome against the database created using DIAMOND BLASTx flavour.
+5. Run the auto-training process:
   - Use matches to estimate the coding sections, look for open reading frames between stop codons.
   - Use matches from the same protein to predict the potential introns.
   - From the sequences of both previous steps compute the initial and transition probability matrices required for the computation of the coding potential of the genome that will be annotated.
-8. Build the parameter file with the parameters indicated in the *params.config* file and also the matrices automatically generated from the matches.
-9. Run Geneid with the new parameter file and the matches from the previous steps as additional evidence.
-This is done in parallel for each independent sequence inside the genome FASTA file. It consists of several steps:
+6. Update the parameter file with the parameters indicated in the *params.config* file and also the matrices automatically generated from the protein-DNA matches.
+7. Run Geneid with the new parameter file and the protein-DNA matches from the previous steps as additional evidence.
+This is done in parallel for each independent sequence inside the genome FASTA file, and it consists of the following steps:
   - Pre-process the matches to join those that overlap and re-score them appropriately.
   - Run Geneid using the evidence and obtain the GFF3 file.
   - Remove the files from the internal steps.
-10. Concatenate all the outputs into a single GFF3 file that is sorted by coordinates and without the lines starting with #.
+8. Concatenate all the outputs into a single GFF3 file that is sorted by coordinates.
+
 
 ## DETAILS:
 - **The name of the sequences in the FASTA file cannot contain unusual characters.**
@@ -36,7 +54,7 @@ This is done in parallel for each independent sequence inside the genome FASTA f
 
 ## DOING:
 -  Optimizing the memory and CPU requirements for it to run smoothly on the cluster.
--  Optimization of the auto-training additional parameters missing
+-  Optimization of the auto-training additional parameters missing.
 
 
 ## PENDING:

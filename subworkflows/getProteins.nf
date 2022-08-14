@@ -41,11 +41,11 @@ process getProtFasta {
 
     sp_taxon_id = ${taxon}
 
-    lower_lim = 20000 #90000
-    upper_lim = 30000 #130000
+    lower_lim = 90000
+    upper_lim = 130000
 
     identity = 0.9
-    ini_clu_size = 40 # 24
+    ini_clu_size = 24
     clu_size = ini_clu_size
 
     max_iterations = 30
@@ -108,10 +108,10 @@ process getProtFasta {
         r = requests.get(query)
 
         # if we have more proteins than the minimum required
-        if lower_lim <= int(r.headers["x-total-records"]):
+        if lower_lim <= int(r.headers["X-Total-Results"]):
 
             # check if we are inside the target range of proteins
-            if int(r.headers["x-total-records"]) <= upper_lim:
+            if int(r.headers["X-Total-Results"]) <= upper_lim:
                 in_range = True
 
             # if we are above the target range, increase the cluster size required, this will reduce the number of proteins
@@ -126,7 +126,7 @@ process getProtFasta {
                 clu_size = ini_clu_size
 
         # as we don't reach the minimum number of proteins, we need to get less stringent in terms of cluster size
-        elif clu_size >= 8:
+        elif clu_size >= 6:
             clu_size -= 3
 
         # if even when reducing cluster size a lot, we don't get enough proteins, let's get one taxonomic rank higher.

@@ -1,11 +1,6 @@
 
 process prep_concat {
-    /*
-    POTENTIAL PROBLEM, MUTLIPLE PROCESSES ACCESSING AND GENERATING THE SAME FILE
-    Solution so far, if I generate the file in advance and I pass it as input
-    to the process Nextflow manages it appropriately
-    */
-
+    
     // where to store the results and in which way
     publishDir(params.OUTPUT, mode: "copy", pattern : "*.gff3")
 
@@ -32,13 +27,8 @@ process prep_concat {
     out_filename = "${main_genome_name}.-.${main_database_name}.gff3"
     // println(out_filename)
 
-    // // Create the path to the file
-    // output_file = file(params.OUTPUT + "/" + out_filename)
     """
     printf "" > ${out_filename};
     """
-    // egrep -v '^# ' ${gffs_outputs} >> ${output_file}
-    // cat ${gffs_outputs} | grep -v '#' | sort -u | sort -k1,1 -k4,5n >> ${output_file}
-    // rm ${gffs_outputs}
 
 }
