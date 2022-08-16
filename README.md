@@ -1,8 +1,19 @@
-# Geneid+BLASTx in Nextflow
+# Geneid+BLASTx
+Implementation of the Geneid+BLASTx *ab initio* gene prediction method.
+This is a summary schema of our method, starting from a genome assembly and a set of proteins from closely related species, we provide a fast and accurate prediction of the protein-coding genes.
+Follow us on Twitter ([@GuigoLab](https://twitter.com/GuigoLab)) to stay tuned for an article describing our method in detail.
 
-Implementation of the Geneid+BLASTx ab initio gene prediction method.
+ ## Preliminary results
+ The results of an initial benchmarking using vertebrates genomes annotated in Ensembl show that our method is **as accurate as the top *ab initio* gene predictors**, but it is **between 10 and 100 times faster**.
+![Summary of vertebrate benchmark](images/Benchmarking4GitHub.svg)
 
-Nextflow allows a fully portable and scalable implementation.
+
+
+## Running Geneid+BLASTx
+Having defined the parameters and ensuring that Nextflow and a container technology.
+
+`nextflow run main.nf -with-(docker|singularity)`
+
 
 ## Before running Geneid+BLASTx
 1. **Make sure ( Docker or Singularity ) and Nextflow are installed in your computer.**
@@ -17,18 +28,14 @@ Nextflow allows a fully portable and scalable implementation.
       - Provide a compressed FASTA file with the proteins selected.
       - Let the pipeline download the proteins automatically from UniRef90 (nothing should be provided in this case.)
   - Tune parameters for the gene prediction process.
-      - Indicate the PWMs defining the start, end, donor and acceptor sites. (this can be obtained from the parameter files listed here [GENEID parameter files](https://genome.crg.es/software/geneid/index.html#parameters))
+      - Indicate the PWMs defining the start, end, donor and acceptor sites. (this can be obtained from the parameter files listed here: [GENEID parameter files](https://genome.crg.es/software/geneid/index.html#parameters))
 
-
-## Running Geneid+BLASTx
-Having defined the parameters and ensuring that Nextflow and a container technology.
-
-`nextflow run main.nf -with-(docker|singularity)`
 
 
 ## Schema
 Which steps are taking place as part of this pipeline?
-
+This is a graphical summary, and the specific steps are outlined below.
+![Summary of vertebrate benchmark](images/SchemaWhite.png)
 1. Uncompress and index the FASTA file.
 2. Get the set of proteins to be used for the protein-to-genome alignments.
 3. Create the protein database for DIAMOND to use it as a source.
