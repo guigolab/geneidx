@@ -1,9 +1,14 @@
 # Geneid+BLASTx
-Implementation of the Geneid+BLASTx *ab initio* gene prediction method.
-This is a summary schema of our method, starting from a genome assembly and a set of proteins from closely related species, we provide a fast and accurate prediction of the protein-coding genes.
-Follow us on Twitter ([@GuigoLab](https://twitter.com/GuigoLab)) to stay tuned for an article describing our method in detail.
+We provide a fast and accurate prediction of the protein-coding genes in a genome, taking as input the genome assembly and a set of proteins from closely related species.
 
- ## Preliminary results
+This repository contains the implementation of the Geneid+BLASTx *ab initio* gene prediction method.
+
+In the description here, you can find our preliminary results, a schema of our method and a description of the minimal requirements and commands required for running it.
+
+Stay tuned for an article with detailed descriptions and feel free to [contact us](mailto:ferriol.calvet@crg.eu) if you are trying it and find any problem.
+
+
+## Preliminary results
  The results of an initial benchmarking using vertebrates genomes annotated in Ensembl show that our method is **as accurate as the top *ab initio* gene predictors**, but it is **between 10 and 100 times faster**.
 ![Summary of vertebrate benchmark](images/Benchmarking4GitHub.svg)
 
@@ -68,3 +73,6 @@ This is done in parallel for each independent sequence inside the genome FASTA f
 - Define accurate memory limits (dynamic based on genome sizes?).
 - Tune DIAMOND parameters to make the most of the resources available and to adapt to the capacity of each computer.
 - DIAMOND now uses a lot of RAM memory, we have to adjust the execution to reduce the amount of resources used. This may cause an increase in the execution time.
+
+
+Follow us on Twitter ([@GuigoLab](https://twitter.com/GuigoLab)) for updates in the article describing our method.
