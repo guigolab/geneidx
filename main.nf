@@ -77,18 +77,21 @@ include { build_protein_DB } from "${subwork_folder}/build_dmnd_db" addParams(OU
 include { alignGenome_Proteins } from "${subwork_folder}/runDMND_BLASTx" addParams(OUTPUT: OutputFolderSpeciesTaxid,
   LABEL:'fourcpus')
 
+include { matchAssessment } from "${subwork_folder}/getTrainingSeq" addParams(OUTPUT: OutputFolder,
+  LABEL:'singlecpu')
+
+include { creatingParamFile } from "${subwork_folder}/modifyParamFile" addParams(OUTPUT: OutputFolderSpeciesTaxid,
+  LABEL:'singlecpu')
+
 include { geneid_WORKFLOW } from "${subwork_folder}/geneid" addParams( LABEL:'singlecpu' )
 
 include { prep_concat } from "${subwork_folder}/prepare_concatenation" addParams(OUTPUT: OutputFolderSpeciesTaxid,
   LABEL:'singlecpu')
 
-include { concatenate_Outputs_once } from "${subwork_folder}/geneid_concatenate" addParams(OUTPUT: OutputFolder,
+include { concatenate_Outputs_once } from "${subwork_folder}/geneid_concatenate" addParams(OUTPUT: OutputFolderSpeciesTaxid,
   LABEL:'singlecpu')
 
-include { matchAssessment } from "${subwork_folder}/getTrainingSeq" addParams(OUTPUT: OutputFolder,
-  LABEL:'singlecpu')
-
-include { creatingParamFile } from "${subwork_folder}/modifyParamFile" addParams(OUTPUT: OutputFolderSpeciesTaxid,
+include { gff3addInfo } from "${subwork_folder}/addMatchInfo" addParams(OUTPUT: OutputFolderSpeciesTaxid,
   LABEL:'singlecpu')
 
 // compress and index fastas to be stored and published to the cluster
@@ -97,6 +100,7 @@ include { compress_n_indexFASTA } from "${subwork_folder}/tools" addParams(OUTPU
 
 // compress and index gff3s to be stored and published to the cluster
 include { gff34portal } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolderSpeciesTaxid)
+
 
 /*
  * MAIN workflow definition.
@@ -167,8 +171,12 @@ workflow {
   // Run concatenation of individual GFF3 files
   final_output = concatenate_Outputs_once(predictions.collect(), output_file)
 
+  // Add information about the proteins to the final GFF3
+  labelled_output = gff3addInfo(final_output, hsp_found)
+
   // fix gff3 file and compress it for the portal
-  gff34portal(final_output.last())
+  // gff34portal(final_output)
+  gff34portal(labelled_output)
 
 }
 

@@ -2,3 +2,4 @@
 .nextflow*
 work
 output/*
+scripts/*
