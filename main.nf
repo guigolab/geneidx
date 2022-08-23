@@ -80,6 +80,9 @@ include { alignGenome_Proteins } from "${subwork_folder}/runDMND_BLASTx" addPara
 include { matchAssessment } from "${subwork_folder}/getTrainingSeq" addParams(OUTPUT: OutputFolder,
   LABEL:'singlecpu')
 
+include { param_selection_workflow } from "${subwork_folder}/getParams" addParams(OUTPUT: OutputFolder,
+  LABEL:'singlecpu')
+
 include { creatingParamFile } from "${subwork_folder}/modifyParamFile" addParams(OUTPUT: OutputFolderSpeciesTaxid,
   LABEL:'singlecpu')
 
@@ -141,6 +144,20 @@ workflow {
                                   params.min_intron_size,
                                   params.max_intron_size)
 
+  // if sites matrices provided, use them
+  // else, use taxon to get the closest geneid param file
+  if (params.acceptor_pwm) {
+    acc_pwm = params.acceptor_pwm
+    don_pwm = params.donor_pwm
+    sta_pwm = params.start_pwm
+    sto_pwm = params.stop_pwm
+  } else {
+    param_file_sel = param_selection_workflow(params.taxid, 0)
+    acc_pwm = param_file_sel.acceptor_pwm
+    don_pwm = param_file_sel.donor_pwm
+    sta_pwm = param_file_sel.start_pwm
+    sto_pwm = param_file_sel.stop_pwm
+  }
 
   new_param = creatingParamFile(params.no_score,
                                 params.site_factor,
@@ -151,15 +168,18 @@ workflow {
                                 params.min_intron_size_geneid,
                                 params.max_intron_size_geneid,
 
-                                params.start_pwm,
-                                params.acceptor_pwm,
-                                params.donor_pwm,
-                                params.stop_pwm,
+                                sta_pwm,
+                                acc_pwm,
+                                don_pwm,
+                                sto_pwm,
 
                                 new_mats.ini_comb,
                                 new_mats.trans_comb
                                 )
-
+                                // start_pwm 		= "$projectDir/data/param-sections/start_profile.human"
+                                // 	acceptor_pwm	= "$projectDir/data/param-sections/acceptor_profile.human"
+                                // 	donor_pwm			= "$projectDir/data/param-sections/donor_profile.human"
+                                // 	stop_pwm			= "$projectDir/data/param-sections/stop_profile.human"
 
   // Run Geneid
   predictions = geneid_WORKFLOW(uncompressed_genome, new_param, hsp_found)
