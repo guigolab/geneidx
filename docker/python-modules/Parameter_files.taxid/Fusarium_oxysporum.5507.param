@@ -51,7 +51,7 @@ Exon_weights
 -4.00 -4.00 -4.00 -4.00
 
 # Site prediction: Position Weight Arrays
-# Length, Offset, Cutoff and Order (Markov model)
+# Parameters to Predict Sites: Length, Offset, Cutoff and Order (Markov chain)
 Start_profile
 10 5 -7 0
 # Transition probabilities at every position
@@ -15890,7 +15890,7 @@ TTTTTT 4095 0 -1.35049
 TTTTTT 4095 1 -2.34977
 TTTTTT 4095 2 -0.767256
 
-# Donors per acceptor to build exons
+# How many donors per acceptor can we use to build exons?
 maximum_number_of_donors_per_acceptor_site
 5
 

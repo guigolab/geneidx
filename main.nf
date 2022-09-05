@@ -160,6 +160,7 @@ workflow {
   }
 
   new_param = creatingParamFile(params.no_score,
+
                                 params.site_factor,
                                 params.exon_factor,
                                 params.hsp_factor,

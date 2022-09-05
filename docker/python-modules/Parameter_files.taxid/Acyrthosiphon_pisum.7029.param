@@ -32,12 +32,12 @@ Exon_factor
 HSP_factor
 1.0 1.0 1.0 1.0
 
-Exon_weigths
+Exon_weights
 -4.25 -4.45 -4.45 -4.35
 
 # Site prediction: Position Weight Arrays
-# Lenght, Offset, Cutoff and order (Markov model)
-Start_profile 
+# Parameters to Predict Sites: Length, Offset, Cutoff and Order (Markov chain)
+Start_profile
 7 3 -5 0
 # Transition start probabilities at every position
 1 A 0.623714
@@ -509,7 +509,7 @@ Acceptor_profile
 
 
 
-Donor_Profile
+Donor_profile
 8 0 -7.5 1
 # Transition donor probabilities at every position
 1 AA 0.0343891
@@ -643,7 +643,7 @@ Donor_Profile
 
 
 
-Stop_Profile
+Stop_profile
 4 0 -9999 0
 # Th	ese are the transition probabilities
 1 A 0

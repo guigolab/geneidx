@@ -1,7 +1,7 @@
 # Parameter file: GeneID in C.globosum.
 # Comment lines must begin with '#'
 
-# Non_homologypenalty
+# Non-homology penalty
 NO_SCORE
 0
 
@@ -16,10 +16,10 @@ boundaries_of_isochore
 0  100
 
 # Exons score: cutoffs
-Absolute_cuttoff_exons
+Absolute_cutoff_exons
 -150 -150 -150 -150
 
-Coding_cutoff_Oligos
+Coding_cutoff_oligos
 -100 -150 -150 -150
 
 # Exon score: factors
@@ -32,10 +32,10 @@ Exon_factor
 HSP_factor
 1.0 1.0 1.0 1.0
 
-Exon_weigths
+Exon_weights
 -2.00 -2.00 -2.00 -2.00
 
-# Parameters to Predict Sites: Lenght, Offset, Cutoff and order (Markov chain)
+# Parameters to Predict Sites: Length, Offset, Cutoff and Order (Markov chain)
 Start_profile
 14 6 -5 2
 # These are the start transition probabilities
@@ -1073,7 +1073,7 @@ Acceptor_profile
 6 TG -9999
 6 TT -9999
 
-Donor_Profile
+Donor_profile
 8 0 -7.5 1
 # These are the donor transition probabilities
 1 AA -1.09487
@@ -1205,7 +1205,7 @@ Donor_Profile
 8 TG -0.552556
 8 TT 0.528633
 
-Stop_Profile
+Stop_profile
 4 0 -9999 0
 # These are the transition probabilities
 1 A 0

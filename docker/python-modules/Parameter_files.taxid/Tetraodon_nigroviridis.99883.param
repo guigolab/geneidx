@@ -19,7 +19,7 @@ boundaries_of_isochore
 Absolute_cutoff_exons
 -15 -15 -15 -15
 
-Coding_cutoff_Oligos
+Coding_cutoff_oligos
 -15 -15 -15 -15
 
 # Exon score: factors
@@ -32,11 +32,11 @@ Exon_factor
 HSP_factor
 1.0 1.0 1.0 1.0
 
-Exon_weigths
+Exon_weights
 -9.1 -9.1 -9.1 -9.1
 
 # Site prediction: Position Weight Arrays
-# Lenght, Offset, Cutoff and order (Markov model)
+# Parameters to Predict Sites: Length, Offset, Cutoff and Order (Markov chain)
 Start_profile
 12 6 -5 0
 # Transition probabilities at every position
@@ -15627,7 +15627,7 @@ TTTTTT 4095 0 -0.326059
 TTTTTT 4095 1 -0.476717
 TTTTTT 4095 2 -0.351572
 
-# Donors per acceptor to build exons
+# How many donors per acceptor can we use to build exons?
 maximum_number_of_donors_per_acceptor_site
 5
 

@@ -1,7 +1,7 @@
 # Parameter file: GeneID in B.dendrobatidis
 # Comment lines must begin with '#'
 
-# Non_homologypenalty
+# Non-homology penalty
 NO_SCORE
 0
 
@@ -16,10 +16,10 @@ boundaries_of_isochore
 0  100
 
 # Exons score: cutoffs
-Absolute_cuttoff_exons
+Absolute_cutoff_exons
 -150 -150 -150 -150
 
-Coding_cutoff_Oligos
+Coding_cutoff_oligos
 -100 -150 -150 -150
 
 # Exon score: factors
@@ -32,10 +32,10 @@ Exon_factor
 HSP_factor
 1.0 1.0 1.0 1.0
 
-Exon_weigths
+Exon_weights
 -3.00 -3.50 -3.50 -3.50
 
-# Parameters to Predict Sites: Lenght, Offset, Cutoff and order (Markov chain)
+# Parameters to Predict Sites: Length, Offset, Cutoff and Order (Markov chain)
 Start_profile
 11 4 -5 0
 # These are the start transition probabilities
@@ -456,7 +456,7 @@ Acceptor_profile
 23 TG 0.0149653
 23 TT 0.0375347
 
-Donor_Profile
+Donor_profile
 12 1 -7.5 1
 # These are the donor transition probabilities
 1 AA 0.687824
@@ -653,7 +653,7 @@ Donor_Profile
 12 TT 0.376843
 
 
-Stop_Profile
+Stop_profile
 4 0 -9999 0
 # These are the transition probabilities
 1 A 0

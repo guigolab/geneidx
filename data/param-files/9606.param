@@ -38,7 +38,7 @@ Exon_weights
 
 # Site prediction: Position Weight Arrays
 # Lenght, Offset, Cutoff and order (Markov model)
-Start_profile 
+Start_profile
 13 4 -6 2
 # Transition probabilities at every position
 1 AAA -0.116862
@@ -16883,7 +16883,7 @@ Exon_weights
 
 # Site prediction: Position Weight Arrays
 # Lenght, Offset, Cutoff and order (Markov model)
-Start_profile 
+Start_profile
 13 4 -6 2
 # Transition probabilities at every position 
 1 AAA -0.116862
@@ -33727,7 +33727,7 @@ Exon_weights
 
 # Site prediction: Position Weight Arrays
 # Lenght, Offset, Cutoff and order (Markov model)
-Start_profile 
+Start_profile
 13 4 -6 2
 # Transition probabilities at every position
 1 AAA -0.116862
