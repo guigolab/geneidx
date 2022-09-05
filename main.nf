@@ -58,7 +58,6 @@ OutputFolderSpeciesTaxid = "${OutputFolder}/species/${params.taxid}"
 // paramOutputFolder = "${params.output}/params"
 
 genoom = file(params.genome)
-// proteins_file = file(params.prot_file)
 
 
 /*
