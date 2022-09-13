@@ -41,8 +41,8 @@ process getProtFasta {
 
     sp_taxon_id = ${taxon}
 
-    lower_lim = 90000
-    upper_lim = 130000
+    lower_lim = 40000
+    upper_lim = 70000
 
     identity = 0.9
     ini_clu_size = 24

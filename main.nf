@@ -26,15 +26,15 @@ GENEID+BLASTx - NextflowPipeline
 =============================================
 output			: ${params.output}
 genome			: ${params.genome}
-prot_file		: ${params.prot_file}
 taxon			: ${params.taxid}
 """
 // param_file		: ${params.param_f}
 
 // this prints the help in case you use --help parameter in the command line and it stops the pipeline
 if (params.help) {
-    log.info 'This is the Geneid+BLASTx test pipeline in Nextflow'
-    log.info 'Please define the genome file, the protein file,\n\t\tthe parameter files and the output!\n'
+    log.info 'This is the GeneidX test pipeline in Nextflow'
+    log.info 'Please define the genome file and the taxid of the species.\n'
+    log.info 'To define additional parameters checkout the params.config file.\n'
     log.info '\n'
     exit 1
 }
@@ -45,6 +45,7 @@ if (params.help) {
 OutputFolder = "${params.output}"
 
 OutputFolderInternal = "${OutputFolder}/internal"
+OutputFolderProteinDBs = "${OutputFolder}/proteins"
 OutputFolderSpecies = "${OutputFolder}/species"
 OutputFolderSpeciesTaxid = "${OutputFolder}/species/${params.taxid}"
 // fasta.gz
@@ -67,10 +68,10 @@ subwork_folder = "${projectDir}/subworkflows"
 
 include { UncompressFASTA } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolder)
 
-include { prot_down_workflow } from "${subwork_folder}/getProteins" addParams(OUTPUT: OutputFolder,
+include { prot_down_workflow } from "${subwork_folder}/getProteins" addParams(OUTPUT: OutputFolderProteinDBs,
   LABEL:'singlecpu')
 
-include { build_protein_DB } from "${subwork_folder}/build_dmnd_db" addParams(OUTPUT: OutputFolderInternal,
+include { build_protein_DB } from "${subwork_folder}/build_dmnd_db" addParams(OUTPUT: OutputFolderProteinDBs,
   LABEL:'fourcpus')
 
 include { alignGenome_Proteins } from "${subwork_folder}/runDMND_BLASTx" addParams(OUTPUT: OutputFolderSpeciesTaxid,
@@ -103,6 +104,9 @@ include { compress_n_indexFASTA } from "${subwork_folder}/tools" addParams(OUTPU
 // compress and index gff3s to be stored and published to the cluster
 include { gff34portal } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolderSpeciesTaxid)
 
+
+
+parameter_location = file(params.parameter_path)
 
 /*
  * MAIN workflow definition.
@@ -151,22 +155,25 @@ workflow {
     sta_pwm = params.start_pwm
     sto_pwm = params.stop_pwm
   } else {
-    param_file_sel = param_selection_workflow(params.taxid, 0)
+    param_file_sel = param_selection_workflow(params.taxid, 0, parameter_location)
     acc_pwm = param_file_sel.acceptor_pwm
     don_pwm = param_file_sel.donor_pwm
     sta_pwm = param_file_sel.start_pwm
     sto_pwm = param_file_sel.stop_pwm
   }
 
-  new_param = creatingParamFile(params.no_score,
+  new_param = creatingParamFile(
+                                params.taxid,
+
+                                params.no_score,
+
+                                params.absolute_cutoff_exons,
+                                params.coding_cutoff_oligos,
 
                                 params.site_factor,
                                 params.exon_factor,
                                 params.hsp_factor,
                                 params.exon_weight,
-
-                                params.min_intron_size_geneid,
-                                params.max_intron_size_geneid,
 
                                 sta_pwm,
                                 acc_pwm,
@@ -174,7 +181,12 @@ workflow {
                                 sto_pwm,
 
                                 new_mats.ini_comb,
-                                new_mats.trans_comb
+                                new_mats.trans_comb,
+
+                                params.general_gene_params
+
+                                // params.min_intron_size_geneid,
+                                // params.max_intron_size_geneid
                                 )
                                 // start_pwm 		= "$projectDir/data/param-sections/start_profile.human"
                                 // 	acceptor_pwm	= "$projectDir/data/param-sections/acceptor_profile.human"
