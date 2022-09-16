@@ -1,7 +1,7 @@
-# Geneid+BLASTx
+# GeneidX
 We provide a fast and accurate prediction of the protein-coding genes in a genome, taking as input the genome assembly and a set of proteins from closely related species.
 
-This repository contains the implementation of the Geneid+BLASTx *ab initio* gene prediction method.
+This repository contains the implementation of the GeneidX *ab initio* gene prediction method.
 
 In the description here, you can find our preliminary results, a schema of our method and a description of the minimal requirements and commands required for running it.
 
@@ -10,17 +10,19 @@ Stay tuned for an article with detailed descriptions and feel free to [contact u
 
 ## Preliminary results
  The results of an initial benchmarking using vertebrates genomes annotated in Ensembl show that our method is **as accurate as the top *ab initio* gene predictors**, but it is **between 10 and 100 times faster**.
-![Summary of vertebrate benchmark](images/Benchmarking4GitHub.svg)
+![Summary of vertebrate benchmark](images/Benchmarking4GitHubX.svg)
 
 
 
-## Running Geneid+BLASTx
+## Running GeneidX
 Having defined the parameters and ensuring that Nextflow and a container technology.
 
-`nextflow run main.nf -with-(docker|singularity)`
+`nextflow run guigolab/geneidx -with-docker
+                            --genome <GENOME>
+                            --taxid <TAXID>`
 
 
-## Before running Geneid+BLASTx
+## Before running GeneidX
 1. **Make sure ( Docker or Singularity ) and Nextflow are installed in your computer.**
   - [Docker](https://docs.docker.com/engine/install/)
   - [Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html#)
@@ -33,7 +35,9 @@ Having defined the parameters and ensuring that Nextflow and a container technol
       - Provide a compressed FASTA file with the proteins selected.
       - Let the pipeline download the proteins automatically from UniRef90 (nothing should be provided in this case.)
   - Tune parameters for the gene prediction process.
-      - Indicate the PWMs defining the start, end, donor and acceptor sites. (this can be obtained from the parameter files listed here: [GENEID parameter files](https://genome.crg.es/software/geneid/index.html#parameters))
+      - Indicate the values for each Geneid parameter.
+      - Let the pipeline select them from the closest pretrained Geneid parameter file. (find the parameters in data/Parameter_files.taxid/)
+      - Find more information here: [GENEID parameter files](https://genome.crg.es/software/geneid/index.html#parameters)
 
 
 
@@ -41,8 +45,8 @@ Having defined the parameters and ensuring that Nextflow and a container technol
 Which steps are taking place as part of this pipeline?
 This is a graphical summary, and the specific steps are outlined below.
 ![Summary of vertebrate benchmark](images/SchemaWhite.png)
-1. Uncompress and index the FASTA file.
-2. Get the set of proteins to be used for the protein-to-genome alignments.
+1. Get the set of proteins to be used for the protein-to-genome alignments.
+2. Get the closest Geneid parameter file to use as source of the parameters not indicated by the user.
 3. Create the protein database for DIAMOND to use it as a source.
 4. Align the provided genome against the database created using DIAMOND BLASTx flavour.
 5. Run the auto-training process:
@@ -56,6 +60,7 @@ This is done in parallel for each independent sequence inside the genome FASTA f
   - Run Geneid using the evidence and obtain the GFF3 file.
   - Remove the files from the internal steps.
 8. Concatenate all the outputs into a single GFF3 file that is sorted by coordinates.
+9. Add information from proteins matching the predicted genes.
 
 
 ## DETAILS:
@@ -65,12 +70,10 @@ This is done in parallel for each independent sequence inside the genome FASTA f
 
 
 ## DOING:
--  Optimizing the memory and CPU requirements for it to run smoothly on the cluster.
 -  Optimization of the auto-training additional parameters missing.
 
 
 ## PENDING:
-- Define accurate memory limits (dynamic based on genome sizes?).
 - Tune DIAMOND parameters to make the most of the resources available and to adapt to the capacity of each computer.
 - DIAMOND now uses a lot of RAM memory, we have to adjust the execution to reduce the amount of resources used. This may cause an increase in the execution time.
 

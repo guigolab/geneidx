@@ -128,7 +128,9 @@ workflow {
   if (params.prot_file) {
     proteins_file = file(params.prot_file)
   } else {
-    proteins_file = prot_down_workflow(params.taxid)
+    proteins_file = prot_down_workflow(params.taxid,
+                                       params.proteins_lower_lim,
+                                       params.proteins_upper_lim)
   }
 
   // Build protein database for DIAMOND
@@ -146,6 +148,8 @@ workflow {
                                   params.intron_margin,
                                   params.min_intron_size,
                                   params.max_intron_size)
+
+  println params.maps_param_values["absolute_cutoff_exons"]
 
   // if sites matrices provided, use them
   // else, use taxon to get the closest geneid param file
@@ -206,9 +210,17 @@ workflow {
   // Add information about the proteins to the final GFF3
   labelled_output = gff3addInfo(final_output, hsp_found)
 
-  // fix gff3 file and compress it for the portal
-  // gff34portal(final_output)
-  gff34portal(labelled_output)
+
+  // If proteins from UniRef, add GO terms to the GFF3
+  if (params.source_uniprot){
+    // func_labelled_output = addGOterms(labelled_output)
+    // gff34portal(func_labelled_output)
+    gff34portal(labelled_output)
+  } else {
+    // fix gff3 file and compress it for the portal
+    gff34portal(labelled_output)
+  }
+
 
 }
 

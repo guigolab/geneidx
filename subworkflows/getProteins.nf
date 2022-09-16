@@ -30,6 +30,8 @@ process getProtFasta {
 
     input:
     val taxon
+    val lower_lim_proteins
+    val upper_lim_proteins
 
     output:
     stdout emit: description
@@ -41,8 +43,8 @@ process getProtFasta {
 
     sp_taxon_id = ${taxon}
 
-    lower_lim = 40000
-    upper_lim = 70000
+    lower_lim = ${lower_lim_proteins}
+    upper_lim = ${upper_lim_proteins}
 
     identity = 0.9
     ini_clu_size = 24
@@ -218,9 +220,11 @@ workflow prot_down_workflow {
     // definition of input
     take:
     taxid
+    lower_lim
+    upper_lim
 
     main:
-    prot_file_down = getProtFasta(taxid) | downloadProtFasta
+    prot_file_down = getProtFasta(taxid, lower_lim, upper_lim) | downloadProtFasta
 
     // information_prots = file("hi.txt")
     // (prot_file_name, prot_file_link) = (information_prots =~ /([A-Za-z\d\.\+]+)\s(.*)/)
