@@ -1,0 +1,53 @@
+2022-09-05 16:35:47	2m 43s	scruffy_avogadro	OK	bfb3b7a0f6a6bee6fd2f518d34978e89	a62b782b-3258-48bb-b6fe-c6f687118e48	nextflow run main.nf -with-docker
+2022-09-05 17:53:26	1m 22s	amazing_hawking	ERR	cc9b29e6c4646333c1e6919ca40927c6	865aaf3a-cb10-442e-830c-bc2408075ad2	nextflow run main.nf -with-docker
+2022-09-05 17:55:41	18.7s	curious_volta	OK	dcbe4272e9b3772298d87e01d799a52f	865aaf3a-cb10-442e-830c-bc2408075ad2	nextflow run main.nf -with-docker -resume
+2022-09-05 18:06:46	1m 49s	sick_poisson	OK	22c88729f458a3e5a2a74e2b47cb563e	22b20c92-2fe2-4cc6-bb89-b902131a7964	nextflow run main.nf -with-docker
+2022-09-10 16:09:02	4m 31s	determined_bernard	ERR	22c88729f458a3e5a2a74e2b47cb563e	14e46aec-7083-4d2a-9e45-5470b8da9cd0	nextflow run main.nf -with-docker
+2022-09-10 16:14:08	14.9s	loving_austin	ERR	22c88729f458a3e5a2a74e2b47cb563e	45a42826-5bf7-45e1-9050-110e41a9913d	nextflow run main.nf -with-docker --prot-file data/SampleProtein.fa.gz
+2022-09-10 16:14:29	34.8s	scruffy_keller	OK	22c88729f458a3e5a2a74e2b47cb563e	0f2bde47-a815-4e75-8c47-3bf7f2e8cdcd	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-10 16:31:18	-	chaotic_gutenberg	-	22c88729f458a3e5a2a74e2b47cb563e	8cd5b405-1071-4b1c-a7bf-83ee504c9657	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-10 16:31:40	34.4s	confident_kare	OK	e80ab3a84d11e535da7fb675c3f9cf64	9131c871-b948-4c35-8252-40756d1c9245	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-10 16:36:07	6.8s	stupefied_volta	ERR	e80ab3a84d11e535da7fb675c3f9cf64	0d011a2a-d894-4020-b8b9-da9f1a86d4d9	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-10 16:37:07	6.2s	mighty_pesquet	ERR	e80ab3a84d11e535da7fb675c3f9cf64	4c2513c3-94f5-4f46-9838-5d93171c28c6	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-10 16:37:53	6.1s	confident_booth	ERR	cc4df475c1fad587dd101a2731738545	2666c059-6ac5-4b29-84cb-ba1f451518ec	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-10 16:45:14	-	nostalgic_liskov	-	dd6ff2436a65c4d3485d9ecc6ba99608	91fa0d14-fdcc-474e-b2dd-632ff0bfa27e	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-10 16:45:33	6.3s	jovial_dalembert	ERR	e36f7ec1af38df743db0435c3ba7664f	984741c5-89db-4d2d-ab4d-97aefb43c99d	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-10 16:46:32	10.8s	nasty_celsius	ERR	e36f7ec1af38df743db0435c3ba7664f	3c5a0c3f-9ceb-466e-887b-50f6be2b05a4	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-10 16:48:06	33.3s	magical_thompson	OK	872dcf0466fba5e70b6f294f1d685ebb	5407c63d-fd44-4753-b720-ece1e55f1746	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-10 16:53:08	6.9s	soggy_chandrasekhar	ERR	872dcf0466fba5e70b6f294f1d685ebb	fb6298db-f73f-4b8a-b4dd-de19084ae508	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-10 16:54:25	34.1s	thirsty_kare	OK	872dcf0466fba5e70b6f294f1d685ebb	10df269d-f99d-4189-b6ff-ed1f2222f9c0	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-10 17:04:02	6.7s	amazing_visvesvaraya	ERR	872dcf0466fba5e70b6f294f1d685ebb	f023e3db-7051-4273-8400-61e8b7151d64	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-10 17:04:37	7.3s	drunk_poisson	ERR	872dcf0466fba5e70b6f294f1d685ebb	11938c46-7f78-4574-8a38-2c82ae543fed	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-10 17:05:12	33.7s	pensive_swirles	OK	872dcf0466fba5e70b6f294f1d685ebb	a9903be8-9b18-4570-a39a-ab8c1e3bc915	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-10 17:10:37	18.5s	infallible_liskov	ERR	4600a817ce32129732a3df8fc6a7285f	74b03eed-8a53-47cf-8ee9-b6c86b327942	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-10 17:12:28	33.1s	trusting_hoover	OK	4600a817ce32129732a3df8fc6a7285f	2743ce6e-e1c8-49d5-8b6b-fc020bd08bc8	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-10 17:15:23	34.1s	elated_majorana	OK	4600a817ce32129732a3df8fc6a7285f	1eff095b-872a-4756-b380-0f6e05c12704	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-10 17:18:25	33.5s	distracted_majorana	OK	4600a817ce32129732a3df8fc6a7285f	346023c7-d120-4434-8b3f-141bd431cd5a	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-11 10:23:16	34.4s	small_brown	OK	4600a817ce32129732a3df8fc6a7285f	3f50fa70-7236-4ff0-a048-1bc7ea12e45c	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-11 10:43:17	5s	condescending_wescoff	ERR	d6b068a0ac7a30e6e8aac1b35453d2b2	a48f5c5e-51e7-48f9-89b0-9ee7bc5e6641	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-11 10:43:58	34.7s	mighty_plateau	OK	d6b068a0ac7a30e6e8aac1b35453d2b2	ea3db8ac-98c1-45fc-954a-2ed66477e156	nextflow run main.nf -with-docker --prot_file data/SampleProtein.fa.gz
+2022-09-11 10:45:49	3m 46s	voluminous_panini	OK	d6b068a0ac7a30e6e8aac1b35453d2b2	76891657-3280-4f0b-b189-64860c3257a3	nextflow run main.nf -with-docker
+2022-09-13 23:38:49	8.3s	admiring_boyd	ERR	d6b068a0ac7a30e6e8aac1b35453d2b2	c815be51-29f0-43e4-9d84-b40016a44710	nextflow run main.nf -with-docker
+2022-09-13 23:39:33	1m 21s	shrivelled_davinci	OK	d6b068a0ac7a30e6e8aac1b35453d2b2	4a1a5a40-b506-4750-a56d-d63d2dd009c3	nextflow run main.nf -with-docker
+2022-09-16 15:30:34	-	elated_curran	-	9fbf7370168fa52805b39d0c443916a7	ef2fe779-9585-460e-8506-34d021811855	nextflow run main.nf -with-docker
+2022-09-16 15:30:59	2m 39s	intergalactic_gilbert	ERR	b197e3bbe34a07d45eaba2203bcc3663	a0f52e3f-d9c9-49fb-afd1-94256cfb09c6	nextflow run main.nf -with-docker
+2022-09-16 16:16:31	45.1s	distraught_meucci	OK	69998da09ec91202abafeb17e5bdef31	3ccfc8a9-1cb6-49dd-aa1f-5468bb9e905c	nextflow run main.nf -with-docker
+2022-09-18 15:21:46	-	crazy_poisson	-	68a9c077c84dcc771463aaa9b7b278e5	b7cf4e53-fb18-4210-850f-680180d8ea70	nextflow run main.nf -with-docker
+2022-09-18 15:22:29	8.3s	kickass_kirch	ERR	f63cd9b617661266697c516fd42c2996	ef0c8a81-8935-47f2-a902-df2ed1b63509	nextflow run main.nf -with-docker
+2022-09-18 15:25:23	8.1s	maniac_curie	ERR	f63cd9b617661266697c516fd42c2996	b4bf9a2d-c264-464a-a370-d436fabcf3a0	nextflow run main.nf -with-docker
+2022-09-18 15:25:50	8.2s	jolly_volta	ERR	f63cd9b617661266697c516fd42c2996	bb6cecb1-f402-4ec0-a8ac-9cd871f7bf53	nextflow run main.nf -with-docker
+2022-09-18 15:26:44	8.2s	soggy_coulomb	ERR	f63cd9b617661266697c516fd42c2996	30120c10-b9bf-41ef-b6b4-854ebf6dcfa2	nextflow run main.nf -with-docker
+2022-09-18 15:27:26	8.2s	prickly_church	ERR	f63cd9b617661266697c516fd42c2996	f3e9f540-0113-4051-965f-6886ee8821e1	nextflow run main.nf -with-docker
+2022-09-18 15:28:30	7.8s	festering_tesla	ERR	f63cd9b617661266697c516fd42c2996	8eef3b97-9c22-4b16-8552-3cc44013e995	nextflow run main.nf -with-docker
+2022-09-18 15:29:51	19s	nasty_mercator	ERR	f63cd9b617661266697c516fd42c2996	78fbd119-ef65-4ff6-ab0b-ebbf63185d76	nextflow run main.nf -with-docker
+2022-09-18 15:33:42	9.5s	drunk_wing	ERR	f63cd9b617661266697c516fd42c2996	6b70c693-4f54-4cff-94bb-6bd1be141326	nextflow run main.nf -with-docker
+2022-09-18 15:36:28	8.4s	cheeky_caravaggio	ERR	287cd3086d3f31a76ae468dcb64af6b6	d2a27e2e-5f78-4121-97e8-5c4dede4411e	nextflow run main.nf -with-docker
+2022-09-18 15:41:36	-	clever_brenner	-	8f5d22c334ccf3cc9408dad0448bb99d	f5fadedd-7d3f-4ce2-bdc7-de59df57c44f	nextflow run main.nf -with-docker
+2022-09-18 15:42:29	46.5s	cheeky_wing	OK	e24793454df8c4e7bcd936f48e22f724	8930a1a0-4b2d-4212-a081-a262f36f494e	nextflow run main.nf -with-docker
+2022-09-19 00:06:03	8s	clever_torvalds	ERR	253609e02d2fa1e9769e59eaaa0b65f3	2045ac33-c9b2-4b8a-ae6b-e37476683d89	nextflow run main.nf -with-docker
+2022-09-19 00:08:29	8.6s	special_koch	ERR	253609e02d2fa1e9769e59eaaa0b65f3	8eb84260-5cc4-4842-8178-46af1bfa56bf	nextflow run main.nf -with-docker
+2022-09-19 00:09:55	8.2s	lonely_lavoisier	ERR	253609e02d2fa1e9769e59eaaa0b65f3	58dfe5ee-2b7b-41e1-a0fe-a794569047a3	nextflow run main.nf -with-docker
+2022-09-19 00:12:09	8.2s	chaotic_heyrovsky	ERR	253609e02d2fa1e9769e59eaaa0b65f3	204ccc89-af59-48a8-ad49-4d57d7861c96	nextflow run main.nf -with-docker
+2022-09-19 00:13:06	8.7s	suspicious_miescher	ERR	253609e02d2fa1e9769e59eaaa0b65f3	d4195313-c570-487f-b462-87e6a02ec519	nextflow run main.nf -with-docker
+2022-09-19 00:18:38	8.1s	small_monod	ERR	b532c6402102c1f489f20bcd3bbc1d48	d5f4168e-d612-4610-921a-fabe3c5dd3d0	nextflow run main.nf -with-docker
+2022-09-19 00:20:51	43.4s	confident_kirch	OK	c0fc6a414a4a14ee268cd3064d4f8a59	bac81164-ff51-4855-abb9-0ce3066d36af	nextflow run main.nf -with-docker

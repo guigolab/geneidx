@@ -24,16 +24,17 @@ params.help             = false
 log.info """
 GENEID+BLASTx - NextflowPipeline
 =============================================
-output				: ${params.output}
-genome				: ${params.genome}
-prot_file			: ${params.prot_file}
+output			: ${params.output}
+genome			: ${params.genome}
+taxon			: ${params.taxid}
 """
 // param_file		: ${params.param_f}
 
 // this prints the help in case you use --help parameter in the command line and it stops the pipeline
 if (params.help) {
-    log.info 'This is the Geneid+BLASTx test pipeline in Nextflow'
-    log.info 'Please define the genome file, the protein file,\n\t\tthe parameter files and the output!\n'
+    log.info 'This is the GeneidX test pipeline in Nextflow'
+    log.info 'Please define the genome file and the taxid of the species.\n'
+    log.info 'To define additional parameters checkout the params.config file.\n'
     log.info '\n'
     exit 1
 }
@@ -44,6 +45,7 @@ if (params.help) {
 OutputFolder = "${params.output}"
 
 OutputFolderInternal = "${OutputFolder}/internal"
+OutputFolderProteinDBs = "${OutputFolder}/proteins"
 OutputFolderSpecies = "${OutputFolder}/species"
 OutputFolderSpeciesTaxid = "${OutputFolder}/species/${params.taxid}"
 // fasta.gz
@@ -57,35 +59,45 @@ OutputFolderSpeciesTaxid = "${OutputFolder}/species/${params.taxid}"
 // paramOutputFolder = "${params.output}/params"
 
 genoom = file(params.genome)
-proteins_file = file(params.prot_file)
 
 
 /*
  * Defining the module / subworkflow path, and include the elements
  */
-subwork_folder = "${projectDir}/subworkflows/"
+subwork_folder = "${projectDir}/subworkflows"
 
 include { UncompressFASTA } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolder)
 
-
-include { filter_Fasta_by_length } from "${subwork_folder}/filter_fasta" addParams(OUTPUT: OutputFolder,
+include { prot_down_workflow } from "${subwork_folder}/getProteins" addParams(OUTPUT: OutputFolderProteinDBs,
   LABEL:'singlecpu')
 
-include { build_protein_DB } from "${subwork_folder}/build_dmnd_db" addParams(OUTPUT: OutputFolderInternal,
+include { build_protein_DB } from "${subwork_folder}/build_dmnd_db" addParams(OUTPUT: OutputFolderProteinDBs,
   LABEL:'fourcpus')
 
 include { alignGenome_Proteins } from "${subwork_folder}/runDMND_BLASTx" addParams(OUTPUT: OutputFolderSpeciesTaxid,
   LABEL:'fourcpus')
 
-include { geneid_WORKFLOW } from "${subwork_folder}/geneid" addParams( LABEL:'singlecpu' )
-
-include { concatenate_Outputs } from "${subwork_folder}/geneid_concatenate" addParams(OUTPUT: OutputFolder,
-  LABEL:'singlecpu')
-
 include { matchAssessment } from "${subwork_folder}/getTrainingSeq" addParams(OUTPUT: OutputFolder,
   LABEL:'singlecpu')
 
+include { param_selection_workflow } from "${subwork_folder}/getParams" addParams(OUTPUT: OutputFolder,
+  LABEL:'singlecpu')
+
+include { param_value_selection_workflow } from "${subwork_folder}/getParamsValues" addParams(OUTPUT: OutputFolder,
+  LABEL:'singlecpu')
+
 include { creatingParamFile } from "${subwork_folder}/modifyParamFile" addParams(OUTPUT: OutputFolderSpeciesTaxid,
+  LABEL:'singlecpu')
+
+include { geneid_WORKFLOW } from "${subwork_folder}/geneid" addParams( LABEL:'singlecpu' )
+
+include { prep_concat } from "${subwork_folder}/prepare_concatenation" addParams(OUTPUT: OutputFolderSpeciesTaxid,
+  LABEL:'singlecpu')
+
+include { concatenate_Outputs_once } from "${subwork_folder}/geneid_concatenate" addParams(OUTPUT: OutputFolderSpeciesTaxid,
+  LABEL:'singlecpu')
+
+include { gff3addInfo } from "${subwork_folder}/addMatchInfo" addParams(OUTPUT: OutputFolderSpeciesTaxid,
   LABEL:'singlecpu')
 
 // compress and index fastas to be stored and published to the cluster
@@ -94,6 +106,10 @@ include { compress_n_indexFASTA } from "${subwork_folder}/tools" addParams(OUTPU
 
 // compress and index gff3s to be stored and published to the cluster
 include { gff34portal } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolderSpeciesTaxid)
+
+
+
+parameter_location = file(params.parameter_path)
 
 /*
  * MAIN workflow definition.
@@ -104,11 +120,21 @@ workflow {
   //    uncompressed to the downstream modules
   uncompressed_genome = UncompressFASTA(genoom)
 
+
   // none of the returned objects is used by downsteam processes
   compress_n_indexFASTA(uncompressed_genome)
 
-  // Remove contigs that are too small (user chooses threshold)
-  // filtered_genome = filter_Fasta_by_length(uncompressed_genome, params.min_seq_length)
+
+  // if proteins_file provided use proteins file
+  // else, use taxon to download the proteins_file
+  // both conditions are evaluated inside the execution of this workflow
+  if (params.prot_file) {
+    proteins_file = file(params.prot_file)
+  } else {
+    proteins_file = prot_down_workflow(params.taxid,
+                                       params.proteins_lower_lim,
+                                       params.proteins_upper_lim)
+  }
 
   // Build protein database for DIAMOND
   protDB = build_protein_DB(proteins_file)
@@ -126,44 +152,147 @@ workflow {
                                   params.min_intron_size,
                                   params.max_intron_size)
 
+    // if sites matrices provided, use them
+  // else, use taxon to get the closest geneid param file
+  if (params.acceptor_pwm) {
+    acc_pwm = params.acceptor_pwm
+    don_pwm = params.donor_pwm
+    sta_pwm = params.start_pwm
+    sto_pwm = params.stop_pwm
+  } else {
+    param_file_sel = param_selection_workflow(params.taxid, 0, parameter_location)
+    acc_pwm = param_file_sel.acceptor_pwm
+    don_pwm = param_file_sel.donor_pwm
+    sta_pwm = param_file_sel.start_pwm
+    sto_pwm = param_file_sel.stop_pwm
+  }
 
-  new_param = creatingParamFile(params.no_score,
+  // if (params.maps_param_values){
+  //   para_vals = param_value_selection_workflow(params.taxid, 0,
+  //                                             parameter_location,
+  //                                             params.maps_param_values)
+  //
+  //   println para_vals.size()
+  //   // mapAsString = para_vals.toMapString()
+  //   //
+  //   // map_vals =
+  //   //     // Take the String value between
+  //   //     // the [ and ] brackets.
+  //   //     mapAsString[1..-2]
+  //   //         // Split on , to get a List.
+  //   //         .split(', ')
+  //   //         // Each list item is transformed
+  //   //         // to a Map entry with key/value.
+  //   //         .collectEntries { entry ->
+  //   //             def pair = entry.split(':')
+  //   //             [(pair.first()): pair.last()]
+  //   //         }
+  //   new_param = creatingParamFile(
+  //                                 params.taxid,
+  //
+  //                                 para_vals.no_score,
+  //
+  //                                 para_vals.absolute_cutoff_exons,
+  //                                 para_vals.coding_cutoff_oligos,
+  //
+  //                                 para_vals.site_factor,
+  //                                 para_vals.exon_factor,
+  //                                 para_vals.hsp_factor,
+  //                                 para_vals.exon_weight,
+  //
+  //                                 sta_pwm,
+  //                                 acc_pwm,
+  //                                 don_pwm,
+  //                                 sto_pwm,
+  //
+  //                                 new_mats.ini_comb,
+  //                                 new_mats.trans_comb,
+  //
+  //                                 params.general_gene_params
+  //
+  //                                 )
+  // } else {
+  //   new_param = creatingParamFile(
+  //                                 params.taxid,
+  //
+  //                                 params.no_score,
+  //
+  //                                 params.absolute_cutoff_exons,
+  //                                 params.coding_cutoff_oligos,
+  //
+  //                                 params.site_factor,
+  //                                 params.exon_factor,
+  //                                 params.hsp_factor,
+  //                                 params.exon_weight,
+  //
+  //                                 sta_pwm,
+  //                                 acc_pwm,
+  //                                 don_pwm,
+  //                                 sto_pwm,
+  //
+  //                                 new_mats.ini_comb,
+  //                                 new_mats.trans_comb,
+  //
+  //                                 params.general_gene_params
+  //                                 )
+  //
+  // }
+
+  new_param = creatingParamFile(
+                                params.taxid,
+
+                                params.no_score,
+
+                                params.absolute_cutoff_exons,
+                                params.coding_cutoff_oligos,
+
                                 params.site_factor,
                                 params.exon_factor,
                                 params.hsp_factor,
                                 params.exon_weight,
 
-                                params.min_intron_size_geneid,
-                                params.max_intron_size_geneid,
-
-                                params.start_pwm,
-                                params.acceptor_pwm,
-                                params.donor_pwm,
-                                params.stop_pwm,
+                                sta_pwm,
+                                acc_pwm,
+                                don_pwm,
+                                sto_pwm,
 
                                 new_mats.ini_comb,
-                                new_mats.trans_comb
+                                new_mats.trans_comb,
+
+                                params.general_gene_params
+
+                                // params.min_intron_size_geneid,
+                                // params.max_intron_size_geneid
                                 )
-
-
+                                // start_pwm 		= "$projectDir/data/param-sections/start_profile.human"
+                                // 	acceptor_pwm	= "$projectDir/data/param-sections/acceptor_profile.human"
+                                // 	donor_pwm			= "$projectDir/data/param-sections/donor_profile.human"
+                                // 	stop_pwm			= "$projectDir/data/param-sections/stop_profile.human"
 
   // Run Geneid
   predictions = geneid_WORKFLOW(uncompressed_genome, new_param, hsp_found)
 
   // Prepare concatenation
-  main_database_name = proteins_file.BaseName.toString().replaceAll("\\.fa", "")
-  main_genome_name = genoom.BaseName.toString().replaceAll("\\.fa", "")
-  // This is the name of the final GFF3 file
-  out_filename = "${main_genome_name}.-.${main_database_name}.gff3"
-
-  // Create the path to the file
-  output_file = file(OutputFolderSpeciesTaxid + "/" + out_filename)
+  // This will initialize the final GFF3 file
+  output_file = prep_concat(proteins_file, genoom)
 
   // Run concatenation of individual GFF3 files
-  final_output = concatenate_Outputs(predictions, output_file)
+  final_output = concatenate_Outputs_once(predictions.collect(), output_file)
 
-  // fix gff3 file and compress it for the portal
-  gff34portal(final_output.last())
+  // Add information about the proteins to the final GFF3
+  labelled_output = gff3addInfo(final_output, hsp_found)
+
+
+  // If proteins from UniRef, add GO terms to the GFF3
+  if (params.source_uniprot){
+    // func_labelled_output = addGOterms(labelled_output)
+    // gff34portal(func_labelled_output)
+    gff34portal(labelled_output)
+  } else {
+    // fix gff3 file and compress it for the portal
+    gff34portal(labelled_output)
+  }
+
 
 }
 

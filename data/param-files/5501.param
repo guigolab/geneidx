@@ -16,7 +16,7 @@ boundaries_of_isochore
 0  100
 
 # Exons score: cutoffs
-Absolute_cuttoff_exons
+Absolute_cutoff_exons
 -150 -150 -150 -150
 
 Coding_cutoff_Oligos

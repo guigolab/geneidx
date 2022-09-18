@@ -1,32 +1,67 @@
-# Geneid+BLASTx in Nextflow
+# GeneidX
+We provide a fast and accurate prediction of the protein-coding genes in a genome, taking as input the genome assembly and a set of proteins from closely related species.
 
-Using the [Nexflow tutorial for the Elixir workflow workshop](https://nextflow-io.github.io/elixir-workshop-21/docs/) taking place on November 2021, as an initial template, we are integrating Geneid+BLASTx into Nextflow so that it can be run easily with almost no requirements.
+This repository contains the implementation of the GeneidX *ab initio* gene prediction method.
+
+In the description here, you can find our preliminary results, a schema of our method and a description of the minimal requirements and commands required for running it.
+
+Stay tuned for an article with detailed descriptions and feel free to [contact us](mailto:ferriol.calvet@crg.eu) if you are trying it and find any problem.
 
 
-## Schema
+## Preliminary results
+ The results of an initial benchmarking using vertebrates genomes annotated in Ensembl show that our method is **as accurate as the top *ab initio* gene predictors**, but it is **between 10 and 100 times faster**.
+![Summary of vertebrate benchmark](images/Benchmarking4GitHubX.svg)
+
+
+
+## Running GeneidX
+Having defined the parameters and ensuring that Nextflow and a container technology.
+
+`nextflow run guigolab/geneidx -with-docker
+                            --genome <GENOME>
+                            --taxid <TAXID>`
+
+
+## Before running GeneidX
 1. **Make sure ( Docker or Singularity ) and Nextflow are installed in your computer.**
   - [Docker](https://docs.docker.com/engine/install/)
   - [Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html#)
   - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
 
-2. Receive the FASTA file, the parameter file and the set of proteins to use as a reference as input in the params.config file.
-3. Uncompress and index the FASTA file.
+2. Define the input parameters:
+  - Compressed FASTA file with `.fa.gz` termination.
+  - Taxid of the species to annotate or from the closest relative described.
+  - Proteins from closely related species: (choose one of these options)
+      - Provide a compressed FASTA file with the proteins selected.
+      - Let the pipeline download the proteins automatically from UniRef90 (nothing should be provided in this case.)
+  - Tune parameters for the gene prediction process.
+      - Indicate the values for each Geneid parameter.
+      - Let the pipeline select them from the closest pretrained Geneid parameter file. (find the parameters in data/Parameter_files.taxid/)
+      - Find more information here: [GENEID parameter files](https://genome.crg.es/software/geneid/index.html#parameters)
 
-4. *MISSING: RepeatMasking!!*
 
-5. Create the protein database for DIAMOND to use it as a source.
-6. Align the provided genome against the database created using DIAMOND BLASTx flavour.
-7. Run the auto-training process:
+
+## Schema
+Which steps are taking place as part of this pipeline?
+This is a graphical summary, and the specific steps are outlined below.
+![Summary of vertebrate benchmark](images/SchemaWhite.png)
+1. Get the set of proteins to be used for the protein-to-genome alignments.
+2. Get the closest Geneid parameter file to use as source of the parameters not indicated by the user.
+3. Create the protein database for DIAMOND to use it as a source.
+4. Align the provided genome against the database created using DIAMOND BLASTx flavour.
+5. Run the auto-training process:
   - Use matches to estimate the coding sections, look for open reading frames between stop codons.
   - Use matches from the same protein to predict the potential introns.
   - From the sequences of both previous steps compute the initial and transition probability matrices required for the computation of the coding potential of the genome that will be annotated.
-8. Build the parameter file with the parameters indicated in the *params.config* file and also the matrices automatically generated from the matches.
-9. Run Geneid with the new parameter file and the matches from the previous steps as additional evidence.
-This is done in parallel for each independent sequence inside the genome FASTA file. It consists of several steps:
+6. Update the parameter file with the parameters indicated in the *params.config* file and also the matrices automatically generated from the protein-DNA matches.
+7. Run Geneid with the new parameter file and the protein-DNA matches from the previous steps as additional evidence.
+This is done in parallel for each independent sequence inside the genome FASTA file, and it consists of the following steps:
   - Pre-process the matches to join those that overlap and re-score them appropriately.
   - Run Geneid using the evidence and obtain the GFF3 file.
   - Remove the files from the internal steps.
-10. Concatenate all the outputs into a single GFF3 file that is sorted by coordinates and without the lines starting with #.
+8. Concatenate all the outputs into a single GFF3 file that is sorted by coordinates.
+9. Add information from proteins matching the predicted genes.
+
 
 ## DETAILS:
 - **The name of the sequences in the FASTA file cannot contain unusual characters.**
@@ -35,11 +70,12 @@ This is done in parallel for each independent sequence inside the genome FASTA f
 
 
 ## DOING:
--  Optimizing the memory and CPU requirements for it to run smoothly on the cluster.
--  Optimization of the auto-training additional parameters missing
+-  Optimization of the auto-training additional parameters missing.
 
 
 ## PENDING:
-- Define accurate memory limits (dynamic based on genome sizes?).
 - Tune DIAMOND parameters to make the most of the resources available and to adapt to the capacity of each computer.
 - DIAMOND now uses a lot of RAM memory, we have to adjust the execution to reduce the amount of resources used. This may cause an increase in the execution time.
+
+
+Follow us on Twitter ([@GuigoLab](https://twitter.com/GuigoLab)) for updates in the article describing our method.

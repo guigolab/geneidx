@@ -3,7 +3,8 @@
 */
 
 // Parameter definitions
-params.CONTAINER = "ferriolcalvet/training-geneid-params"
+// params.CONTAINER = "ferriolcalvet/training-geneid-params"
+params.CONTAINER = "ferriolcalvet/geneidx"
 // params.OUTPUT = "geneid_output"
 // params.LABEL = ""
 

@@ -173,7 +173,6 @@ process gff34portal {
     tabix -p gff ${annotations_file}.gz;
     """
 
-
 }
 
 

@@ -1,4 +1,5 @@
 .nextflow
 .nextflow*
 work
-.html
+output/*
+scripts/*

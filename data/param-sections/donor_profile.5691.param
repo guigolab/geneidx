@@ -1,0 +1,11 @@
+Donor_Profile
+2 -2 -7.5 0
+# Transition probabilities at every position
+1 A -9999
+1 C -9999
+1 G -9999
+1 T -9999
+2 A -9999
+2 C -9999
+2 G -9999
+2 T -9999

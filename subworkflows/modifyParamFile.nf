@@ -21,15 +21,41 @@ process creatingParamFile {
     // tag "${output_param}"
 
     input:
+    // fixed values
+    // boundaries_of_isochore
+    // maximum_number_of_donors_per_acceptor_site
+    // number_of_isochores
+
+    // NO_SCORE
+
+    // Absolute_cutoff_exons
+    // Coding_cutoff_oligos
+
+    // Exon_factor
+    // Site_factor
+    // HSP_factor
+    // Exon_weights
+
+    // Acceptor_profile
+    // Donor_profile
+    // Start_profile
+    // Stop_profile
+
+    // Markov_Initial_probability_matrix
+    // Markov_Transition_probability_matrix
+
+    // General_Gene_Model
+    val (taxid)
+
     val (no_score)
+
+    val (absolute_cutoff_exons)
+    val (coding_cutoff_oligos)
 
     val (site_factor)
     val (exon_factor)
     val (hsp_factor)
     val (exon_weight)
-
-    val (min_intron_size)
-    val (max_intron_size)
 
     path (start_pwm)
     path (acceptor_pwm)
@@ -39,23 +65,30 @@ process creatingParamFile {
     path (initial_probability_matrix)
     path (transition_probability_matrix)
 
+    path (general_model_values)
+
+
     output:
     path ("${output_param}")
 
     script:
     ini_exon_weight = exon_weight + 1
+    ini_coding_cutoff_oligos = coding_cutoff_oligos + 5
     output_param = file(params.genome).BaseName.toString() + ".${params.match_score_min}.${params.match_ORF_min}.manually_created.param"
+    // # MIN INTRON SIZE: ${min_intron_size}
+    // # MAX INTRON SIZE: ${max_intron_size}
     """
     cat <<EOF > ${output_param}
-    # geneid parameter file: human, 1 isochores
-    # NO SCORE: ${no_score}
-    # SITE FACTOR: ${site_factor}
-    # EXON FACTOR: ${exon_factor}
-    # HSP FACTOR: ${hsp_factor}
-    # EXON WEIGHT: ${exon_weight}
+    # geneid parameter file for ${taxid}, 1 isochores
+    # PARAMETERS FROM A SINGLE ISOCHORE
+    # NO_SCORE: ${no_score}
+    # Site_factor: ${site_factor}
+    # Exon_factor: ${exon_factor}
+    # HSP_factor: ${hsp_factor}
+    # Exon_weight: ${exon_weight}
+    # Absolute_cutoff_exons: ${absolute_cutoff_exons}
+    # Coding_cutoff_oligos: ${coding_cutoff_oligos} # we add +5 to the first exon value
     #
-    # MIN INTRON SIZE: ${min_intron_size}
-    # MAX INTRON SIZE: ${max_intron_size}
     #
     # START PWM: ${start_pwm}
     # ACCEPTOR PWM: ${acceptor_pwm}
@@ -65,9 +98,10 @@ process creatingParamFile {
     # INITIAL PWM: ${initial_probability_matrix}
     # TRANSITION PWM: ${transition_probability_matrix}
     #
+    # General Gene Model parameters: ${general_model_values}
     # Comment lines must start with '#'
 
-    # Non-homology -0.35
+    # Non-homology
     NO_SCORE
     ${no_score}
 
@@ -75,18 +109,17 @@ process creatingParamFile {
     number_of_isochores
     1
 
-    # PARAMETERS FROM THE SINGLE ISOCHORE
-
     # %GC
     boundaries_of_isochore
     0  100
 
     # Exons score: cutoffs
     Absolute_cutoff_exons
-    -15 -15 -15 -15
+    ${absolute_cutoff_exons} ${absolute_cutoff_exons} ${absolute_cutoff_exons} ${absolute_cutoff_exons}
 
     Coding_cutoff_oligos
-    -10 -15 -15 -15
+    ${ini_coding_cutoff_oligos} ${coding_cutoff_oligos} ${coding_cutoff_oligos} ${coding_cutoff_oligos}
+
 
     # Exon score: factors
     Site_factor
@@ -136,33 +169,12 @@ process creatingParamFile {
     maximum_number_of_donors_per_acceptor_site
     5
 
-
-    # GENE MODEL: Rules about gene assembling (GenAmic)
-    General_Gene_Model
-    # INTRAgenic connections
-    First+:Internal+                Internal+:Terminal+             ${min_intron_size}:${max_intron_size} block
-    Terminal-:Internal-             First-:Internal-                ${min_intron_size}:${max_intron_size} blockr
-    First+                          Intron+                         1:1 block
-    Internal+                       Intron+                         1:1 block
-    Intron+                         Internal+                       1:1 block
-    Intron+                         Terminal+                       1:1 block
-    Intron-                         First-                          1:1 block
-    Intron-                         Internal-                       1:1 block
-    Internal-                       Intron-                         1:1 block
-    Terminal-                       Intron-                         1:1 block
-    # External features
-    Promoter+                       First+:Single+                  50:4000
-    Terminal+:Single+               aataaa+                         50:4000
-    First-:Single-                  Promoter-                       50:4000
-    aataaa-                         Single-:Terminal-               50:4000
-    # INTERgenic conections
-    aataaa+:Terminal+:Single+       Single+:First+:Promoter+        500:Infinity
-    aataaa+:Terminal+:Single+       Single-:Terminal-:aataaa-       500:Infinity
-    Promoter-:First-:Single-        Single+:First+:Promoter+        500:Infinity
-    Promoter-:First-:Single-        Single-:Terminal-:aataaa-       500:Infinity
     EOF
 
-    cat ${output_param}.end >> ${output_param}
+    cat ${output_param}.end >> ${output_param};
+
+    cat ${general_model_values} >> ${output_param};
+
     rm ${output_param}.end;
     """
 }

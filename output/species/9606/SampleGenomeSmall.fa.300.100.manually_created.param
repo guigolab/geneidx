@@ -8,10 +8,10 @@
 # MIN INTRON SIZE: 20
 # MAX INTRON SIZE: 40000
 #
-# START PWM: start_profile.human
-# ACCEPTOR PWM: acceptor_profile.human
-# DONOR PWM: donor_profile.human
-# STOP PWM: stop_profile.human
+# START PWM: Homo_sapiens.9606.start_profile.param
+# ACCEPTOR PWM: Homo_sapiens.9606.acceptor_profile.param
+# DONOR PWM: Homo_sapiens.9606.donor_profile.param
+# STOP PWM: Homo_sapiens.9606.stop_profile.param
 #
 # INITIAL PWM: SampleGenomeSmall.SampleProtein.hsp.ORFs.5.cds-intron.5.initial.geneid
 # TRANSITION PWM: SampleGenomeSmall.SampleProtein.hsp.ORFs.5.cds-intron.5.transition.geneid
@@ -890,8 +890,6 @@ Start_profile
 13 TTC 0.743279
 13 TTG 0.125043
 13 TTT -0.44411
-
-
 Acceptor_profile
 27 24 -7 1
 # Transition probabilities at every position
@@ -1327,10 +1325,9 @@ Acceptor_profile
 27 TC 0.0586362
 27 TG 0.0862438
 27 TT -0.0563468
-
 Donor_profile
 9 1 -7.5 1
-# Transition probabilities at every position 
+# Transition probabilities at every position
 1 AA 0.77069
 1 AC -0.704522
 1 AG -0.776319
@@ -1475,10 +1472,9 @@ Donor_profile
 9 TC -0.265322
 9 TG 0.172163
 9 TT -0.387045
-
 Stop_profile
-# Transition probabilities at every position 
 4 0 -9999 0
+# Transition probabilities at every position
 1 A 0
 1 C 0
 1 G 0

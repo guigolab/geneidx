@@ -1,5 +1,5 @@
 /*
-*  Geneid module.
+*  
 */
 
 // Parameter definitions

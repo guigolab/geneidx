@@ -33,12 +33,11 @@ include { getFASTA as getFASTA2 } from "${subwork_folder}/tools" addParams(OUTPU
  WHAT IS THE BEST WAY TO DO IT IN NEXTFLOW
 
  Requirement: blast2gff docker
-
  */
 process mergeMatches {
 
     // indicates to use as a container the value indicated in the parameter
-    container "ferriolcalvet/blast2gff"
+    // container "ferriolcalvet/blast2gff"
 
     // show in the log which input file is analysed
     tag "${gff_file}"
@@ -54,10 +53,7 @@ process mergeMatches {
 
     script:
     main_output_file = gff_file.BaseName
-    // awk -F '\t' -v myvar=\$seq '\$1==myvar {print > (myvar".gff"); next} {print > ("REST.txt")}' ${main_output_file}.gff;
-
-    // var=$(echo "^$seq")
-    // egrep -w \$var ${main_output_file}.gff > \${seq}.gff
+    
     """
     # get the sequences that have matches
     cut -f1 ${main_output_file}.gff | uniq | sort -u > ${main_output_file}.seqs
@@ -125,7 +121,7 @@ process filter_by_score {
   Requirement: gffcompare docker
 
   ideally I could add some command to parse the output and get SNn and SPn
- */
+
 process evaluateGFF3 {
 
     // indicates to use as a container the value indicated in the parameter
@@ -158,6 +154,7 @@ process evaluateGFF3 {
     printf "\$SNn\t\$SPn\n";
     """
 }
+*/
 
 
 /*
@@ -265,7 +262,6 @@ process updateGFFcoords {
 /*
  * Workflow for obtaining the estimates of the exon sequences
  */
-
 workflow cds_workflow {
 
     // definition of input

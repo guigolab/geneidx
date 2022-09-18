@@ -3,7 +3,7 @@
 */
 
 // Parameter definitions
-params.CONTAINER = "ferriolcalvet/geneid-fetching"
+params.CONTAINER = "ferriolcalvet/geneidx"
 // params.OUTPUT = "geneid_output"
 // params.LABEL = ""
 
@@ -28,7 +28,7 @@ process runGeneid_fetching {
     // publishDir(params.OUTPUT, pattern : '*.gff3')
 
     // indicates to use as a label the value indicated in the parameter
-    label (params.LABEL)
+    label ('singlecpu')
 
     // indicates to use as container the value indicated in the parameter
     container params.CONTAINER
@@ -51,8 +51,6 @@ process runGeneid_fetching {
     main_genome_file = reference_genome_file.BaseName
     main_output_file = protein_matches.BaseName.toString().replaceAll(".hsp", "")
     query_curated = query
-    // we used this before when we were not cleaning the fasta identifiers
-    // query_curated = query.toString().tokenize('|').get(1)
     """
     # prepare sequence
     fastafetch -f ${reference_genome_file} -i ${reference_genome_index} -q \"${query}\" > ${main_genome_file}.${query}
@@ -75,12 +73,10 @@ process runGeneid_fetching {
 
     # run Geneid + protein evidence
     geneid -3P ${geneid_param} -S ${main_output_file}.${query}.HSP_SR.gff ${main_genome_file}.${query} \
-                | sed -e 's/geneid_v1.4/geneidblastx/g' | egrep -v '^# ' | grep -vFw '###' \
+                | sed -e 's/geneid_v1.4/geneidx/g' | egrep -v '^# ' | grep -vFw '###' \
                 >> ${main_output_file}.${query}.gff3
 
-
     rm ${main_output_file}.${query}.HSP_SR.gff
-
     rm ${main_genome_file}.${query}
     """
     // $projectDir/scripts/sgp_getHSPSR.pl \"${query}\" < ${main_genome_file}.${query}.SR.gff > ${main_genome_file}.${query}.HSP_SR.gff
@@ -112,8 +108,6 @@ workflow geneid_WORKFLOW {
                    // .subscribe {  println "Got: $it"  }
                    .map{x -> x.toString().tokenize(':]').get(1)}
                    .set{ch}
-                   // .subscribe {  println "Got: $it"  }
-                   // .flatten()
 
     // we call the runGeneid_fetching module using the channel for the queries
     predictions = runGeneid_fetching(ref_file,
