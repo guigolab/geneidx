@@ -83,6 +83,9 @@ include { matchAssessment } from "${subwork_folder}/getTrainingSeq" addParams(OU
 include { param_selection_workflow } from "${subwork_folder}/getParams" addParams(OUTPUT: OutputFolder,
   LABEL:'singlecpu')
 
+include { param_value_selection_workflow } from "${subwork_folder}/getParamsValues" addParams(OUTPUT: OutputFolder,
+  LABEL:'singlecpu')
+
 include { creatingParamFile } from "${subwork_folder}/modifyParamFile" addParams(OUTPUT: OutputFolderSpeciesTaxid,
   LABEL:'singlecpu')
 
@@ -149,9 +152,7 @@ workflow {
                                   params.min_intron_size,
                                   params.max_intron_size)
 
-  println params.maps_param_values["absolute_cutoff_exons"]
-
-  // if sites matrices provided, use them
+    // if sites matrices provided, use them
   // else, use taxon to get the closest geneid param file
   if (params.acceptor_pwm) {
     acc_pwm = params.acceptor_pwm
@@ -165,6 +166,77 @@ workflow {
     sta_pwm = param_file_sel.start_pwm
     sto_pwm = param_file_sel.stop_pwm
   }
+
+  // if (params.maps_param_values){
+  //   para_vals = param_value_selection_workflow(params.taxid, 0,
+  //                                             parameter_location,
+  //                                             params.maps_param_values)
+  //
+  //   println para_vals.size()
+  //   // mapAsString = para_vals.toMapString()
+  //   //
+  //   // map_vals =
+  //   //     // Take the String value between
+  //   //     // the [ and ] brackets.
+  //   //     mapAsString[1..-2]
+  //   //         // Split on , to get a List.
+  //   //         .split(', ')
+  //   //         // Each list item is transformed
+  //   //         // to a Map entry with key/value.
+  //   //         .collectEntries { entry ->
+  //   //             def pair = entry.split(':')
+  //   //             [(pair.first()): pair.last()]
+  //   //         }
+  //   new_param = creatingParamFile(
+  //                                 params.taxid,
+  //
+  //                                 para_vals.no_score,
+  //
+  //                                 para_vals.absolute_cutoff_exons,
+  //                                 para_vals.coding_cutoff_oligos,
+  //
+  //                                 para_vals.site_factor,
+  //                                 para_vals.exon_factor,
+  //                                 para_vals.hsp_factor,
+  //                                 para_vals.exon_weight,
+  //
+  //                                 sta_pwm,
+  //                                 acc_pwm,
+  //                                 don_pwm,
+  //                                 sto_pwm,
+  //
+  //                                 new_mats.ini_comb,
+  //                                 new_mats.trans_comb,
+  //
+  //                                 params.general_gene_params
+  //
+  //                                 )
+  // } else {
+  //   new_param = creatingParamFile(
+  //                                 params.taxid,
+  //
+  //                                 params.no_score,
+  //
+  //                                 params.absolute_cutoff_exons,
+  //                                 params.coding_cutoff_oligos,
+  //
+  //                                 params.site_factor,
+  //                                 params.exon_factor,
+  //                                 params.hsp_factor,
+  //                                 params.exon_weight,
+  //
+  //                                 sta_pwm,
+  //                                 acc_pwm,
+  //                                 don_pwm,
+  //                                 sto_pwm,
+  //
+  //                                 new_mats.ini_comb,
+  //                                 new_mats.trans_comb,
+  //
+  //                                 params.general_gene_params
+  //                                 )
+  //
+  // }
 
   new_param = creatingParamFile(
                                 params.taxid,

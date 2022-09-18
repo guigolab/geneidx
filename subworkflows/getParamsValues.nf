@@ -14,10 +14,8 @@ params.CONTAINER = "ferriolcalvet/python-modules"
 OutputFolder = "${params.output}"
 
 
-process getParamName {
 
-    // where to store the results and in which way
-    // publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff3')
+process getParamName {
 
     // indicates to use as a container the value indicated in the parameter
     container "ferriolcalvet/python-modules"
@@ -31,7 +29,8 @@ process getParamName {
 
     input:
     val taxid
-    val update // unless you manually update the container, leave it as False
+    val update // unless you manually add a new parameter file, leave it as False
+    path param_path
 
     output:
     stdout emit: description
@@ -104,7 +103,7 @@ process getParamName {
         ###
 
         # List files in directory
-        list_species_taxid_params = os.listdir('/data/Parameter_files.taxid/*.param')
+        list_species_taxid_params = os.listdir('${param_path}/*.param')
         list_species_taxid = [x.split('.')[:2] for x in list_species_taxid_params]
 
 
@@ -146,7 +145,7 @@ process getParamName {
         ###
         # We want to load the previously generated dataframe
         ###
-        data = pd.read_csv("/data/Parameter_files.taxid/params_df.tsv", sep = "\t")
+        data = pd.read_csv("${param_path}/params_df.tsv", sep = "\t")
 
         def split_n_convert(x):
             return [int(i) for i in x.replace("'", "").strip("[]").split(", ")]
@@ -189,35 +188,7 @@ process getParamName {
         #print(taxid_closest_param)
 
         selected_param = intersected_params[intersected_params["taxid"] == taxid_closest_param].loc[:,"parameter_file"].iloc[0]
-        print(selected_param, end = '')
-    """
-
-}
-
-
-process copyParam {
-
-    // where to store the results and in which way
-    // publishDir(params.OUTPUT, mode : 'copy', pattern : '*.param')
-
-    // indicates to use as a container the value indicated in the parameter
-    container "ferriolcalvet/python-modules"
-
-    // indicates to use as a label the value indicated in the parameter
-    label (params.LABEL)
-
-    // show in the log which input file is analysed
-    tag "${text_desc}"
-
-    input:
-    val text_desc
-
-    output:
-    file ("${text_desc}")
-
-    script:
-    """
-    cp /data/Parameter_files.taxid/${text_desc} ./${text_desc}
+        print("${params.parameter_path}", selected_param, sep = "/", end = '')
     """
 
 }
@@ -227,7 +198,7 @@ process copyParam {
 
 
 
-process paramSplit {
+process paramSplitValues {
 
     // where to store the results and in which way
     // publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff3')
@@ -244,12 +215,10 @@ process paramSplit {
 
     input:
     path param_file
+    val params_available
 
     output:
-    path ("${param_file_name}.acceptor_profile.param"), emit: acceptor
-    path ("${param_file_name}.donor_profile.param"), emit: donor
-    path ("${param_file_name}.start_profile.param"), emit: start
-    path ("${param_file_name}.stop_profile.param"), emit: stop
+    stdout emit: list_params
 
 
     script:
@@ -258,43 +227,50 @@ process paramSplit {
     #!/usr/bin/env python
     # coding: utf-8
 
-    import re
+    list_all = set(['absolute_cutoff_exons', 'coding_cutoff_oligos', 'no_score',
+                    'site_factor', 'exon_factor', 'hsp_factor', 'exon_weight'])
 
-    pattern = r'([a-zA-Z]+)_[Pp]rofile'
+    dict_all_params_with_spaces = eval(\"\"\"${params_available}\"\"\".replace("[","{\\"").replace("]","}").replace(",",",\\"").replace(":","\\":"))
+    dict_all_params = { key.replace(' ', ''): value for key, value in dict_all_params_with_spaces.items()}
+    print(dict_all_params)
 
-    started = 0
-    files_created = []
+    def find_missing_param(list_defined, param_file):
 
+        params_to_search = list(list_all - set(list(list_defined)))
 
-    started = 0
+        for text_to_find in params_to_search:
 
-    files_created = []
+            started = 0
 
-    pattern = r'([a-zA-Z]+_[fF]actor)'
-    taxid = 35523
+            with open(param_file) as f:
+                for line in f:
+                    if started == 0:
+                        if line.strip().lower() == text_to_find:
+                            param_name = line.strip().lower()
+                            print(line.strip())
+                            started = -1
 
-    # removing the new line characters
-    with open('${param_file_name}.param') as f:
-        for line in f:
-            if started == 0:
-                matches = re.match(pattern, line, flags=re.IGNORECASE)
+                    # we have just found the label of the parameter of interest
+                    # here we need read the value
+                    elif started == -1:
+                        vals = line.strip().split(' ')
 
-                # if there is any match
-                if matches is not None:
-                    # print(line.strip(), end = '')
-                    started = -1
+                        # we check whether there are multiple values,
+                        # if so, we take the value of the last one
+                        if vals.count(vals[0]) > vals.count(vals[-1]):
+                            dict_all_params[param_name] = float(vals[0])
+                            print(vals[0])
 
-            # we have just found the label of the profile of interest
-            # here we need read the value
-            elif started == -1:
-                vals = line.split(' ')
-                if vals.count(vals[0]) > vals.count(vals[-1]):
-                    print(vals[0], end = "")
-                else:
-                    print(vals[-1], end = "")
-                started = 0
+                        else:
+                            dict_all_params[param_name] = float(vals[-1])
+                            print(vals[-1])
 
-                break
+                        started = 0
+
+                        break
+        return str(dict_all_params).replace("{", "[").replace("}", "]").replace("'", "\\"")
+
+    print(find_missing_param(list(dict_all_params.keys()), "${param_file}"), end = "")
     """
 }
 
@@ -303,25 +279,33 @@ process paramSplit {
  * Workflow for choosing and providing the parameter file
  */
 
-workflow param_selection_workflow {
-
+workflow param_value_selection_workflow {
     // definition of input
     take:
     taxid
     update_list
-    values_to_find
+    params_path
+    param_list
 
     main:
-    param_file_down = getParamName(taxid, update_list) | copyParam
+    param_file_down = getParamName(taxid, update_list, params_path)
 
     // channel from list of params to find and report then here
-    param_file_outs = paramSplit(param_file_down)
+    param_vals_out = paramSplitValues(param_file_down, param_list)
 
     emit:
-    acceptor_pwm = param_file_outs.acceptor
-    donor_pwm = param_file_outs.donor
-    start_pwm = param_file_outs.start
-    stop_pwm = param_file_outs.stop
+    param_vals_out.list_params
+    // absolute_cutoff_exons = param_file_out.absolute_cutoff_exons
+    // absolute_cutoff_exons = param_file_out.coding_cutoff_oligos
+    // absolute_cutoff_exons = param_file_out.no_score
+    //  = param_file_out.site_factor
+    //  = param_file_out.exon_factor
+    //  = param_file_out.hsp_factor
+    //  = param_file_out.exon_weight
+    // acceptor_pwm = param_file_out.acceptor
+    // donor_pwm = param_file_out.donor
+    // start_pwm = param_file_out.start
+    // stop_pwm = param_file_out.stop
 
 
 }
