@@ -228,11 +228,11 @@ process paramSplitValues {
     # coding: utf-8
 
     list_all = set(['absolute_cutoff_exons', 'coding_cutoff_oligos', 'no_score',
-                    'site_factor', 'exon_factor', 'hsp_factor', 'exon_weight'])
+                    'site_factor', 'exon_factor', 'hsp_factor', 'exon_weights'])
 
     dict_all_params_with_spaces = eval(\"\"\"${params_available}\"\"\".replace("[","{\\"").replace("]","}").replace(",",",\\"").replace(":","\\":"))
     dict_all_params = { key.replace(' ', ''): value for key, value in dict_all_params_with_spaces.items()}
-    print(dict_all_params)
+    #print(dict_all_params)
 
     def find_missing_param(list_defined, param_file):
 
@@ -247,7 +247,7 @@ process paramSplitValues {
                     if started == 0:
                         if line.strip().lower() == text_to_find:
                             param_name = line.strip().lower()
-                            print(line.strip())
+                            #print(line.strip())
                             started = -1
 
                     # we have just found the label of the parameter of interest
@@ -259,16 +259,17 @@ process paramSplitValues {
                         # if so, we take the value of the last one
                         if vals.count(vals[0]) > vals.count(vals[-1]):
                             dict_all_params[param_name] = float(vals[0])
-                            print(vals[0])
+                            #print(vals[0])
 
                         else:
                             dict_all_params[param_name] = float(vals[-1])
-                            print(vals[-1])
+                            #print(vals[-1])
 
                         started = 0
 
                         break
-        return str(dict_all_params).replace("{", "[").replace("}", "]").replace("'", "\\"")
+        # return str(dict_all_params).replace("{", "[").replace("}", "]").replace("'", "\\"")
+        return str(dict_all_params).replace("{", "").replace("}", "").replace("'", "").replace(" ", "")
 
     print(find_missing_param(list(dict_all_params.keys()), "${param_file}"), end = "")
     """
@@ -293,19 +294,9 @@ workflow param_value_selection_workflow {
     // channel from list of params to find and report then here
     param_vals_out = paramSplitValues(param_file_down, param_list)
 
-    emit:
-    param_vals_out.list_params
-    // absolute_cutoff_exons = param_file_out.absolute_cutoff_exons
-    // absolute_cutoff_exons = param_file_out.coding_cutoff_oligos
-    // absolute_cutoff_exons = param_file_out.no_score
-    //  = param_file_out.site_factor
-    //  = param_file_out.exon_factor
-    //  = param_file_out.hsp_factor
-    //  = param_file_out.exon_weight
-    // acceptor_pwm = param_file_out.acceptor
-    // donor_pwm = param_file_out.donor
-    // start_pwm = param_file_out.start
-    // stop_pwm = param_file_out.stop
 
+
+    emit:
+    params_map = param_vals_out.list_params
 
 }

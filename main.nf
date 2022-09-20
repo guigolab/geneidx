@@ -89,6 +89,9 @@ include { param_value_selection_workflow } from "${subwork_folder}/getParamsValu
 include { creatingParamFile } from "${subwork_folder}/modifyParamFile" addParams(OUTPUT: OutputFolderSpeciesTaxid,
   LABEL:'singlecpu')
 
+include { creatingParamFile_frommap } from "${subwork_folder}/modifyParamFile" addParams(OUTPUT: OutputFolderSpeciesTaxid,
+  LABEL:'singlecpu')
+
 include { geneid_WORKFLOW } from "${subwork_folder}/geneid" addParams( LABEL:'singlecpu' )
 
 include { prep_concat } from "${subwork_folder}/prepare_concatenation" addParams(OUTPUT: OutputFolderSpeciesTaxid,
@@ -167,89 +170,14 @@ workflow {
     sto_pwm = param_file_sel.stop_pwm
   }
 
-  // if (params.maps_param_values){
-  //   para_vals = param_value_selection_workflow(params.taxid, 0,
-  //                                             parameter_location,
-  //                                             params.maps_param_values)
-  //
-  //   println para_vals.size()
-  //   // mapAsString = para_vals.toMapString()
-  //   //
-  //   // map_vals =
-  //   //     // Take the String value between
-  //   //     // the [ and ] brackets.
-  //   //     mapAsString[1..-2]
-  //   //         // Split on , to get a List.
-  //   //         .split(', ')
-  //   //         // Each list item is transformed
-  //   //         // to a Map entry with key/value.
-  //   //         .collectEntries { entry ->
-  //   //             def pair = entry.split(':')
-  //   //             [(pair.first()): pair.last()]
-  //   //         }
-  //   new_param = creatingParamFile(
-  //                                 params.taxid,
-  //
-  //                                 para_vals.no_score,
-  //
-  //                                 para_vals.absolute_cutoff_exons,
-  //                                 para_vals.coding_cutoff_oligos,
-  //
-  //                                 para_vals.site_factor,
-  //                                 para_vals.exon_factor,
-  //                                 para_vals.hsp_factor,
-  //                                 para_vals.exon_weight,
-  //
-  //                                 sta_pwm,
-  //                                 acc_pwm,
-  //                                 don_pwm,
-  //                                 sto_pwm,
-  //
-  //                                 new_mats.ini_comb,
-  //                                 new_mats.trans_comb,
-  //
-  //                                 params.general_gene_params
-  //
-  //                                 )
-  // } else {
-  //   new_param = creatingParamFile(
-  //                                 params.taxid,
-  //
-  //                                 params.no_score,
-  //
-  //                                 params.absolute_cutoff_exons,
-  //                                 params.coding_cutoff_oligos,
-  //
-  //                                 params.site_factor,
-  //                                 params.exon_factor,
-  //                                 params.hsp_factor,
-  //                                 params.exon_weight,
-  //
-  //                                 sta_pwm,
-  //                                 acc_pwm,
-  //                                 don_pwm,
-  //                                 sto_pwm,
-  //
-  //                                 new_mats.ini_comb,
-  //                                 new_mats.trans_comb,
-  //
-  //                                 params.general_gene_params
-  //                                 )
-  //
-  // }
+  para_vals = param_value_selection_workflow(params.taxid, 0,
+                                            parameter_location,
+                                            params.maps_param_values)
 
-  new_param = creatingParamFile(
+  new_param = creatingParamFile_frommap(
                                 params.taxid,
 
-                                params.no_score,
-
-                                params.absolute_cutoff_exons,
-                                params.coding_cutoff_oligos,
-
-                                params.site_factor,
-                                params.exon_factor,
-                                params.hsp_factor,
-                                params.exon_weight,
+                                para_vals.params_map,
 
                                 sta_pwm,
                                 acc_pwm,
@@ -261,13 +189,7 @@ workflow {
 
                                 params.general_gene_params
 
-                                // params.min_intron_size_geneid,
-                                // params.max_intron_size_geneid
                                 )
-                                // start_pwm 		= "$projectDir/data/param-sections/start_profile.human"
-                                // 	acceptor_pwm	= "$projectDir/data/param-sections/acceptor_profile.human"
-                                // 	donor_pwm			= "$projectDir/data/param-sections/donor_profile.human"
-                                // 	stop_pwm			= "$projectDir/data/param-sections/stop_profile.human"
 
   // Run Geneid
   predictions = geneid_WORKFLOW(uncompressed_genome, new_param, hsp_found)

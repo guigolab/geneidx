@@ -1459,8 +1459,8 @@ Donor_profile
 9 TT -0.387045
 
 Stop_profile
-# Transition probabilities at every position 
 4 0 -9999 0
+# Transition probabilities at every position 
 1 A 0
 1 C 0
 1 G 0
