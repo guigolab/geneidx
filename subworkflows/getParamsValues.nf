@@ -3,7 +3,7 @@
 */
 
 // Parameter definitions
-params.CONTAINER = "ferriolcalvet/python-modules"
+params.CONTAINER = "ferriolcalvet/geneidx"
 // params.OUTPUT = "geneid_output"
 // params.LABEL = ""
 
@@ -18,7 +18,7 @@ OutputFolder = "${params.output}"
 process getParamName {
 
     // indicates to use as a container the value indicated in the parameter
-    container "ferriolcalvet/python-modules"
+    container "ferriolcalvet/geneidx"
     // container "ferriolcalvet/python-geneid-params"
 
     // indicates to use as a label the value indicated in the parameter
@@ -38,7 +38,7 @@ process getParamName {
 
     script:
     """
-    #!/usr/bin/env python
+    #!/usr/bin/env python3
     # coding: utf-8
 
     import os, sys
@@ -204,7 +204,7 @@ process paramSplitValues {
     // publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff3')
 
     // indicates to use as a container the value indicated in the parameter
-    container "ferriolcalvet/python-modules"
+    container "ferriolcalvet/geneidx"
     // container "ferriolcalvet/python-geneid-params"
 
     // indicates to use as a label the value indicated in the parameter
@@ -224,7 +224,7 @@ process paramSplitValues {
     script:
     param_file_name = param_file.BaseName
     """
-    #!/usr/bin/env python
+    #!/usr/bin/env python3
     # coding: utf-8
 
     list_all = set(['absolute_cutoff_exons', 'coding_cutoff_oligos', 'no_score',

@@ -1,7 +1,8 @@
 # Dockerfile for GeneidX
 #
 FROM guigolab/geneid:1.4.5 as geneidbin
-FROM debian:stretch
+
+FROM python:3.9.14
 
 ADD MarkovMatrices.awk scripts/
 ADD MarkovMatrices-noframe.awk scripts/
@@ -24,6 +25,12 @@ RUN apt-get update && \
     exonerate \
     wget \
     procps
+
+RUN python3 -m pip install --upgrade pip
+RUN pip install requests
+RUN pip install lxml
+RUN pip install pandas
+RUN pip install numpy
 
 RUN curl -L https://github.com/guigolab/blast2gff/archive/refs/heads/master.tar.gz | \
     tar xz && \
