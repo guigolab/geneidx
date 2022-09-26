@@ -3,7 +3,7 @@
 */
 
 // Parameter definitions
-params.CONTAINER = "ferriolcalvet/python-modules"
+params.CONTAINER = "ferriolcalvet/geneidx"
 // params.OUTPUT = "geneid_output"
 // params.LABEL = ""
 
@@ -20,7 +20,7 @@ process getProtFasta {
     // publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff3')
 
     // indicates to use as a container the value indicated in the parameter
-    container "ferriolcalvet/python-modules"
+    container "ferriolcalvet/geneidx"
 
     // indicates to use as a label the value indicated in the parameter
     label (params.LABEL)
@@ -39,7 +39,7 @@ process getProtFasta {
 
     script:
     """
-    #!/usr/bin/env python
+    #!/usr/bin/env python3
 
     sp_taxon_id = ${taxon}
 
@@ -168,7 +168,7 @@ process downloadProtFasta {
     publishDir(params.OUTPUT, mode : 'copy', pattern : '*.fa.gz')
 
     // indicates to use as a container the value indicated in the parameter
-    container "ferriolcalvet/python-modules"
+    container "ferriolcalvet/geneidx"
 
     // indicates to use as a label the value indicated in the parameter
     label (params.LABEL)
@@ -188,7 +188,7 @@ process downloadProtFasta {
     (prot_desc, prot_filename, prot_query ) = (text_desc =~ /([A-Za-z\d\.\+]+)\s(.*)/)[0]
 
     """
-    #!/usr/bin/env python
+    #!/usr/bin/env python3
 
     import requests, os
 

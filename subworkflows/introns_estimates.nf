@@ -70,7 +70,7 @@ process summarizeMatches {
 process pyComputeIntrons {
 
     // indicates to use as a container the value indicated in the parameter
-    container "ferriolcalvet/python-modules"
+    container "ferriolcalvet/geneidx"
 
     // indicates to use as a label the value indicated in the parameter
     label (params.LABEL)
@@ -90,7 +90,7 @@ process pyComputeIntrons {
     main_matches_name = main_matches.BaseName
 
     """
-    #!/usr/bin/env python
+    #!/usr/bin/env python3
 
     import pandas as pd
 
@@ -159,7 +159,7 @@ process pyComputeIntrons {
 process pyComputeIntrons_SS {
 
     // indicates to use as a container the value indicated in the parameter
-    container "ferriolcalvet/python-modules"
+    container "ferriolcalvet/geneidx"
 
     // indicates to use as a label the value indicated in the parameter
     label (params.LABEL)
@@ -181,7 +181,7 @@ process pyComputeIntrons_SS {
     main_matches_name = main_matches.BaseName
 
     """
-    #!/usr/bin/env python
+    #!/usr/bin/env python3
 
     import pandas as pd
 

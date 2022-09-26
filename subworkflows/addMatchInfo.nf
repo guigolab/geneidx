@@ -40,7 +40,7 @@ process gff3intersectHints {
 process processLabels {
 
     // indicates to use as a container the value indicated in the parameter
-    container "ferriolcalvet/python-modules"
+    container "ferriolcalvet/geneidx"
 
     // indicates to use as a label the value indicated in the parameter
     label (params.LABEL)
@@ -57,7 +57,7 @@ process processLabels {
     script:
     annotations_file_name = annotations_file.BaseName
     """
-    #!/usr/bin/env python
+    #!/usr/bin/env python3
 
     import pandas as pd
     import sys

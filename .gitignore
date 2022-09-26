@@ -2,5 +2,4 @@
 .nextflow*
 work
 output/*
-scripts/*.ipynb
-docker/
+scripts/*ipynb*
