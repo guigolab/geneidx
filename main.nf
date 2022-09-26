@@ -44,7 +44,6 @@ if (params.help) {
  */
 OutputFolder = "${params.output}"
 
-OutputFolderInternal = "${OutputFolder}/internal"
 OutputFolderProteinDBs = "${OutputFolder}/proteins"
 OutputFolderSpecies = "${OutputFolder}/species"
 OutputFolderSpeciesTaxid = "${OutputFolder}/species/${params.taxid}"
