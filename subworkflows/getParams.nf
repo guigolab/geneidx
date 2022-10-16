@@ -135,7 +135,7 @@ process getParamName {
         # Put the information into a dataframe
         data = pd.DataFrame(list_repeats_taxids, columns = ["species", "taxid", "parameter_file", "taxidlist"])
 
-        data.to_csv("/data/Parameter_files.taxid/params_df.tsv", sep = "\t", index = False)
+        data.to_csv("${param_path}/params_df.tsv", sep = "\t", index = False)
         # print("New parameters saved")
 
 

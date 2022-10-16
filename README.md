@@ -10,7 +10,7 @@ Stay tuned for an article with detailed descriptions and feel free to [contact u
 
 ## Preliminary results
  The results of an initial benchmarking using vertebrates genomes annotated in Ensembl show that our method is **as accurate as the top *ab initio* gene predictors**, but it is **between 10 and 100 times faster**.
-![Summary of vertebrate benchmark](images/Benchmarking4GitHubX.svg)
+<!-- ![Summary of vertebrate benchmark](images/Benchmarking4GitHubX.svg) -->
 
 
 
@@ -20,6 +20,9 @@ Having defined the parameters and ensuring that Nextflow and a container technol
 `nextflow run guigolab/geneidx -with-docker
                             --genome <GENOME>
                             --taxid <TAXID>`
+
+
+Revise the DETAILS section below for the minor specifications of each parameter.
 
 
 ## Before running GeneidX
@@ -46,7 +49,7 @@ Which steps are taking place as part of this pipeline?
 This is a graphical summary, and the specific steps are outlined below.
 ![Summary of vertebrate benchmark](images/SchemaWhite.png)
 1. Get the set of proteins to be used for the protein-to-genome alignments.
-2. Get the closest Geneid parameter file to use as source of the parameters not indicated by the user.
+2. Get the closest Geneid parameter file to use, as source of the parameters is not indicated by the user.
 3. Create the protein database for DIAMOND to use it as a source.
 4. Align the provided genome against the database created using DIAMOND BLASTx flavour.
 5. Run the auto-training process:
