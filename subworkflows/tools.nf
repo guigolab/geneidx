@@ -21,8 +21,6 @@ process UncompressFASTA {
         gunzip -c ${main_genome_file}.gz > ${main_genome_file};
     fi
     """
-    // perl -i -lane 'if (/^>/) { (\$id, \$chr)=\$_=~/^>([\\w|.]+)[\\s\\w]+, [\\w]+: (\\w+)/; print ">".\$chr} else {print}' ${main_genome_file}
-    // perl -i -lane 'if (/^>/) { ($id, $chr)=$_=~/^>([\w|.]+)[\s\w]+, chromosome: (\w+)/; print ">".$chr} else {print}' ${main_genome_file}
 }
 
 
@@ -33,7 +31,7 @@ process UncompressFASTA {
 process fix_chr_names {
 
     container "ferriolcalvet/geneidx"
-    
+
     // show in the log which input file is analysed
     tag "${ref_to_index}"
 
@@ -48,8 +46,6 @@ process fix_chr_names {
     """
     paste -d ' ' <(FastaToTbl ${main_genome_file}.fa | cut -d ' ' -f1 | cut -d '|' -f3) <(FastaToTbl ${main_genome_file}.fa | cut -d ' ' -f2) | TblToFasta > ${main_genome_file}.clean.fa
     """
-    // perl -i -lane 'if (/^>/) { (\$id, \$chr)=\$_=~/^>([\\w|.]+)[\\s\\w]+, [\\w]+: (\\w+)/; print ">".\$chr} else {print}' ${main_genome_file}
-    // perl -i -lane 'if (/^>/) { ($id, $chr)=$_=~/^>([\w|.]+)[\s\w]+, chromosome: (\w+)/; print ">".$chr} else {print}' ${main_genome_file}
 }
 
 

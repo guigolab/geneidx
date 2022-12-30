@@ -10,6 +10,8 @@ ADD pro2log_ini.awk scripts/
 ADD pro2log_tran.awk scripts/
 
 ADD ./FastaToTbl /usr/local/bin/
+ADD ./TblToFasta /usr/local/bin/
+
 
 COPY --from=geneidbin /usr/local/bin/geneid /usr/local/bin/
 
