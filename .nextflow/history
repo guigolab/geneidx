@@ -51,3 +51,7 @@
 2022-09-19 00:13:06	8.7s	suspicious_miescher	ERR	253609e02d2fa1e9769e59eaaa0b65f3	d4195313-c570-487f-b462-87e6a02ec519	nextflow run main.nf -with-docker
 2022-09-19 00:18:38	8.1s	small_monod	ERR	b532c6402102c1f489f20bcd3bbc1d48	d5f4168e-d612-4610-921a-fabe3c5dd3d0	nextflow run main.nf -with-docker
 2022-09-19 00:20:51	43.4s	confident_kirch	OK	c0fc6a414a4a14ee268cd3064d4f8a59	bac81164-ff51-4855-abb9-0ce3066d36af	nextflow run main.nf -with-docker
+2022-10-24 23:24:28	1m 19s	fabulous_wescoff	ERR	ca87b12abc24f0ac3a22bf5bbcbc393f	78b605cc-8139-4315-a204-eb891ef17d22	nextflow run main.nf -with-docker --taxid 242261
+2022-12-30 17:58:35	6.4s	berserk_ritchie	ERR	ccdbe1f8f839b10a81170da6d750ec0f	dd5cf01b-8aef-4870-b78e-5999d16370d6	nextflow run main.nf -with-docker --taxid 242261
+2022-12-30 18:02:21	6.2s	happy_bhaskara	ERR	ccdbe1f8f839b10a81170da6d750ec0f	c29108fc-7a62-43aa-809f-6531ce32d0d8	nextflow run main.nf -with-docker --taxid 242261
+2022-12-30 18:09:15	1m 24s	sad_mcnulty	OK	ccdbe1f8f839b10a81170da6d750ec0f	28b753df-af38-4d66-b846-87ee6f00ab33	nextflow run main.nf -with-docker --taxid 242261

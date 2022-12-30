@@ -1,5 +1,5 @@
 /*
-*  
+*
 */
 
 // Parameter definitions
@@ -45,7 +45,7 @@ process runDIAMOND_getHSPs_GFF {
                        --outfmt \$fmt6_custom \
                        --evalue 0.0001 \
                        --block-size 0.8 \
-                       --threads 4 \
+                       --threads ${task.cpus} \
                        --out ${main_genome_name}.${main_database_name}.hsp.out
 
         awk 'BEGIN{OFS="\t"}{if (\$13=="-"){frame=-(\$14);print \$1,"blastx","hsp",\$8,\$7,\$12,\$13,frame,\$2}else if(\$13=="+"){print \$1,"blastx","hsp",\$7,\$8,\$12,\$13,\$14,\$2}}' \

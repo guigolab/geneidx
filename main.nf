@@ -67,6 +67,8 @@ subwork_folder = "${projectDir}/subworkflows"
 
 include { UncompressFASTA } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolder)
 
+include { fix_chr_names } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolder)
+
 include { prot_down_workflow } from "${subwork_folder}/getProteins" addParams(OUTPUT: OutputFolderProteinDBs,
   LABEL:'singlecpu')
 
@@ -122,9 +124,14 @@ workflow {
   //    uncompressed to the downstream modules
   uncompressed_genome = UncompressFASTA(genoom)
 
+  // fix the chromosome names, ENA chrs have multiple labels
+  // separated by |
+  // keep only the last element
+  uncompressed_genome_mod = fix_chr_names(uncompressed_genome)
+
 
   // none of the returned objects is used by downsteam processes
-  compress_n_indexFASTA(uncompressed_genome)
+  compress_n_indexFASTA(uncompressed_genome_mod)
 
 
   // if proteins_file provided use proteins file
@@ -143,11 +150,11 @@ workflow {
 
 
   // Run DIAMOND to find matches between genome and proteins
-  hsp_found = alignGenome_Proteins(protDB, uncompressed_genome)
+  hsp_found = alignGenome_Proteins(protDB, uncompressed_genome_mod)
 
 
   // Automatic computation of the parameter file
-  new_mats = matchAssessment(uncompressed_genome, hsp_found,
+  new_mats = matchAssessment(uncompressed_genome_mod, hsp_found,
                                   params.match_score_min,
                                   params.match_ORF_min,
                                   params.intron_margin,
@@ -191,7 +198,7 @@ workflow {
                                 )
 
   // Run Geneid
-  predictions = geneid_WORKFLOW(uncompressed_genome, new_param, hsp_found)
+  predictions = geneid_WORKFLOW(uncompressed_genome_mod, new_param, hsp_found)
 
   // Prepare concatenation
   // This will initialize the final GFF3 file
