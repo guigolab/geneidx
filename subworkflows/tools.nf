@@ -26,6 +26,36 @@ process UncompressFASTA {
 }
 
 
+
+/*
+ * Fixing chromosome names if needed
+ */
+process fix_chr_names {
+
+    // show in the log which input file is analysed
+    tag "${ref_to_index}"
+
+    input:
+    file (ref_to_index)
+
+    output:
+    path ("${main_genome_file}.clean.fa")
+
+    script:
+    main_genome_file = ref_to_index.BaseName
+    """
+    paste -d ' ' <(FastaToTbl ${main_genome_file}.fa | cut -d ' ' -f1 | cut -d '|' -f3) <(FastaToTbl ${main_genome_file}.fa | cut -d ' ' -f2) | TblToFasta > ${main_genome_file}.clean.fa
+    """
+    // perl -i -lane 'if (/^>/) { (\$id, \$chr)=\$_=~/^>([\\w|.]+)[\\s\\w]+, [\\w]+: (\\w+)/; print ">".\$chr} else {print}' ${main_genome_file}
+    // perl -i -lane 'if (/^>/) { ($id, $chr)=$_=~/^>([\w|.]+)[\s\w]+, chromosome: (\w+)/; print ">".$chr} else {print}' ${main_genome_file}
+}
+
+
+
+
+
+
+
 /*
  * Indexing if needed
  *    with the exonerate fastaindex
