@@ -3,6 +3,8 @@
  */
 process UncompressFASTA {
 
+    container "ferriolcalvet/geneidx"
+
     // show in the log which input file is analysed
     tag "${ref_to_index}"
 

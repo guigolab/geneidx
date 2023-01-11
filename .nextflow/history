@@ -55,3 +55,4 @@
 2022-12-30 17:58:35	6.4s	berserk_ritchie	ERR	ccdbe1f8f839b10a81170da6d750ec0f	dd5cf01b-8aef-4870-b78e-5999d16370d6	nextflow run main.nf -with-docker --taxid 242261
 2022-12-30 18:02:21	6.2s	happy_bhaskara	ERR	ccdbe1f8f839b10a81170da6d750ec0f	c29108fc-7a62-43aa-809f-6531ce32d0d8	nextflow run main.nf -with-docker --taxid 242261
 2022-12-30 18:09:15	1m 24s	sad_mcnulty	OK	ccdbe1f8f839b10a81170da6d750ec0f	28b753df-af38-4d66-b846-87ee6f00ab33	nextflow run main.nf -with-docker --taxid 242261
+2023-01-11 23:29:32	1m 22s	confident_stonebraker	OK	ccdbe1f8f839b10a81170da6d750ec0f	f0f80af1-5493-49b1-bab6-1152d3e62681	nextflow run main.nf -with-docker --taxid 9079

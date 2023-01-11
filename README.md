@@ -1,7 +1,6 @@
 # GeneidX
-We provide a fast and accurate prediction of the protein-coding genes in a genome, taking as input the genome assembly and a set of proteins from closely related species.
 
-This repository contains the implementation of the GeneidX *ab initio* gene prediction method.
+GeneidX provides a fast annotation of the protein-coding genes in an eukaryotic genome taking as input the genome assembly and the taxonomic ID of the species to annotate.
 
 In the description here, you can find our preliminary results, a schema of our method and a description of the minimal requirements and commands required for running it.
 
@@ -15,11 +14,25 @@ Stay tuned for an article with detailed descriptions and feel free to [contact u
 
 
 ## Running GeneidX
-Having defined the parameters and ensuring that Nextflow and a container technology.
+Having defined the parameters and ensuring that Nextflow and a container technology are installed.
 
-`nextflow run guigolab/geneidx -with-docker
-                            --genome <GENOME>
-                            --taxid <TAXID>`
+This pipeline requires the compressed genome assembly and the taxid of the species to annotate.
+```
+nextflow run guigolab/geneidx -profile <docker/singularity>
+                                        --assembly <GENOME>.fa,gz
+                                        --taxid <TAXID>
+                                        --outdir <OUTPUT_directory>
+```
+
+or alternatively, clone the repository and then run it (highly recommended)
+```
+git clone https://github.com/guigolab/geneidx.git
+cd geneidx
+nextflow run main.nf -profile <docker/singularity>
+                      --assembly <GENOME>.fa.gz
+                      --taxid <TAXID>
+                      --outdir <OUTPUT_directory>
+```
 
 
 Revise the DETAILS section below for the minor specifications of each parameter.
@@ -33,7 +46,10 @@ Revise the DETAILS section below for the minor specifications of each parameter.
 
 2. Define the input parameters:
   - Compressed FASTA file with `.fa.gz` termination.
-  - Taxid of the species to annotate or from the closest relative described.
+  - Taxid of the species to annotate or from the closest relative described with taxid. You can find this information in [NCBI Taxonomy database](https://www.ncbi.nlm.nih.gov/taxonomy).
+
+
+3. Optional parameters:
   - Proteins from closely related species: (choose one of these options)
       - Provide a compressed FASTA file with the proteins selected.
       - Let the pipeline download the proteins automatically from UniRef90 (nothing should be provided in this case.)
@@ -67,18 +83,17 @@ This is done in parallel for each independent sequence inside the genome FASTA f
 
 
 ## DETAILS:
-- **The name of the sequences in the FASTA file cannot contain unusual characters.**
-- **The input genome file must be a gzip-compressed FASTA file. (.fa.gz)**
-- **Auto-train the parameter file always.**
+  - **The name of the sequences in the FASTA file cannot contain unusual characters.**
+  - **The input genome file must be a gzip-compressed FASTA file. (.fa.gz)**
+  - **Auto-train the parameter file always.**
+
+  - It is recommended to clone the repository and then run the pipeline from there.
+  - So far the output of the predictions is not stored in the path indicated when running the pipeline, but in output/species/{taxid of the species}.
+  - If you are running the pipeline multiple times, it is recommended that you define a directory for downloading the docker/singularity images to avoid having to download them multiple times. See `singularity.cacheDir variable` in `nextflow.config`.
+  - If you are starting from an unmasked genome assembly, check another version of this pipeline integrating the genome masking process. [GeneidXmask](https://github.com/FerriolCalvet/geneidXmask) repository.
+
+  - If you have used Geneid in the past and have manually trained a parameter file, we are open to receive them and share them in our repositories giving credit to the users who generated them.
+  Contact us at [ferriol.calvet@crg.eu](mailto:ferriol.calvet@crg.eu).
 
 
-## DOING:
--  Optimization of the auto-training additional parameters missing.
-
-
-## PENDING:
-- Tune DIAMOND parameters to make the most of the resources available and to adapt to the capacity of each computer.
-- DIAMOND now uses a lot of RAM memory, we have to adjust the execution to reduce the amount of resources used. This may cause an increase in the execution time.
-
-
-Follow us on Twitter ([@GuigoLab](https://twitter.com/GuigoLab)) for updates in the article describing our method.
+Follow us on Twitter ([@GuigoLab](https://twitter.com/GuigoLab)) for updates in the article describing our method, and contact us for any questions or suggestions.
