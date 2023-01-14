@@ -137,7 +137,7 @@ workflow {
   // if proteins_file provided use proteins file
   // else, use taxon to download the proteins_file
   // both conditions are evaluated inside the execution of this workflow
-  if (params.prot_file) {
+  if (file(params.prot_file).exists()) {
     proteins_file = file(params.prot_file)
   } else {
     proteins_file = prot_down_workflow(params.taxid,
@@ -163,7 +163,7 @@ workflow {
 
     // if sites matrices provided, use them
   // else, use taxon to get the closest geneid param file
-  if (params.acceptor_pwm) {
+  if (file(params.acceptor_pwm).exists()) {
     acc_pwm = params.acceptor_pwm
     don_pwm = params.donor_pwm
     sta_pwm = params.start_pwm

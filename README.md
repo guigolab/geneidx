@@ -18,6 +18,7 @@ Having defined the parameters and ensuring that Nextflow and a container technol
 
 This pipeline requires the compressed genome assembly and the taxid of the species to annotate.
 ```
+export NXF_VER=22.04.4
 nextflow run guigolab/geneidx -profile <docker/singularity>
                                         --assembly <GENOME>.fa,gz
                                         --taxid <TAXID>
@@ -28,6 +29,7 @@ or alternatively, clone the repository and then run it (highly recommended)
 ```
 git clone https://github.com/guigolab/geneidx.git
 cd geneidx
+export NXF_VER=22.04.4
 nextflow run main.nf -profile <docker/singularity>
                       --assembly <GENOME>.fa.gz
                       --taxid <TAXID>
@@ -36,6 +38,8 @@ nextflow run main.nf -profile <docker/singularity>
 
 
 Revise the DETAILS section below for the minor specifications of each parameter.
+
+Geneidx is working in Nextflow version 22.04.4 although we are working on updating the code up to make it work with the latest versions.
 
 
 ## Before running GeneidX
