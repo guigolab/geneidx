@@ -62,10 +62,9 @@ process getCDS_matrices {
 process getIntron_matrices {
 
     // indicates to use as a container the value indicated in the parameter
-    container params.CONTAINER
 
     // indicates to use as a label the value indicated in the parameter
-    label (params.LABEL)
+    label "geneidx"
 
     // show in the log which input file is analysed
     tag "${introns_name}"
@@ -99,11 +98,8 @@ process getIntron_matrices {
  */
 process CombineIni {
 
-    // indicates to use as a container the value indicated in the parameter
-    container params.CONTAINER
-
     // indicates to use as a label the value indicated in the parameter
-    label (params.LABEL)
+    label "geneidx"
 
     // show in the log which input file is analysed
     tag "${cds_name}"
@@ -139,11 +135,8 @@ process CombineIni {
  */
 process CombineTrans {
 
-    // indicates to use as a container the value indicated in the parameter
-    container params.CONTAINER
-
     // indicates to use as a label the value indicated in the parameter
-    label (params.LABEL)
+    label "geneidx"
 
     // show in the log which input file is analysed
     tag "${cds_name}"
@@ -175,7 +168,7 @@ process CombineTrans {
 /*
  * Workflow connecting the different pieces
  */
-workflow matchAssessment {
+workflow genomic_regions_estimation {
 
     // definition of input
     take:

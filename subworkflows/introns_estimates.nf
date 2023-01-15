@@ -70,10 +70,8 @@ process summarizeMatches {
 process pyComputeIntrons {
 
     // indicates to use as a container the value indicated in the parameter
-    container "ferriolcalvet/geneidx"
-
     // indicates to use as a label the value indicated in the parameter
-    label (params.LABEL)
+    label "geneidx"
 
     // show in the log which input file is analysed
     tag "${main_matches_name}"

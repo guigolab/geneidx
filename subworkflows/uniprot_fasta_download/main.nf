@@ -10,11 +10,6 @@ OutputFolder = "${params.output}"
 
 process getProtFasta {
 
-    // where to store the results and in which way
-    // publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff3')
-
-    // indicates to use as a container the value indicated in the parameter
-
     // indicates to use as a label the value indicated in the parameter
     label "geneidx"
 
@@ -33,6 +28,12 @@ process getProtFasta {
     script:
     """
     #!/usr/bin/env python3
+    # coding: utf-8
+
+    import pandas as pd
+    import requests
+    from lxml import etree
+    import time    
 
     sp_taxon_id = ${taxon}
 
@@ -44,10 +45,6 @@ process getProtFasta {
     clu_size = ini_clu_size
 
     max_iterations = 30
-
-
-    import requests
-    from lxml import etree
 
     def parse_taxon_mod(xml):
         root = etree.fromstring(xml)
@@ -66,10 +63,7 @@ process getProtFasta {
         lineage.insert(0,species)
         return lineage
 
-
-
     response = requests.get(f"https://www.ebi.ac.uk/ena/browser/api/xml/{sp_taxon_id}?download=false")
-
 
     lineage_l = parse_taxon_mod(response.content)
     rank_l = []
@@ -97,11 +91,14 @@ process getProtFasta {
     i=0
     in_range = False
 
-
+    counter = 0
     while not in_range and i < max_iterations:
         query = initial_query + "&query=(taxonomy_id:{})%20AND%20(identity:{})%20AND%20(count:[{}%20TO%20*])".format(taxon, identity, clu_size)
+        counter = counter + 1
+        if counter > 3:
+            time.sleep(2)
+            counter= 0
         r = requests.get(query)
-
         # if we have more proteins than the minimum required
         if lower_lim <= int(r.headers["X-Total-Results"]):
 
@@ -160,19 +157,14 @@ process downloadProtFasta {
     // where to store the results and in which way
     publishDir(params.OUTPUT, mode : 'copy', pattern : '*.fa.gz')
 
-    // indicates to use as a container the value indicated in the parameter
-    container "ferriolcalvet/geneidx"
-
     // indicates to use as a label the value indicated in the parameter
-    label (params.LABEL)
+    label 'geneidx'
 
     // show in the log which input file is analysed
     tag "${prot_filename}"
 
     input:
     val text_desc
-    // val prot_filename
-    // val prot_query
 
     output:
     path ("${prot_filename}.fa.gz")
@@ -202,13 +194,11 @@ process downloadProtFasta {
 }
 
 
-
-
 /*
  * Workflow for obtaining the estimates of the exon sequences
  */
 
-workflow prot_down_workflow {
+workflow uniprot_fasta_download {
 
     // definition of input
     take:

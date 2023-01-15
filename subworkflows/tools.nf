@@ -3,7 +3,7 @@
  */
 process UncompressFASTA {
 
-    container "ferriolcalvet/geneidx"
+    label "geneidx"
 
     // show in the log which input file is analysed
     tag "${ref_to_index}"
@@ -32,7 +32,7 @@ process UncompressFASTA {
  */
 process fix_chr_names {
 
-    container "ferriolcalvet/geneidx"
+    label "geneidx"
 
     // show in the log which input file is analysed
     tag "${ref_to_index}"
@@ -46,7 +46,7 @@ process fix_chr_names {
     script:
     main_genome_file = ref_to_index.BaseName
     """
-    paste -d ' ' <(FastaToTbl ${main_genome_file}.fa | cut -d ' ' -f1 | cut -d '|' -f3) <(FastaToTbl ${main_genome_file}.fa | cut -d ' ' -f2) | TblToFasta > ${main_genome_file}.clean.fa
+    paste -d ' ' <(FastaToTbl ${main_genome_file}.fa | cut -d ' ' -f1 | cut -d '|' -f3) <(FastaToTbl ${main_genome_file}.fa | cut -d ' ' -f2) | FastaToTbl > ${main_genome_file}.clean.fa
     """
 }
 
@@ -63,11 +63,8 @@ process fix_chr_names {
 
 process Index_i {
 
-    // indicates to use as a container the value indicated in the parameter
-    container "ferriolcalvet/geneid-fetching"
-
     // indicates to use as a label the value indicated in the parameter
-    label (params.LABEL)
+    label "geneidx"
 
     // show in the log which input file is analysed
     tag "${main_genome_file}"
@@ -98,10 +95,9 @@ process Index_i {
 process Index_fai {
 
     // indicates to use as a container the value indicated in the parameter
-    container "quay.io/biocontainers/samtools:1.15--h1170115_1"
 
     // indicates to use as a label the value indicated in the parameter
-    label (params.LABEL)
+    label "samtools"
 
     // show in the log which input file is analysed
     tag "${main_genome_file}"
@@ -135,7 +131,7 @@ process compress_n_indexFASTA {
     publishDir(params.OUTPUT, mode : 'copy')
 
     // indicates to use as a container the value indicated in the parameter
-    container "quay.io/biocontainers/samtools:1.15--h1170115_1"
+    label "samtools"
 
     // show in the log which input file is analysed
     tag "${genome_file}"
@@ -158,9 +154,6 @@ process compress_n_indexFASTA {
     """
 }
 
-
-
-
 /*
  * Indexing for the portal
  */
@@ -170,7 +163,7 @@ process gff34portal {
     publishDir(params.OUTPUT, mode : 'copy')
 
     // indicates to use as a container the value indicated in the parameter
-    container "quay.io/biocontainers/samtools:1.15--h1170115_1"
+    label "samtools"
 
     // indicates to use as a label the value indicated in the parameter
     // label (params.LABEL)

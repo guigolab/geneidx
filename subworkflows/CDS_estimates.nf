@@ -205,11 +205,8 @@ process updateGFFcoords {
     // where to store the results and in which way
     // publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff3')
 
-    // indicates to use as a container the value indicated in the parameter
-    container "ferriolcalvet/geneidx"
-
     // indicates to use as a label the value indicated in the parameter
-    label (params.LABEL)
+    label "geneidx"
 
     // show in the log which input file is analysed
     tag "${original_gff3}"
@@ -254,7 +251,6 @@ process updateGFFcoords {
     ORF_coords = merged_orf_gff3[['chr', 'program', 'region', 'start', 'end', 'value', 'strand', 'frame', 'id']]
     ORF_coords.to_csv("${original_gff3_basename}.ORFs.gff3", sep='\t', index=False, header=False)
     """
-
 }
 
 

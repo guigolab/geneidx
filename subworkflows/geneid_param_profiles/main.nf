@@ -1,36 +1,62 @@
-import re
-import sys
+/*
+*  Get parameters module.
+*/
+
+/*
+ * Defining the output folders.
+ */
+OutputFolder = "${params.output}"
+
+process paramSplit {
+
+    // where to store the results and in which way
+    // publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff3')
+
+    // indicates to use as a container the value indicated in the parameter
+    // container "ferriolcalvet/python-geneid-params"
+
+    // indicates to use as a label the value indicated in the parameter
+    label 'geneidx'
+
+    // show in the log which input file is analysed
+
+    input:
+    path param_file
+
+    output:
+    path ("${param_file_name}.acceptor_profile.param"), emit: acceptor
+    path ("${param_file_name}.donor_profile.param"), emit: donor
+    path ("${param_file_name}.start_profile.param"), emit: start
+    path ("${param_file_name}.stop_profile.param"), emit: stop
 
 
-taxid = sys.argv[1]
+    script:
+    param_file_name = param_file.getName()
+    """
+    #!/usr/bin/env python3
+    # coding: utf-8
 
-pattern = r'([a-zA-Z]+)_[Pp]rofile'
+    import re
 
-def taxid_to_splitted_files(taxid):
+    pattern = r'([a-zA-Z]+)_[Pp]rofile'
+
     started = 0
-
     files_created = []
-    
+
     # removing the new line characters
-    with open(f'{taxid}.param') as f:
+    with open("${param_file_name}") as f:
         for line in f:
-    #        print(line)
             if started == 0:
                 matches = re.match(pattern, line)
-
                 # if there is any match, get the groups and start a new file
-                if matches is not None:                
+                if matches is not None:
                     groups = matches.groups()
-                    # print(line, end = '')
-
                     # create the file that will contain the given profile
                     # only if it has not been created before
-                    filename = groups[0].lower() + "_profile.{}.param".format(taxid)
+                    filename = "${param_file_name}." + groups[0].lower() + "_profile.param"
                     if filename not in files_created:
                         files_created.append(filename)
                         started = -1
-
-                        print("Saving", filename)
                         fW = open(filename, "w")
                         fW.write(line)
 
@@ -68,8 +94,27 @@ def taxid_to_splitted_files(taxid):
 
                 # close the file as we finished adding that profile
                 fW.close()
-                
-                
-    return "{} splitted into {}".format(taxid, files_created)
+    """
+}
 
-print(taxid_to_splitted_files(taxid))
+/*
+ * Workflow for choosing and providing the parameter file
+ */
+
+workflow geneid_param_profiles {
+
+    // definition of input
+    take:
+    param_file
+
+    main:
+
+    param_file_outs = paramSplit(param_file)
+
+    emit:
+    acceptor_pwm = param_file_outs.acceptor
+    donor_pwm = param_file_outs.donor
+    start_pwm = param_file_outs.start
+    stop_pwm = param_file_outs.stop
+
+}

@@ -28,10 +28,9 @@ process runGeneid_fetching {
     // publishDir(params.OUTPUT, pattern : '*.gff3')
 
     // indicates to use as a label the value indicated in the parameter
-    label ('singlecpu')
+    label "geneidx"
 
     // indicates to use as container the value indicated in the parameter
-    container params.CONTAINER
 
     // show in the log which input file is analysed
     // tag "${ref}"
@@ -48,8 +47,8 @@ process runGeneid_fetching {
     path ("${main_genome_file}.*.gff3")
 
     script:
-    main_genome_file = reference_genome_file.BaseName
-    main_output_file = protein_matches.BaseName.toString().replaceAll(".hsp", "")
+    main_genome_file = reference_genome_file.getName()
+    main_output_file = protein_matches.getName().toString().replaceAll(".hsp", "")
     query_curated = query
     """
     # prepare sequence
@@ -79,10 +78,6 @@ process runGeneid_fetching {
     rm ${main_output_file}.${query}.HSP_SR.gff
     rm ${main_genome_file}.${query}
     """
-    // $projectDir/scripts/sgp_getHSPSR.pl \"${query}\" < ${main_genome_file}.${query}.SR.gff > ${main_genome_file}.${query}.HSP_SR.gff
-    // geneid -3P ${geneid_param} -S ${main_output_file}.${query}.HSP_SR.gff ${main_genome_file}.${query} \
-    //             | sed -e 's/geneid_v1.4/geneidblastx/g' | egrep 'CDS' | sort -k4,5n \
-    //             >> ${main_output_file}.${query}.gff3
 }
 
 
@@ -101,16 +96,18 @@ workflow geneid_WORKFLOW {
 
     main:
 
-    index_filename = Index_i(ref_file)
+    genome = channel.fromPath(ref_file)
+
+    index_filename = Index_i(genome)
     // index_filename.view()
 
-    ref_file.splitFasta( record: [id: true] )
+    genome.splitFasta( record: [id: true] )
                    // .subscribe {  println "Got: $it"  }
-                   .map{x -> x.toString().tokenize(':]').get(1)}
+                   .map{ it.toString().tokenize(':]').get(1) }
                    .set{ch}
 
     // we call the runGeneid_fetching module using the channel for the queries
-    predictions = runGeneid_fetching(ref_file,
+    predictions = runGeneid_fetching(genome,
                                       index_filename,
                                       geneid_param,
                                       hsp_file,

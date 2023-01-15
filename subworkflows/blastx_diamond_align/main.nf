@@ -52,7 +52,7 @@ process runDIAMOND_getHSPs_GFF {
  * Workflow connecting the different pieces
  */
 
-workflow alignGenome_Proteins {
+workflow blastx_diamond_align {
 
     // definition of input
     take:
