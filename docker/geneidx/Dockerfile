@@ -44,8 +44,3 @@ RUN chmod +x /usr/local/bin/FastaToTbl
 
 RUN chmod +x /usr/local/bin/sgp_getHSPSR.pl
 
-
-ENTRYPOINT [ "/usr/local/bin/blast2gff" ]
-ENTRYPOINT [ "/usr/local/bin/FastaToTbl" ]
-ENTRYPOINT [ "/usr/local/bin/geneid" ]
-ENTRYPOINT [ "/usr/local/bin/sgp_getHSPSR.pl" ]

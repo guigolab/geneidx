@@ -64,7 +64,7 @@ process fix_chr_names {
 process Index_i {
 
     // indicates to use as a container the value indicated in the parameter
-    container "ferriolcalvet/geneid-fetching"
+    container "ferriolcalvet/geneidx"
 
     // indicates to use as a label the value indicated in the parameter
     label (params.LABEL)
