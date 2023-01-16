@@ -30,7 +30,6 @@ output			: ${params.output}
 genome			: ${params.genome}
 taxon			: ${params.taxid}
 """
-// param_file		: ${params.param_f}
 
 // this prints the help in case you use --help parameter in the command line and it stops the pipeline
 if (params.help) {
@@ -41,33 +40,19 @@ if (params.help) {
     exit 1
 }
 
-/*
- * Defining the output folders.
- */
 OutputFolder = "${params.output}"
 
 OutputFolderProteinDBs = "${OutputFolder}/proteins"
 OutputFolderSpecies = "${OutputFolder}/species"
 OutputFolderSpeciesTaxid = "${OutputFolder}/species/${params.taxid}"
-// fasta.gz
-// fasta.gz.gzi
-// fasta.gz.fai
-// gff3.gz
-// gff3.gz.tbi
-// hsp.gff
-// param
 
-// paramOutputFolder = "${params.output}/params"
-
-
-/*
- * Defining the module / subworkflow path, and include the elements
- */
 subwork_folder = "${projectDir}/subworkflows"
 
-include { alignGenome_Proteins } from "${subwork_folder}/runDMND_BLASTx" addParams(OUTPUT: OutputFolderSpeciesTaxid,
-  LABEL:'fourcpus')
+//imported processes
+include { unzipFasta;  handleGff3; createParamFile } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolderSpeciesTaxid,
+  LABEL:'singlecpu')
 
+//imported subworkflows
 include { geneid_param_selection } from "${subwork_folder}/geneid_param_selection" addParams(OUTPUT: OutputFolder,
   LABEL:'singlecpu')
 
@@ -77,10 +62,10 @@ include { geneid_param_profiles } from "${subwork_folder}/geneid_param_profiles"
 include { geneid_param_values } from "${subwork_folder}/geneid_param_values" addParams(OUTPUT: OutputFolder,
   LABEL:'singlecpu')
 
-include { uniprot_fasta_download } from "${subwork_folder}/uniprot_fasta_download" addParams(OUTPUT: OutputFolder,
+include { uniprot_fasta_download } from "${subwork_folder}/uniprot_fasta_download" addParams(OUTPUT: OutputFolderProteinDBs,
   LABEL:'singlecpu') 
 
-include { diamond_db_build } from "${subwork_folder}/diamond_db_build" addParams(OUTPUT: OutputFolder,
+include { diamond_db_build } from "${subwork_folder}/diamond_db_build" addParams(OUTPUT: OutputFolderProteinDBs,
   LABEL:'fourcpus') 
 
 include { blastx_diamond_align } from "${subwork_folder}/blastx_diamond_align" addParams(OUTPUT: OutputFolderSpeciesTaxid,
@@ -89,10 +74,7 @@ include { blastx_diamond_align } from "${subwork_folder}/blastx_diamond_align" a
 include { genomic_regions_estimation } from "${subwork_folder}/genomic_regions_estimation" addParams(OUTPUT: OutputFolder,
   LABEL:'singlecpu')
 
-include { creatingParamFile_frommap; creatingParamFile } from "${subwork_folder}/modifyParamFile" addParams(OUTPUT: OutputFolderSpeciesTaxid,
-  LABEL:'singlecpu')
-
-include { geneid_WORKFLOW } from "${subwork_folder}/geneid" addParams( LABEL:'singlecpu' )
+include { geneid_execution } from "${subwork_folder}/geneid_execution" addParams( LABEL:'singlecpu' )
 
 include { prep_concat } from "${subwork_folder}/prepare_concatenation" addParams(OUTPUT: OutputFolderSpeciesTaxid,
   LABEL:'singlecpu')
@@ -103,24 +85,15 @@ include { concatenate_Outputs_once } from "${subwork_folder}/geneid_concatenate"
 include { gff3addInfo } from "${subwork_folder}/addMatchInfo" addParams(OUTPUT: OutputFolderSpeciesTaxid,
   LABEL:'singlecpu')
 
-// compress and index fastas to be stored and published to the cluster
-include { compress_n_indexFASTA; UncompressFASTA;  gff34portal } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolderSpeciesTaxid,
-  LABEL:'singlecpu')
-
-// compress and index gff3s to be stored and published to the cluster
-
 param_file_input = params.geneid_param_file
 /*
  * MAIN workflow definition.
  */
 workflow {
 
-    //split genome into sequence objects (id and sequence) 
-    //nextflow manages the genome source (ex: http/file) and the unzip
-  // genome = file(params.genome)
-  // genome_path =  channel.fromPath(params.genome)
-
   genome = file(params.genome)
+
+  unzipped_genome = unzipFasta(genome) //unzip for genomic regions estimation workflow
 
   param_file = param_file_input ? channel.fromPath(param_file_input) : geneid_param_selection(params.taxid).param_file
 
@@ -142,8 +115,6 @@ workflow {
   // Run DIAMOND to find matches between genome and proteins
   hsp_found = blastx_diamond_align(protDB, genome)
 
-  unzipped_genome = UncompressFASTA(genome)
-
   new_mats = genomic_regions_estimation(unzipped_genome, hsp_found,
                                   params.match_score_min,
                                   params.match_ORF_min,
@@ -151,10 +122,7 @@ workflow {
                                   params.min_intron_size,
                                   params.max_intron_size)
 
-    // if sites matrices provided, use them
-  // else, use taxon to get the closest geneid param file
-  
-  new_param = creatingParamFile_frommap(
+  new_param = createParamFile(
                                 params.taxid,
                                 geneid_param_values.params_map,
                                 sta_pwm,
@@ -164,10 +132,10 @@ workflow {
                                 new_mats.ini_comb,
                                 new_mats.trans_comb,
                                 params.general_gene_params
-                                )
+                              )
 
   // Run Geneid
-  predictions = geneid_WORKFLOW(genome, new_param, hsp_found)
+  predictions = geneid_execution(genome, new_param, hsp_found)
 
   // Prepare concatenation
   // This will initialize the final GFF3 file
@@ -203,7 +171,7 @@ workflow {
   //                                 params.match_ORF_min,
   //                                 params.intron_margin,
   //                                 params.min_intron_size,
-  //                                 params.max_intron_size)
+  //                   gff34portal              params.max_intron_size)
 
   // // get param file from closest taxon if not defined in params
   //   def param_keys = ['acceptor_pwm', 'donor_pwm', 'start_pwm', 'stop_pwm']
@@ -272,7 +240,6 @@ workflow {
   // }
 
 }
-
 
 /*
  *  When complete print a message

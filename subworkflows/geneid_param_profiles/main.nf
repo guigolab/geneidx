@@ -1,24 +1,8 @@
-/*
-*  Get parameters module.
-*/
 
-/*
- * Defining the output folders.
- */
-OutputFolder = "${params.output}"
-
-process paramSplit {
-
-    // where to store the results and in which way
-    // publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff3')
-
-    // indicates to use as a container the value indicated in the parameter
-    // container "ferriolcalvet/python-geneid-params"
+process splitParams {
 
     // indicates to use as a label the value indicated in the parameter
     label 'geneidx'
-
-    // show in the log which input file is analysed
 
     input:
     path param_file
@@ -109,7 +93,7 @@ workflow geneid_param_profiles {
 
     main:
 
-    param_file_outs = paramSplit(param_file)
+    param_file_outs = splitParams(param_file)
 
     emit:
     acceptor_pwm = param_file_outs.acceptor

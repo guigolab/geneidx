@@ -14,11 +14,10 @@
  */
 subwork_folder = "${projectDir}/subworkflows/"
 
-include { UncompressFASTA } from "${subwork_folder}/tools"
-// include { UncompressFASTA } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolder)
+include { unzipFasta } from "${subwork_folder}/tools"
 
 
-process runDIAMOND_makedb {
+process createDB {
 
     // where to store the results and in which way
     publishDir(params.OUTPUT, mode : 'copy', pattern : '*.dmnd')
@@ -64,9 +63,9 @@ workflow diamond_db_build {
     prot_file
 
     main:
-    proteins_filename = UncompressFASTA(prot_file)
+    proteins_filename = unzipFasta(prot_file)
 
-    protein_DB = runDIAMOND_makedb(proteins_filename)
+    protein_DB = createDB(proteins_filename)
 
     emit:
     protein_DB

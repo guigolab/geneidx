@@ -23,6 +23,6 @@ Workflows for concatenation:
 - concatenate_Outputs_once subworkflow inside geneid_concatenate.nf
 
 Several tools for different functionalities inside the tools.nf file:
-- UncompressFASTA
+- unzipFASTA
 - compress_n_indexFASTA
 - gff34portal

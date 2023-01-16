@@ -1,19 +1,4 @@
-/*
-*  Get parameters module.
-*/
-
-// Parameter definitions
-params.CONTAINER = "ferriolcalvet/geneidx"
-// params.OUTPUT = "geneid_output"
-// params.LABEL = ""
-
-/*
- * Defining the output folders.
- */
-OutputFolder = "${params.output}"
-
-
-process paramSplitValues {
+process getParamValues {
 
     // indicates to use as a container the value indicated in the parameter
     // container "ferriolcalvet/python-geneid-params"
@@ -90,18 +75,13 @@ process paramSplitValues {
 /*
  * Workflow for choosing and providing the parameter file
  */
-
 workflow geneid_param_values {
-    // definition of input
     take:
     param_file
     param_list
 
     main:
-    // channel from list of params to find and report then here
-    param_vals_out = paramSplitValues(param_file, param_list)
-
-
+    param_vals_out = getParamValues(param_file, param_list)
 
     emit:
     params_map = param_vals_out.list_params

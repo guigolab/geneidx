@@ -1,39 +1,15 @@
-/*
-*  Geneid module.
-*/
 
-// Parameter definitions
-params.CONTAINER = "ferriolcalvet/geneidx"
-// params.OUTPUT = "geneid_output"
-// params.LABEL = ""
-
-
-/*
- * Defining the output folders.
- */
 OutputFolder = "${params.output}"
 
-/*
- * Defining the module / subworkflow path, and include the elements
- */
 subwork_folder = "${projectDir}/subworkflows/"
 
-include { UncompressFASTA } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolder)
-include { Index_i } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolder)
+include { indexFasta } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolder)
 
 
-process runGeneid_fetching {
+process runGeneid {
 
-    // where to store the results and in which way
-    // publishDir(params.OUTPUT, pattern : '*.gff3')
-
-    // indicates to use as a label the value indicated in the parameter
     label "geneidx"
 
-    // indicates to use as container the value indicated in the parameter
-
-    // show in the log which input file is analysed
-    // tag "${ref}"
     tag "run Geneid ${query}"
 
     input:
@@ -80,14 +56,12 @@ process runGeneid_fetching {
     """
 }
 
-
 /*
  * Workflow connecting the different pieces
  */
 
-workflow geneid_WORKFLOW {
+workflow geneid_execution {
 
-    // definition of input
     take:
     ref_file
     geneid_param
@@ -98,16 +72,13 @@ workflow geneid_WORKFLOW {
 
     genome = channel.fromPath(ref_file)
 
-    index_filename = Index_i(genome)
-    // index_filename.view()
+    index_filename = indexFasta(genome)
 
     genome.splitFasta( record: [id: true] )
-                   // .subscribe {  println "Got: $it"  }
                    .map{ it.toString().tokenize(':]').get(1) }
-                   .set{ch}
+                   .set{ ch }
 
-    // we call the runGeneid_fetching module using the channel for the queries
-    predictions = runGeneid_fetching(genome,
+    predictions = runGeneid(genome,
                                       index_filename,
                                       geneid_param,
                                       hsp_file,

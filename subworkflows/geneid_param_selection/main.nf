@@ -1,28 +1,15 @@
-/*
-*  Get parameters module.
-*/
+// process getMissingParams {
+//     input:
+//         val params
+//         val param_keys
+//     output:
+//         val missing_params
+//     exec:
+//         keys_from_user = params.collect{ it.key }
+//         missing_params = param_keys.findAll { !keys_from_user.contains(it) }
+// }
 
-/*
- * Defining the output folders.
- */
-OutputFolder = "${params.output}"
-
-/*
- * Workflow for choosing and providing the parameter file
- */
-
-process getMissingParams {
-    input:
-        val params
-        val param_keys
-    output:
-        val missing_params
-    exec:
-        keys_from_user = params.collect{ it.key }
-        missing_params = param_keys.findAll { !keys_from_user.contains(it) }
-}
-
-process getPathFromClosestTaxon {
+process getFileFromTaxon {
     label 'geneidx'
 
     input:
@@ -105,7 +92,7 @@ workflow geneid_param_selection {
 
     lineage = getLineage(taxid) 
     matrix = file(params.auto_params_selection_matrix_path)
-    selected_parameter_file = getPathFromClosestTaxon(lineage, matrix) 
+    selected_parameter_file = getFileFromTaxon(lineage, matrix) 
 
     emit:
     param_file = selected_parameter_file

@@ -1,5 +1,7 @@
 
-process runDIAMOND_getHSPs_GFF {
+//get hsp in gff3
+
+process runDiamond {
 
     // where to store the results and in which way
     publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff')
@@ -45,9 +47,6 @@ process runDIAMOND_getHSPs_GFF {
     """
 }
 
-
-
-
 /*
  * Workflow connecting the different pieces
  */
@@ -62,10 +61,9 @@ workflow blastx_diamond_align {
     main:
 
     // directly generate the GFF file
-    //  it also checks if the GFF file is already present in the output
-    matchesGFF = runDIAMOND_getHSPs_GFF(prot_DB_file, genome_file)
+    matches = runDiamond(prot_DB_file, genome_file)
 
     emit:
-    matchesGFF
+    matches
 
 }

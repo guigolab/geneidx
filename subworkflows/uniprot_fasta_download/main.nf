@@ -1,19 +1,8 @@
-/*
-*  Geneid module.
-*/
-
-/*
- * Defining the output folders.
- */
-OutputFolder = "${params.output}"
-
 
 process getProtFasta {
 
-    // indicates to use as a label the value indicated in the parameter
     label "geneidx"
 
-    // show in the log which input file is analysed
     tag "${taxon}"
 
     input:
@@ -23,7 +12,6 @@ process getProtFasta {
 
     output:
     stdout emit: description
-
 
     script:
     """
@@ -151,7 +139,6 @@ process getProtFasta {
 
 }
 
-
 process downloadProtFasta {
 
     // where to store the results and in which way
@@ -193,7 +180,6 @@ process downloadProtFasta {
 
 }
 
-
 /*
  * Workflow for obtaining the estimates of the exon sequences
  */
@@ -208,9 +194,6 @@ workflow uniprot_fasta_download {
 
     main:
     prot_file_down = getProtFasta(taxid, lower_lim, upper_lim) | downloadProtFasta
-
-    // information_prots = file("hi.txt")
-    // (prot_file_name, prot_file_link) = (information_prots =~ /([A-Za-z\d\.\+]+)\s(.*)/)
 
     emit:
     prot_file_down
