@@ -536,6 +536,7 @@ workflow genomic_regions_estimation {
 
     cds_seq = cds_workflow(ref_file, ref_file_ind, hsp_file,
                             min_match_score, min_match_ORF)
+                            
     cds_mats = getCDSMatrices(cds_seq)
     cds_mats_ini = cds_mats.initial
     cds_mats_trans = cds_mats.transition

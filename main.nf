@@ -22,6 +22,7 @@ params.help             = false
 param_keys = ['Acceptor_profile', 'Donor_profile', 'Start_profile', 'Stop_profile']
 
 user_defined_params = params.grep( param -> param_keys.contains(param.key))
+
 // this prints the input parameters
 log.info """
 GENEID+BLASTx - NextflowPipeline
@@ -43,77 +44,50 @@ if (params.help) {
 OutputFolder = "${params.output}"
 
 OutputFolderProteinDBs = "${OutputFolder}/proteins"
-OutputFolderSpecies = "${OutputFolder}/species"
 OutputFolderSpeciesTaxid = "${OutputFolder}/species/${params.taxid}"
-
 subwork_folder = "${projectDir}/subworkflows"
 
 //imported processes
-include { unzipFasta;  handleGff3; createParamFile } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolderSpeciesTaxid,
-  LABEL:'singlecpu')
-
+include { unzipFasta; createParamFile } from "${subwork_folder}/tools"
 //imported subworkflows
-include { geneid_param_selection } from "${subwork_folder}/geneid_param_selection" addParams(OUTPUT: OutputFolder,
-  LABEL:'singlecpu')
+include { geneid_param_creation } from "${subwork_folder}/geneid_param_creation"
 
-include { geneid_param_profiles } from "${subwork_folder}/geneid_param_profiles" addParams(OUTPUT: OutputFolder,
-  LABEL:'singlecpu')
+include { uniprot_fasta_download } from "${subwork_folder}/uniprot_fasta_download" addParams(OUTPUT: OutputFolderProteinDBs)
 
-include { geneid_param_values } from "${subwork_folder}/geneid_param_values" addParams(OUTPUT: OutputFolder,
-  LABEL:'singlecpu')
+include { diamond_db_build } from "${subwork_folder}/diamond_db_build" addParams(OUTPUT: OutputFolderProteinDBs)
 
-include { uniprot_fasta_download } from "${subwork_folder}/uniprot_fasta_download" addParams(OUTPUT: OutputFolderProteinDBs,
-  LABEL:'singlecpu') 
+include { blastx_diamond_align } from "${subwork_folder}/blastx_diamond_align" addParams(OUTPUT: OutputFolderSpeciesTaxid)
 
-include { diamond_db_build } from "${subwork_folder}/diamond_db_build" addParams(OUTPUT: OutputFolderProteinDBs,
-  LABEL:'fourcpus') 
+include { genomic_regions_estimation } from "${subwork_folder}/genomic_regions_estimation"
 
-include { blastx_diamond_align } from "${subwork_folder}/blastx_diamond_align" addParams(OUTPUT: OutputFolderSpeciesTaxid,
-  LABEL:'fourcpus')
+include { geneid_execution } from "${subwork_folder}/geneid_execution"
 
-include { genomic_regions_estimation } from "${subwork_folder}/genomic_regions_estimation" addParams(OUTPUT: OutputFolder,
-  LABEL:'singlecpu')
+include { geneid_result_parsing } from "${subwork_folder}/geneid_result_parsing" addParams(OUTPUT: OutputFolderSpeciesTaxid)
 
-include { geneid_execution } from "${subwork_folder}/geneid_execution" addParams( LABEL:'singlecpu' )
-
-include { prep_concat } from "${subwork_folder}/prepare_concatenation" addParams(OUTPUT: OutputFolderSpeciesTaxid,
-  LABEL:'singlecpu')
-
-include { concatenate_Outputs_once } from "${subwork_folder}/geneid_concatenate" addParams(OUTPUT: OutputFolderSpeciesTaxid,
-  LABEL:'singlecpu')
-
-include { gff3addInfo } from "${subwork_folder}/addMatchInfo" addParams(OUTPUT: OutputFolderSpeciesTaxid,
-  LABEL:'singlecpu')
 
 param_file_input = params.geneid_param_file
 /*
  * MAIN workflow definition.
  */
+
 workflow {
 
   genome = file(params.genome)
 
   unzipped_genome = unzipFasta(genome) //unzip for genomic regions estimation workflow
 
-  param_file = param_file_input ? channel.fromPath(param_file_input) : geneid_param_selection(params.taxid).param_file
+  (acc_pwm, don_pwm, sta_pwm, sto_pwm, geneid_param_values) = geneid_param_creation(params.taxid)
 
-  (acc_pwm, don_pwm, sta_pwm, sto_pwm) = geneid_param_profiles(param_file)
-  
-  //TODO: check if all param profiles have been defined otherwise generate the missing onse
-//   if (params.acceptor_pwm) 
-// {    (acc_pwm, don_pwm, sta_pwm, sto_pwm) = params.acceptor_pwm, params.donor_pwm, params.start_pwm, params.stop_pwm
-// }  else 
-// {    (acc_pwm, don_pwm, sta_pwm, sto_pwm) = geneid_param_parse(param_file)
-// }
-  geneid_param_values = geneid_param_values(param_file, params.maps_param_values)
-  
-  proteins_file = params.prot_file ? file(params.prot_file) : uniprot_fasta_download(params.taxid,params.proteins_lower_lim,params.proteins_upper_lim)
-
+  proteins_file = params.prot_file ? 
+    file(params.prot_file) : 
+    uniprot_fasta_download(params.taxid, params.proteins_lower_lim, 
+                            params.proteins_upper_lim
+                          )
   // Build protein database for DIAMOND
-  protDB = diamond_db_build(proteins_file)
+  prot_DB = diamond_db_build(proteins_file)
 
   // Run DIAMOND to find matches between genome and proteins
-  hsp_found = blastx_diamond_align(protDB, genome)
+  hsp_found = blastx_diamond_align(prot_DB, unzipped_genome)
 
   new_mats = genomic_regions_estimation(unzipped_genome, hsp_found,
                                   params.match_score_min,
@@ -122,9 +96,9 @@ workflow {
                                   params.min_intron_size,
                                   params.max_intron_size)
 
-  new_param = createParamFile(
+  new_param_file = createParamFile(
                                 params.taxid,
-                                geneid_param_values.params_map,
+                                geneid_param_values,
                                 sta_pwm,
                                 acc_pwm,
                                 don_pwm,
@@ -134,44 +108,11 @@ workflow {
                                 params.general_gene_params
                               )
 
-  // Run Geneid
-  predictions = geneid_execution(genome, new_param, hsp_found)
+  predictions = geneid_execution(genome, new_param_file, hsp_found)
 
-  // Prepare concatenation
-  // This will initialize the final GFF3 file
-  // output_file = prep_concat(proteins_file, genoom)
+  output_name = "${params.taxid}_${genome.getSimpleName()}.gff3"
 
-  // // Run concatenation of individual GFF3 files
-  // final_output = concatenate_Outputs_once(predictions.collect(), output_file)
-
-  // // Add information about the proteins to the final GFF3
-  // labelled_output = gff3addInfo(final_output, hsp_found)
-
-  // // If proteins from UniRef, add GO terms to the GFF3
-  // if (params.source_uniprot)
-  //   gff34portal(labelled_output)
-  // else 
-  //   gff34portal(labelled_output)
-  
-
-    // get proteins file by default value if not defined in params
-  //   proteins_file = params.prot_file ? 
-  //     file(params.prot_file) 
-  //     : proteins_file = prot_down_workflow(params.taxid,  params.proteins_lower_lim,  params.proteins_upper_lim)
-
-  // // Build protein database for DIAMOND
-  //   protDB = build_protein_DB(proteins_file)
-
-  // // Run DIAMOND to find matches between genome and proteins
-  //   hsp_found = alignGenome_Proteins(protDB, sequences)
-
-  // // Automatic computation of the parameter file
-  //   new_mats = matchAssessment(sequences, hsp_found,
-  //                                 params.match_score_min,
-  //                                 params.match_ORF_min,
-  //                                 params.intron_margin,
-  //                                 params.min_intron_size,
-  //                   gff34portal              params.max_intron_size)
+  (gff3, gff3_gz, gff3_gz_tbi) = geneid_result_parsing(predictions.collect(), hsp_found, output_name)
 
   // // get param file from closest taxon if not defined in params
   //   def param_keys = ['acceptor_pwm', 'donor_pwm', 'start_pwm', 'stop_pwm']
@@ -195,52 +136,7 @@ workflow {
   //   // sto_pwm = param_file_sel.stop_pwm
   // }
 
-  // para_vals = param_value_selection_workflow(params.taxid, 0,
-  //                                           parameter_location,
-  //                                           params.maps_param_values)
-
-  // new_param = creatingParamFile_frommap(
-  //                               params.taxid,
-
-  //                               para_vals.params_map,
-
-  //                               sta_pwm,
-  //                               acc_pwm,
-  //                               don_pwm,
-  //                               sto_pwm,
-
-  //                               new_mats.ini_comb,
-  //                               new_mats.trans_comb,
-
-  //                               params.general_gene_params
-
-  //                               )
-
-  // Run Geneid
-  // predictions = geneid_WORKFLOW(uncompressed_sequences, new_param, hsp_found)
-
-  // // Prepare concatenation
-  // // This will initialize the final GFF3 file
-  // output_file = prep_concat(proteins_file, params.genome)
-
-  // // Run concatenation of individual GFF3 files
-  // final_output = concatenate_Outputs_once(predictions.collect(), output_file)
-
-  // // Add information about the proteins to the final GFF3
-  // labelled_output = gff3addInfo(final_output, hsp_found)
-
-  // // If proteins from UniRef, add GO terms to the GFF3
-  // if (params.source_uniprot){
-  //   // func_labelled_output = addGOterms(labelled_output)
-  //   // gff34portal(func_labelled_output)
-  //   gff34portal(labelled_output)
-  // } else {
-  //   // fix gff3 file and compress it for the portal
-  //   gff34portal(labelled_output)
-  // }
-
 }
-
 /*
  *  When complete print a message
  */

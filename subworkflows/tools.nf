@@ -79,16 +79,11 @@ process indexFasta {
 }
 
 
-
-
-
 /*
  * Indexing if needed
  *      using samtools faidx
  */
 process faidxFasta {
-
-    // indicates to use as a container the value indicated in the parameter
 
     // indicates to use as a label the value indicated in the parameter
     label "samtools"
@@ -110,57 +105,6 @@ process faidxFasta {
     fi
     """
 }
-
-
-
-/*
- * zip and index of gff3 for the portal
- */
-process handleGff3 {
-
-    // where to store the results and in which way
-    publishDir(params.OUTPUT, mode : 'copy')
-
-    // indicates to use as a container the value indicated in the parameter
-    label "samtools"
-
-    // indicates to use as a label the value indicated in the parameter
-    // label (params.LABEL)
-
-    // show in the log which input file is analysed
-    tag "${annotations_file}"
-
-    input:
-    path (annotations_file)
-
-    output:
-    path ("${annotations_file}")
-    path ("${annotations_file}.gz")
-    path ("${annotations_file}.gz.tbi")
-
-    script:
-    """
-    egrep '^##' ${annotations_file} | sort -u > ${annotations_file}.head;
-    egrep -v '^#' ${annotations_file} | sort -u | sort -k1,1 -k4,5n > ${annotations_file}.content;
-
-    cat ${annotations_file}.head ${annotations_file}.content <(echo '###') > ${annotations_file};
-
-    rm ${annotations_file}.head;
-    rm ${annotations_file}.content;
-
-    echo "Compressing ${annotations_file}";
-    bgzip -c ${annotations_file} > ${annotations_file}.gz;
-
-    echo "Indexing ${annotations_file}.gz";
-    tabix -p gff ${annotations_file}.gz;
-    """
-
-}
-
-
-
-
-
 
 
 
@@ -192,7 +136,6 @@ process handleGff3 {
      gffread -x ${main_gff3_file}.fa -g ${ref_genome} ${gff3_file};
      """
 }
-
 
 
 process createParamFile {

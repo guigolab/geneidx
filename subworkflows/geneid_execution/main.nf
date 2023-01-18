@@ -10,49 +10,44 @@ process runGeneid {
 
     label "geneidx"
 
-    tag "run Geneid ${query}"
+    tag "run Geneid ${seq_file_name}"
 
     input:
-    path(reference_genome_file)
-    path(reference_genome_index)
+    tuple val(seq_file_name), path(seq_file_path)
     path(geneid_param)
     path(protein_matches)
-    val query
 
     output:
-    path ("${main_genome_file}.*.gff3")
+    path ("${seq_file_name}.gff3")
 
     script:
-    main_genome_file = reference_genome_file.getName()
-    main_output_file = protein_matches.getName().toString().replaceAll(".hsp", "")
-    query_curated = query
+    
     """
-    # prepare sequence
-    fastafetch -f ${reference_genome_file} -i ${reference_genome_index} -q \"${query}\" > ${main_genome_file}.${query}
-
     # prepare evidence
-    egrep -w \"^${query}\" ${protein_matches} > ${main_output_file}.${query}.hsp.gff
+
+    query=\$(awk 'sub(/^>/, "")' ${seq_file_path})
+
+    egrep -w \"^\$query\" ${protein_matches} > ${seq_file_name}.hsp.gff
 
     # check if the evidence file is empty
-    if [ ! -s ${main_output_file}.${query}.hsp.gff ];  then
+    if [ ! -s ${seq_file_name}.hsp.gff ];  then
         echo "No protein evidence";
     else
         echo "Great, there is protein evidence";
     fi
 
-    blast2gff -vg ${main_output_file}.${query}.hsp.gff > ${main_output_file}.${query}.SR.gff
-    sgp_getHSPSR.pl \"${query}\" < ${main_output_file}.${query}.SR.gff > ${main_output_file}.${query}.HSP_SR.gff
+    blast2gff -vg ${seq_file_name}.hsp.gff > ${seq_file_name}.SR.gff
+    sgp_getHSPSR.pl \"${seq_file_name}\" < ${seq_file_name}.SR.gff > ${seq_file_name}.HSP_SR.gff
 
-    rm ${main_output_file}.${query}.hsp.gff
-    rm ${main_output_file}.${query}.SR.gff
+    rm ${seq_file_name}.hsp.gff
+    rm ${seq_file_name}.SR.gff
 
     # run Geneid + protein evidence
-    geneid -3P ${geneid_param} -S ${main_output_file}.${query}.HSP_SR.gff ${main_genome_file}.${query} \
+    geneid -3P ${geneid_param} -S ${seq_file_name}.HSP_SR.gff ${seq_file_path} \
                 | sed -e 's/geneid_v1.4/geneidx/g' | egrep -v '^# ' | grep -vFw '###' \
-                >> ${main_output_file}.${query}.gff3
+                >> ${seq_file_name}.gff3
 
-    rm ${main_output_file}.${query}.HSP_SR.gff
-    rm ${main_genome_file}.${query}
+    rm ${seq_file_name}.HSP_SR.gff
     """
 }
 
@@ -72,17 +67,10 @@ workflow geneid_execution {
 
     genome = channel.fromPath(ref_file)
 
-    index_filename = indexFasta(genome)
+    genome.splitFasta( file: true ).map { file -> tuple(file.baseName, file) }
+    .set { sequence }
 
-    genome.splitFasta( record: [id: true] )
-                   .map{ it.toString().tokenize(':]').get(1) }
-                   .set{ ch }
-
-    predictions = runGeneid(genome,
-                                      index_filename,
-                                      geneid_param,
-                                      hsp_file,
-                                      ch)
+    predictions = runGeneid(sequence, geneid_param, hsp_file)
 
 
     emit:
