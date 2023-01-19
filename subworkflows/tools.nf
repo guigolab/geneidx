@@ -118,23 +118,21 @@ process faidxFasta {
      container "quay.io/biocontainers/gffread:0.12.7--hd03093a_1"
 
      // show in the log which input file is analysed
-     tag "${gff3_file}"
+     tag "${gff3_name}"
 
      // indicates to use as a label the value indicated in the parameter
      label (params.LABEL)
 
      input:
-     path (gff3_file)
-     path (ref_genome)
-     path (ref_genome_index)
+     tuple val(gff3_name), path (gff3_file)
+     tuple val(genome_name),path(genome_path)
 
      output:
-     path ("${main_gff3_file}.fa")
+     path ("${gff3_name}.fa")
 
      script:
-     main_gff3_file = gff3_file.BaseName
      """
-     gffread -x ${main_gff3_file}.fa -g ${ref_genome} ${gff3_file};
+     gffread -x ${gff3_name}.fa -g ${genome_path} ${gff3_file};
      """
 }
 

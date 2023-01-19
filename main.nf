@@ -23,18 +23,6 @@ param_keys = ['Acceptor_profile', 'Donor_profile', 'Start_profile', 'Stop_profil
 
 user_defined_params = params.grep( param -> param_keys.contains(param.key))
 
-// this prints the input parameters
-log.info """
-Checking mandatory run params...
-=============================================
-genome			: ${params.output}
-taxon			: ${params.genome}
-"""
-if (!params.genome ) {
-  log.error """
-  'genome' parameter is mandatory
-  """
-}
 
 log.info """
 GENEID+BLASTx - NextflowPipeline
@@ -43,10 +31,6 @@ output			: ${params.output}
 genome			: ${params.genome}
 taxon			: ${params.taxid}
 """
-
-  log.info "The following sequences will be analyzed"
-
-  channel.fromPath(params.genome).splitFasta( record: [id: true] ) | view 
 
 // this prints the help in case you use --help parameter in the command line and it stops the pipeline
 if (params.help) {
@@ -57,10 +41,9 @@ if (params.help) {
     exit 1
 }
 
-OutputFolder = "${params.output}"
-
-OutputFolderProteinDBs = "${OutputFolder}/proteins"
-OutputFolderSpeciesTaxid = "${OutputFolder}/species/${params.taxid}"
+output_dir = "${params.output}"
+protein_db_dir = "${output_dir}/proteins"
+species_dir = "${output_dir}/species/${params.taxid}"
 subwork_folder = "${projectDir}/subworkflows"
 
 //imported processes
@@ -68,113 +51,55 @@ include { unzipFasta; createParamFile } from "${subwork_folder}/tools"
 //imported subworkflows
 include { geneid_param_creation } from "${subwork_folder}/geneid_param_creation"
 
-include { uniprot_fasta_download } from "${subwork_folder}/uniprot_fasta_download" addParams(OUTPUT: OutputFolderProteinDBs)
-
-include { diamond_db_build } from "${subwork_folder}/diamond_db_build" addParams(OUTPUT: OutputFolderProteinDBs)
-
-include { blastx_diamond_align } from "${subwork_folder}/blastx_diamond_align" addParams(OUTPUT: OutputFolderSpeciesTaxid)
+include { diamond_blastx } from "${subwork_folder}/diamond_blastx" addParams(OUTPUT: protein_db_dir)
 
 include { genomic_regions_estimation } from "${subwork_folder}/genomic_regions_estimation"
 
 include { geneid_execution } from "${subwork_folder}/geneid_execution"
 
-include { geneid_result_parsing } from "${subwork_folder}/geneid_result_parsing" addParams(OUTPUT: OutputFolderSpeciesTaxid)
+include { geneid_result_parsing } from "${subwork_folder}/geneid_result_parsing" addParams(OUTPUT: species_dir)
 
 
 param_file_input = params.geneid_param_file
-/*
- * workflow steps.
- * 
- * 1) check required params exists
- *
- *
- *
- *
- */
+
 
 workflow {
 
-    // validate genome input
-    if(!params.genome){
-      log.error "'genome' is a mandatory parameter"
-    }
-
-    sequences = channel.fromPath(params.genome).splitFasta( record: [id: true] ) | collect{ it.id }
-
-    if(!sequences.size()){
-      log.error "No sequences found in the genome file"
-    }
-
-    
-  // target_sequences | view { println "${it} sequences found!"}
-
-
-
-
-
-  genome = file(params.genome)
-
-  unzipped_genome = unzipFasta(genome) //unzip for genomic regions estimation workflow
-
-  (acc_pwm, don_pwm, sta_pwm, sto_pwm, geneid_param_values) = geneid_param_creation(params.taxid)
-
-  proteins_file = params.prot_file ? 
-    file(params.prot_file) : 
-    uniprot_fasta_download(params.taxid, params.proteins_lower_lim, 
-                            params.proteins_upper_lim
-                          )
-  // Build protein database for DIAMOND
-  prot_DB = diamond_db_build(proteins_file)
+  genome = channel.fromPath(params.genome)
+  
+  // (acc_pwm, don_pwm, sta_pwm, sto_pwm, geneid_param_values) = geneid_param_creation(params.taxid)
 
   // Run DIAMOND to find matches between genome and proteins
-  hsp_found = blastx_diamond_align(prot_DB, unzipped_genome)
+  hsp_found = diamond_blastx(genome)
 
-  new_mats = genomic_regions_estimation(unzipped_genome, hsp_found,
-                                  params.match_score_min,
-                                  params.match_ORF_min,
-                                  params.intron_margin,
-                                  params.min_intron_size,
-                                  params.max_intron_size)
 
-  new_param_file = createParamFile(
-                                params.taxid,
-                                geneid_param_values,
-                                sta_pwm,
-                                acc_pwm,
-                                don_pwm,
-                                sto_pwm,
-                                new_mats.ini_comb,
-                                new_mats.trans_comb,
-                                params.general_gene_params
-                              )
+  // new_mats = genomic_regions_estimation(
+  //                                         genome, 
+  //                                         hsp_found,
+  //                                         params.match_score_min,
+  //                                         params.match_ORF_min,
+  //                                         params.intron_margin,
+  //                                         params.min_intron_size,
+  //                                         params.max_intron_size
+  //                                       )
 
-  predictions = geneid_execution(genome, new_param_file, hsp_found)
+  // new_param_file = createParamFile(
+  //                                   params.taxid,
+  //                                   geneid_param_values,
+  //                                   sta_pwm,
+  //                                   acc_pwm,
+  //                                   don_pwm,
+  //                                   sto_pwm,
+  //                                   new_mats.ini_comb,
+  //                                   new_mats.trans_comb,
+  //                                   params.general_gene_params
+  //                                 )
 
-  output_name = "${params.taxid}_${genome.getSimpleName()}.gff3"
+  //   predictions = geneid_execution(genome, new_param_file, hsp_found)
 
-  (gff3, gff3_gz, gff3_gz_tbi) = geneid_result_parsing(predictions.collect(), hsp_found, output_name)
+  //   output_name = "${params.taxid}_${genome.getSimpleName()}.gff3"
 
-  // // get param file from closest taxon if not defined in params
-  //   def param_keys = ['acceptor_pwm', 'donor_pwm', 'start_pwm', 'stop_pwm']
-
-  // // check if all the values are defined in params
-  //   def collected_params = params.grep( param -> param_keys.contains(param.key))
-
-  // if( collected_params.size() == 0){
-  //   param_file_sel = param_selection_workflow(params.taxid, 0, parameter_location)
-  //   println param_file_sel
-  // }
-  // else if(collected_params.size() < param_keys.size()) {
-  //   println 'Error'
-  // } 
-  // else {
-  //   mapped_params = [*:collected_params]
-  //   // param_file_sel = param_selection_workflow(params.taxid, 0, parameter_location)
-  //   // acc_pwm = param_file_sel.acceptor_pwm
-  //   // don_pwm = param_file_sel.donor_pwm
-  //   // sta_pwm = param_file_sel.start_pwm
-  //   // sto_pwm = param_file_sel.stop_pwm
-  // }
+  //   (gff3, gff3_gz, gff3_gz_tbi) = geneid_result_parsing(predictions.collect(), hsp_found, output_name)
 
 }
 /*

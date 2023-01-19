@@ -1,6 +1,6 @@
 subwork_folder = "${projectDir}/subworkflows/"
 
-include { unzipFasta; faidxFasta; getFASTA; getFASTA as getFASTA2} from "${subwork_folder}/tools"
+include { unzipFasta; getFASTA; getFASTA as getFASTA2} from "${subwork_folder}/tools"
 
 /*
  * Remove some matches from the GFF to make it smaller and avoid redundancy in the introns
@@ -126,8 +126,6 @@ process removeProtOverlappingIntrons {
     container "quay.io/biocontainers/bedtools:2.27.1--he513fc3_4"
 
     // indicates to use as a label the value indicated in the parameter
-    label (params.LABEL)
-
     // show in the log which input file is analysed
     tag "${introns_name}"
 
@@ -162,45 +160,44 @@ process removeProtOverlappingIntrons {
 process mergeMatches {
 
     // show in the log which input file is analysed
-    tag "${gff_file}"
+    tag "${file_name}"
 
     // indicates to use as a label the value indicated in the parameter
     label "geneidx"
 
     input:
-    file (gff_file)
+    tuple val(file_name), path(file_path)
 
     output:
-    path ("${main_output_file}.gff3")
+    path ("${file_name}.gff3")
 
     script:
-    main_output_file = gff_file.BaseName
     
     """
     # get the sequences that have matches
-    cut -f1 ${main_output_file}.gff | uniq | sort -u > ${main_output_file}.seqs
+    cut -f1 ${file_path} | uniq | sort -u > ${file_name}.seqs
 
     # iterate the sequences with matches, running blast2gff for each of them
     while read seq; do
-        awk -F '\t' -v myvar=\$seq '\$1==myvar {print > (myvar".gff"); next} {print > ("REST.txt")}' ${main_output_file}.gff;
-        mv REST.txt ${main_output_file}.gff;
-        blast2gff -vg \${seq}.gff >> ${main_output_file}.SR.gff;
+        awk -F '\t' -v myvar=\$seq '\$1==myvar {print > (myvar".gff"); next} {print > ("REST.txt")}' ${file_path};
+        mv REST.txt ${file_path};
+        blast2gff -vg \${seq}.gff >> ${file_name}.SR.gff;
         rm \${seq}.gff;
     #    break
-    done < ${main_output_file}.seqs;
+    done < ${file_name}.seqs;
 
-    rm ${main_output_file}.seqs;
+    rm ${file_name}.seqs;
 
     # remove the header rows of all files
-    grep -v '#' ${main_output_file}.SR.gff > ${main_output_file}.SR.gff.tmp;
-    mv ${main_output_file}.SR.gff.tmp ${main_output_file}.SR.gff;
+    grep -v '#' ${file_name}.SR.gff > ${file_name}.SR.gff.tmp;
+    mv ${file_name}.SR.gff.tmp ${file_name}.SR.gff;
 
     # change from GFF to GFF3 making each line a different "transcript"
-    grep -v '#' ${main_output_file}.SR.gff | \
+    grep -v '#' ${file_name}.SR.gff | \
             awk '{\$3="CDS";print \$0,"ID="NR";Parent="NR";"}' | \
-            sed -e 's/ /\t/g' > ${main_output_file}.gff3
+            sed -e 's/ /\t/g' > ${file_name}.gff3
 
-    rm ${main_output_file}.SR.gff;
+    rm ${file_name}.SR.gff;
     """
 }
 
@@ -210,22 +207,19 @@ process mergeMatches {
 process filterByScore {
 
     // show in the log which input file is analysed
-    tag "${gff3_file}"
+    tag "${gff3_name}"
 
     // indicates to use as a label the value indicated in the parameter
-    label (params.LABEL)
-
     input:
-    file (gff3_file)
+    tuple val(gff3_name), path(gff3_file)
     val score
 
     output:
-    path ("${main_gff3_file}.over${score}.gff3")
+    path ("${gff3_name}.over${score}.gff3")
 
     script:
-    main_gff3_file = gff3_file.BaseName
     """
-    awk '\$6>=${score}' ${gff3_file} > ${main_gff3_file}.over${score}.gff3
+    awk '\$6>=${score}' ${gff3_file} > ${gff3_name}.over${score}.gff3
     """
 }
 
@@ -460,7 +454,6 @@ workflow cds_workflow {
 
     take:
     ref_file
-    ref_file_ind
     hsp_file
     min_Match_score
     minMatchORF
@@ -469,15 +462,15 @@ workflow cds_workflow {
 
     original_HSP_gff3 = mergeMatches(hsp_file)
 
-    filtered_HSPs_gff3 = filterByScore(original_HSP_gff3, min_Match_score)
+    filtered_HSPs_gff3 = filterByScore(original_HSP_gff3, min_Match_score).map { file -> tuple(file.baseName, file) }
 
-    matches_seqs = getFASTA(filtered_HSPs_gff3, ref_file, ref_file_ind)
+    matches_seqs = getFASTA(filtered_HSPs_gff3, ref_file)
 
     hsp_rel_ORFs_coords = findORF(matches_seqs, minMatchORF)
 
     hsp_abs_ORFs_coords = updateGFFcoords(original_HSP_gff3, hsp_rel_ORFs_coords)
 
-    hspORFs_seqs = getFASTA2(hsp_abs_ORFs_coords, ref_file, ref_file_ind)
+    hspORFs_seqs = getFASTA2(hsp_abs_ORFs_coords, ref_file)
 
     emit:
     hspORFs_seqs
@@ -492,7 +485,6 @@ workflow intron_workflow {
 
     take:
     ref_file
-    ref_file_ind
     hsp_file
     intron_margins
     min_size
@@ -506,7 +498,7 @@ workflow intron_workflow {
 
     non_overlapping_introns = removeProtOverlappingIntrons(hsp_file, computed_introns)
 
-    introns_seq = getFASTA(non_overlapping_introns, ref_file, ref_file_ind)
+    introns_seq = getFASTA(non_overlapping_introns, ref_file)
 
     emit:
     introns_seq
@@ -531,17 +523,17 @@ workflow genomic_regions_estimation {
 
     main:
 
-    // requirements:
-    ref_file_ind = faidxFasta(ref_file)
+    
 
-    cds_seq = cds_workflow(ref_file, ref_file_ind, hsp_file,
+    // requirements:
+    cds_seq = cds_workflow(ref_file, hsp_file,
                             min_match_score, min_match_ORF)
                             
     cds_mats = getCDSMatrices(cds_seq)
     cds_mats_ini = cds_mats.initial
     cds_mats_trans = cds_mats.transition
 
-    introns_seq = intron_workflow(ref_file, ref_file_ind, hsp_file,
+    introns_seq = intron_workflow(ref_file, hsp_file,
                             intron_margins, min_intron, max_intron)
     intron_mats = getIntronMatrices(introns_seq)
     intron_mats_ini = intron_mats.initial
