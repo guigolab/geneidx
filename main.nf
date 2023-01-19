@@ -25,12 +25,28 @@ user_defined_params = params.grep( param -> param_keys.contains(param.key))
 
 // this prints the input parameters
 log.info """
+Checking mandatory run params...
+=============================================
+genome			: ${params.output}
+taxon			: ${params.genome}
+"""
+if (!params.genome ) {
+  log.error """
+  'genome' parameter is mandatory
+  """
+}
+
+log.info """
 GENEID+BLASTx - NextflowPipeline
 =============================================
 output			: ${params.output}
 genome			: ${params.genome}
 taxon			: ${params.taxid}
 """
+
+  log.info "The following sequences will be analyzed"
+
+  channel.fromPath(params.genome).splitFasta( record: [id: true] ) | view 
 
 // this prints the help in case you use --help parameter in the command line and it stops the pipeline
 if (params.help) {
@@ -67,10 +83,34 @@ include { geneid_result_parsing } from "${subwork_folder}/geneid_result_parsing"
 
 param_file_input = params.geneid_param_file
 /*
- * MAIN workflow definition.
+ * workflow steps.
+ * 
+ * 1) check required params exists
+ *
+ *
+ *
+ *
  */
 
 workflow {
+
+    // validate genome input
+    if(!params.genome){
+      log.error "'genome' is a mandatory parameter"
+    }
+
+    sequences = channel.fromPath(params.genome).splitFasta( record: [id: true] ) | collect{ it.id }
+
+    if(!sequences.size()){
+      log.error "No sequences found in the genome file"
+    }
+
+    
+  // target_sequences | view { println "${it} sequences found!"}
+
+
+
+
 
   genome = file(params.genome)
 

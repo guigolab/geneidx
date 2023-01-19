@@ -9,13 +9,14 @@ process unzipFasta {
     tag "${ref_to_index}"
 
     input:
-    file (ref_to_index)
+    path (ref_to_index)
 
     output:
     path ("${main_genome_file}")
 
     script:
     main_genome_file = ref_to_index.BaseName
+    print ref_to_index
 
     """
     if [ ! -s  ${main_genome_file} ]; then
@@ -139,9 +140,6 @@ process faidxFasta {
 
 
 process createParamFile {
-    // where to store the results and in which way
-    publishDir(params.OUTPUT, mode : 'copy', pattern : '*.param')
-
     // indicates to use as a label the value indicated in the parameter
     label (params.LABEL)
     // // show in the log which input file is analysed

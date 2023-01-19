@@ -538,4 +538,17 @@
 2023-01-18 16:29:43	-	naughty_goldwasser	-	81292f44d84f139fc3621fa6bde327ec	c03f7d6c-49ed-4e0d-a8c6-34291d6c4a8d	nextflow run main.nf -profile docker
 2023-01-18 16:31:13	-	boring_jones	-	91dc37618967a9f921d8bdcce7ffa987	92045b04-93b0-462d-9ef1-2df37a425747	nextflow run main.nf -profile docker
 2023-01-18 16:31:32	21.4s	happy_dubinsky	ERR	91dc37618967a9f921d8bdcce7ffa987	09d2ef7b-c772-4b6d-bdbe-ffdb9342deb4	nextflow run main.nf -profile docker
-2023-01-18 16:32:04	-	mighty_pare	-	91dc37618967a9f921d8bdcce7ffa987	93189857-d557-4151-803b-843d961b3294	nextflow run main.nf -profile docker
+2023-01-18 16:32:04	18h 27m 33s	mighty_pare	ERR	91dc37618967a9f921d8bdcce7ffa987	93189857-d557-4151-803b-843d961b3294	nextflow run main.nf -profile docker
+2023-01-18 16:32:40	39s	jovial_majorana	ERR	91dc37618967a9f921d8bdcce7ffa987	6e56c112-916c-4d48-a3cd-4ebc2f3b3d41	nextflow run main.nf -profile docker
+2023-01-19 09:56:42	1m 4s	nauseous_joliot	OK	91dc37618967a9f921d8bdcce7ffa987	99ee7993-97b8-4bd8-ad74-289b6e003928	nextflow run main.nf -profile docker
+2023-01-19 10:33:50	1m 17s	hopeful_swanson	ERR	91dc37618967a9f921d8bdcce7ffa987	4e64bc94-17a5-40ce-9352-e2ee60dcdf5b	nextflow run main.nf -profile docker --genome 'https://www.ebi.ac.uk/ena/browser/api/fasta/GCA_905339625.1?download=true' --taxid 70448
+2023-01-19 11:39:18	-	grave_lavoisier	-	a6ab71966ae6db0ca8065f3177df80c9	bccd3e76-1f38-4230-a626-df993042f9fa	nextflow run main.nf -profile docker
+2023-01-19 11:41:16	-	determined_babbage	-	7f8f4fb44b205a0667093b8397b04735	df8a062a-a7e8-4ab9-a3c3-2eb89c6c90b1	nextflow run main.nf -profile docker
+2023-01-19 11:41:55	9.5s	elegant_leakey	ERR	189f0cfaf8fbb41201c01fff6758f4a6	67f88cfa-b4cf-49e1-8280-7e62cae3e0b8	nextflow run main.nf -profile docker
+2023-01-19 11:43:28	4.6s	hopeful_thompson	ERR	1c6101086f6a2925782e02eb0bd1df21	9bde2cf7-2a26-4ab4-8e48-193f6d505bf3	nextflow run main.nf -profile docker
+2023-01-19 11:44:25	7.9s	mad_wiles	ERR	49a72add3da8d1b0df40eab904dc2d09	ab7d0934-dd96-4ee9-ab28-2ae24c7856a6	nextflow run main.nf -profile docker
+2023-01-19 11:45:57	5.9s	curious_brattain	ERR	fbb3bdeee8ff8bf0debc97ab61579e1e	57adfe20-13d0-4f7c-9b27-c1edf01673d1	nextflow run main.nf -profile docker
+2023-01-19 11:46:45	4s	infallible_heyrovsky	ERR	f6226d5aca0b3e9f7ff51a7e00f5299b	ae04b8e6-6df2-4f8b-89b8-2c81f246dece	nextflow run main.nf -profile docker
+2023-01-19 11:48:17	4.1s	cranky_lichterman	ERR	353c14478e668d6b5eb7e0f478ccd067	630e7532-51f1-4f94-9a6a-aeb2e3d03dfe	nextflow run main.nf -profile docker
+2023-01-19 11:51:10	5.4s	high_mirzakhani	ERR	49ea51d9434510d422f53cf4d3a63b87	58d04616-c2e3-4209-be9f-11ea38f2e27e	nextflow run main.nf -profile docker
+2023-01-19 11:53:27	5.2s	nostalgic_coulomb	ERR	ac1b26df9c7a83b7da383511caa48e3d	612b9ca4-69ea-40c4-934a-1fb9628d7c12	nextflow run main.nf -profile docker
