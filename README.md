@@ -20,7 +20,7 @@ This pipeline requires the compressed genome assembly and the taxid of the speci
 ```
 export NXF_VER=22.04.4
 nextflow run guigolab/geneidx -profile <docker/singularity>
-                                        --assembly <GENOME>.fa,gz
+                                        --genome <GENOME>.fa.gz
                                         --taxid <TAXID>
                                         --outdir <OUTPUT_directory>
 ```
@@ -31,7 +31,7 @@ git clone https://github.com/guigolab/geneidx.git
 cd geneidx
 export NXF_VER=22.04.4
 nextflow run main.nf -profile <docker/singularity>
-                      --assembly <GENOME>.fa.gz
+                      --genome <GENOME>.fa.gz
                       --taxid <TAXID>
                       --outdir <OUTPUT_directory>
 ```

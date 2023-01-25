@@ -22,7 +22,7 @@ params.help             = false
 
 // this prints the input parameters
 log.info """
-GENEID+BLASTx - NextflowPipeline
+GeneidX
 =============================================
 output			: ${params.output}
 genome			: ${params.genome}
@@ -32,7 +32,7 @@ taxon			: ${params.taxid}
 
 // this prints the help in case you use --help parameter in the command line and it stops the pipeline
 if (params.help) {
-    log.info 'This is the GeneidX test pipeline in Nextflow'
+    log.info 'This is the GeneidX pipeline in Nextflow'
     log.info 'Please define the genome file and the taxid of the species.\n'
     log.info 'To define additional parameters checkout the params.config file.\n'
     log.info '\n'
