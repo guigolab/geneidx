@@ -189,15 +189,14 @@ process getProteinFileName {
         # do we want this maximum number??
         i += 1
 
-
     # this is included to have a solution for the worst case scenario
     if not in_range:
         taxon = "2759" # eukaryotes taxid
         clu_size = 60  # change appropriately
 
-    filename = "UniRef{}.{}.{}+".format(int(identity * 100), taxon, clu_size)
-
-    print(filename)
+    taxon = str(taxon)
+    clu_size = str(clu_size).rstrip()
+    print(clu_size)
     """
 
 }
@@ -218,8 +217,8 @@ process getUniRefQuery {
     """
     #!/usr/bin/env python3
     # coding: utf-8
-    
-    uniref, taxon,  clu_size = ${file_name}.split('.')
+
+    taxon, clu_size = "${file_name}".split(",")
     identity = ${params.uniref_identity}
     search_type = "stream"
     format_type = "fasta"
@@ -233,31 +232,26 @@ process getUniRefQuery {
 
 
 workflow diamond_blastx {
+    
     take:
     genome
 
     main:
 
-    if(params.prot_file){
+    name = getProteinFileName(params.proteins_lower_lim, params.proteins_upper_lim)
 
-        (name, path) = channel.fromPath(params.prot_file).map { file -> tuple(file.baseName, file)}
+    name.view()
 
-    }  
-    else{
-
-        name = getProteinFileName(params.proteins_lower_lim, params.proteins_upper_lim).filename
-        db_present  = channel.fromPath("$params.OUTPUT/*").filter { file -> file.getExtension() != 'dmnd' && file.baseName.contains()}
-        path = db_present ? db_present : channel.fromPath(getUniRefQuery(name)).splitFasta( file:params.OUTPUT )
+    path = getUniRefQuery(name) 
     
-    }
+    // | splitFasta( file: params.OUTPUT )
 
-    // protein_db = channel.fromPath("$params.OUTPUT/*").filter( file -> file.getExtension() == 'dmnd' && file.baseName == name)
+    path.view()
 
-    // if(!protein_db.count())
-    //     protein_db = createDB( name, path )
+    protein_db = createDB( name, path )
 
-    // hsp_found = runDiamond( protein_db.map { file -> tuple(file.baseName, file)}, genome.map { file -> tuple(file.baseName, file)} )
+    hsp_found = runDiamond( protein_db.map { file -> tuple(file.baseName, file)}, genome.map { file -> tuple(file.baseName, file)} )
     
-    // emit:
-    // hsp_found
+    emit:
+    hsp_found
 }
