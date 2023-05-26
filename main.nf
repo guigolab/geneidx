@@ -15,7 +15,7 @@
  */
 
 // this prevents a warning of undefined parameter
-
+nextflow.enable.dsl=2
 params.help             = false
 
 // keys of the geneid params (path) that can be tuned
@@ -59,30 +59,35 @@ include { geneid_execution } from "${subwork_folder}/geneid_execution"
 
 include { geneid_result_parsing } from "${subwork_folder}/geneid_result_parsing" addParams(OUTPUT: species_dir)
 
-
-param_file_input = params.geneid_param_file
-
-
 workflow {
 
-  genome = channel.fromPath(params.genome)
-  
+  if(params.genome){
+    genomes = channel.fromList([tuple("${params.taxid}_${params.result_name}", params.taxid, file(params.genome))])
+  }else {
+    genomes = channel.fromPath(params.tsv)
+    .splitCsv( sep: '\t', header:true )
+    .map { row -> tuple(row[params.row_id], row[params.row_taxid], file(row[params.row_path])) }
+  }
+
+
+  // send genomes from tsv
+
+
+  // genome = channel.fromPath(params.genome)
+
+  // if(!params.result_name){
+  //   params.result_name = "${params.taxid}"
+  // }
+  // // create parameters to run geneid
   // (acc_pwm, don_pwm, sta_pwm, sto_pwm, geneid_param_values) = geneid_param_creation(params.taxid)
 
-  // Run DIAMOND to find matches between genome and proteins
-  hsp_found = diamond_blastx(genome)
+  // // Run DIAMOND to find matches between genome and proteins
+  // hsp_found = diamond_blastx(genome)
 
+  // // estimate genomic regions
+  // new_mats = genomic_regions_estimation(genome, hsp_found)
 
-  // new_mats = genomic_regions_estimation(
-  //                                         genome, 
-  //                                         hsp_found,
-  //                                         params.match_score_min,
-  //                                         params.match_ORF_min,
-  //                                         params.intron_margin,
-  //                                         params.min_intron_size,
-  //                                         params.max_intron_size
-  //                                       )
-
+  // // create parameter file to run geneid
   // new_param_file = createParamFile(
   //                                   params.taxid,
   //                                   geneid_param_values,
@@ -95,9 +100,14 @@ workflow {
   //                                   params.general_gene_params
   //                                 )
 
-  //   predictions = geneid_execution(genome, new_param_file, hsp_found)
+  // // execute geneid
+  // predictions = geneid_execution(genome, new_param_file, hsp_found)
 
-  //   output_name = "${params.taxid}_${genome.getSimpleName()}.gff3"
+  // if (params.output_name) {
+  //   output_name = param.result_file_name
+  // } else {
+  //   output_name = "${params.taxid}.gff3"
+  // }
 
   //   (gff3, gff3_gz, gff3_gz_tbi) = geneid_result_parsing(predictions.collect(), hsp_found, output_name)
 

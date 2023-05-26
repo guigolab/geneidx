@@ -16,7 +16,6 @@ process unzipFasta {
 
     script:
     main_genome_file = ref_to_index.BaseName
-    print ref_to_index
 
     """
     if [ ! -s  ${main_genome_file} ]; then
@@ -52,64 +51,6 @@ process changeChromosomeName {
 }
 
 /*
- * Indexing if needed
- *    with the exonerate fastaindex
- */
-
-process indexFasta {
-
-    // indicates to use as a label the value indicated in the parameter
-    label "geneidx"
-
-    // show in the log which input file is analysed
-    tag "${main_genome_file}"
-
-    input:
-    path main_genome_file
-
-    output:
-    path ("${main_genome_file}.i")
-
-    script:
-    """
-    if [ ! -s  ${main_genome_file}.i ]; then
-        echo "indexing genome ${main_genome_file}"
-        fastaindex -f ${main_genome_file} -i ${main_genome_file}.i
-    fi
-    """
-}
-
-
-/*
- * Indexing if needed
- *      using samtools faidx
- */
-process faidxFasta {
-
-    // indicates to use as a label the value indicated in the parameter
-    label "samtools"
-
-    // show in the log which input file is analysed
-    tag "${main_genome_file}"
-
-    input:
-    path (main_genome_file)
-
-    output:
-    path ("${main_genome_file}.fai")
-
-    script:
-    """
-    if [ ! -s  ${main_genome_file}.fai ]; then
-        echo "indexing genome ${main_genome_file}"
-        samtools faidx -f ${main_genome_file}
-    fi
-    """
-}
-
-
-
-/*
  * Use gffread to get the sequence of the introns
  */
  process getFASTA {
@@ -118,21 +59,22 @@ process faidxFasta {
      container "quay.io/biocontainers/gffread:0.12.7--hd03093a_1"
 
      // show in the log which input file is analysed
-     tag "${gff3_name}"
+     tag "${genome_path}"
 
      // indicates to use as a label the value indicated in the parameter
      label (params.LABEL)
 
      input:
-     tuple val(gff3_name), path (gff3_file)
-     tuple val(genome_name),path(genome_path)
+     path(gff3)
+     path(genome)
 
      output:
-     path ("${gff3_name}.fa")
+     path ("${name}")
 
      script:
+     name= "gff_sequences.fa"
      """
-     gffread -x ${gff3_name}.fa -g ${genome_path} ${gff3_file};
+     gffread -x ${name} -g ${genome} ${gff3};
      """
 }
 
@@ -152,7 +94,7 @@ process createParamFile {
     path (stop_pwm)
     path (initial_probability_matrix)
     path (transition_probability_matrix)
-    path (general_model_values)
+    path (genome)
 
     output:
     path ("${output_param}")
@@ -175,7 +117,7 @@ process createParamFile {
 
     ini_exon_weight = exon_weight + 1
     ini_coding_cutoff_oligos = coding_cutoff_oligos + 5
-    output_param = file(params.genome).BaseName.toString() + ".${params.match_score_min}.${params.match_ORF_min}.manually_created.param"
+    output_param = file(genome).BaseName.toString() + ".${params.match_score_min}.${params.match_ORF_min}.manually_created.param"
 
     """
     cat <<EOF > ${output_param}
@@ -198,7 +140,7 @@ process createParamFile {
     # INITIAL PWM: ${initial_probability_matrix}
     # TRANSITION PWM: ${transition_probability_matrix}
     #
-    # General Gene Model parameters: ${general_model_values}
+    # General Gene Model parameters: ${params.general_gene_params}
     # Comment lines must start with '#'
 
     # Non-homology
@@ -273,7 +215,7 @@ process createParamFile {
 
     cat ${output_param}.end >> ${output_param};
 
-    cat ${general_model_values} >> ${output_param};
+    cat ${params.general_gene_params} >> ${output_param};
 
     rm ${output_param}.end;
     """

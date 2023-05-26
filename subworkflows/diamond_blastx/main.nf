@@ -5,19 +5,19 @@ process createDB {
 
     label 'diamond'
 
-    tag "building ${file_name} database"
+    tag "building ${name} database"
 
     input:
-    val(file_name)
-    path(file_path)
+    path(proteins_path)
 
     output:
-    path ("${file_name}.dmnd")
+    path ("${name}.dmnd")
 
     script:
+    name = "diamond_output"
     """
-        echo "Building ${file_name}.dmnd database"
-        diamond makedb --in ${file_path} -d ${file_name};
+        echo "Building ${name}.dmnd database"
+        diamond makedb --in ${proteins_path} -d ${name};
     """
 }
 
@@ -31,77 +31,111 @@ process runDiamond {
     label "diamond"
 
     // show in the log which input file is analysed
-    tag "${reference_genome_name} against ${dmnd_database_name}"
+    tag "running ${genome} against ${dmnd_database_file}"
 
     input:
-    tuple val(dmnd_database_name), path(dmnd_database_file)
-    tuple val(reference_genome_name), path(reference_genome_file)
+    path(dmnd_database_file)
+    path(genome)
 
     output:
-    path ("${reference_genome_name}.${dmnd_database_name}.hsp.gff")
+    path ("${name}.hsp.gff")
 
     script:
+    name = "diamond_output"
     """
-    if [ ! -s ${params.OUTPUT}/${reference_genome_name}.${dmnd_database_name}.hsp.gff ]; then
-        echo "Running matches ${reference_genome_name}.${dmnd_database_name}"
-        fmt6_custom='6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qstrand qframe'
-        diamond blastx --db ${dmnd_database_file} \
-                       --query ${reference_genome_file} \
-                       --max-target-seqs 0 \
-                       --max-hsps 0  \
-                       --outfmt \$fmt6_custom \
-                       --evalue 0.0001 \
-                       --block-size 0.8 \
-                       --threads ${task.cpus} \
-                       --out ${reference_genome_name}.${dmnd_database_name}.hsp.out
+    fmt6_custom='6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qstrand qframe'
+    diamond blastx --db ${dmnd_database_file} \
+                    --query ${genome} \
+                    --max-target-seqs 0 \
+                    --max-hsps 0  \
+                    --outfmt \$fmt6_custom \
+                    --evalue 0.0001 \
+                    --block-size 0.8 \
+                    --threads ${task.cpus} \
+                    --out ${name}.hsp.out
 
-        awk 'BEGIN{OFS="\t"}{if (\$13=="-"){frame=-(\$14);print \$1,"blastx","hsp",\$8,\$7,\$12,\$13,frame,\$2}else if(\$13=="+"){print \$1,"blastx","hsp",\$7,\$8,\$12,\$13,\$14,\$2}}' \
-                    ${reference_genome_name}.${dmnd_database_name}.hsp.out | sort -k1,1 -k4,5n -k9,9 \
-                    | egrep -vw '^MT' | cut -d '|' -f1 > ${reference_genome_name}.${dmnd_database_name}.hsp.gff
-
-    else
-        echo "${reference_genome_name}.${dmnd_database_name}.hsp.gff already built"
-        ln -s ${params.OUTPUT}/${reference_genome_name}.${dmnd_database_name}.hsp.gff ${reference_genome_name}.${dmnd_database_name}.hsp.gff;
-    fi
-    rm ${reference_genome_file}
+    awk 'BEGIN{OFS="\t"}{if (\$13=="-"){frame=-(\$14);print \$1,"blastx","hsp",\$8,\$7,\$12,\$13,frame,\$2}else if(\$13=="+"){print \$1,"blastx","hsp",\$7,\$8,\$12,\$13,\$14,\$2}}' \
+                ${name}.hsp.out | sort -k1,1 -k4,5n -k9,9 \
+                | egrep -vw '^MT' | cut -d '|' -f1 > ${name}.hsp.gff
     """
 }
 
-process getProteinFileName {
 
+process downloadProteins {
 
-    label "geneidx"
+    // where to store the results and in which way
+    publishDir(params.OUTPUT, mode : 'copy', pattern : '*.fa.gz')
 
-    tag "${taxon}"
+    label 'geneidx'
+    // show in the log which input file is analysed
+    tag "${prot_filename}"
 
     input:
+    val text_desc
+
+    output:
+    path ("${prot_filename}.fa.gz")
+
+    script:
+    (prot_desc, prot_filename, prot_query ) = (text_desc =~ /([A-Za-z\d\.\+]+)\s(.*)/)[0]
+
+    """
+    #!/usr/bin/env python3
+
+    import requests, os
+
+    print(" Downloading ${prot_filename}.fa.gz ")
+    with requests.get("${prot_query}", stream=True) as request:
+        request.raise_for_status()
+        with open('${prot_filename}.fa.gz', 'wb') as f:
+            for chunk in request.iter_content(chunk_size=2**20):
+                f.write(chunk)
+
+    """
+
+}
+
+process getUniRefQuery {
+
+    // where to store the results and in which way
+    // publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff3')
+
+    // indicates to use as a container the value indicated in the parameter
+    container "ferriolcalvet/geneidx"
+
+    // indicates to use as a label the value indicated in the parameter
+    label 'geneidx'
+
+    // show in the log which input file is analysed
+    tag "${taxid}"
+
+    input:
+    val taxid
     val lower_lim_proteins
     val upper_lim_proteins
 
     output:
-    stdout emit: filename
+    stdout emit: description
+
 
     script:
-    taxon = params.taxid
     """
     #!/usr/bin/env python3
-    # coding: utf-8
 
-    import pandas as pd
-    import requests
-    from lxml import etree
-    import time    
-
-    sp_taxon_id = ${taxon}
+    sp_taxon_id = ${taxid}
 
     lower_lim = ${lower_lim_proteins}
     upper_lim = ${upper_lim_proteins}
 
-    identity = ${params.uniref_identity}
+    identity = 0.9
     ini_clu_size = 24
     clu_size = ini_clu_size
 
     max_iterations = 30
+
+
+    import requests
+    from lxml import etree
 
     def parse_taxon_mod(xml):
         root = etree.fromstring(xml)
@@ -120,7 +154,10 @@ process getProteinFileName {
         lineage.insert(0,species)
         return lineage
 
+
+
     response = requests.get(f"https://www.ebi.ac.uk/ena/browser/api/xml/{sp_taxon_id}?download=false")
+
 
     lineage_l = parse_taxon_mod(response.content)
     rank_l = []
@@ -148,14 +185,11 @@ process getProteinFileName {
     i=0
     in_range = False
 
-    counter = 0
+
     while not in_range and i < max_iterations:
         query = initial_query + "&query=(taxonomy_id:{})%20AND%20(identity:{})%20AND%20(count:[{}%20TO%20*])".format(taxon, identity, clu_size)
-        counter = counter + 1
-        if counter > 3:
-            time.sleep(2)
-            counter= 0
         r = requests.get(query)
+
         # if we have more proteins than the minimum required
         if lower_lim <= int(r.headers["X-Total-Results"]):
 
@@ -189,68 +223,37 @@ process getProteinFileName {
         # do we want this maximum number??
         i += 1
 
+
     # this is included to have a solution for the worst case scenario
     if not in_range:
         taxon = "2759" # eukaryotes taxid
         clu_size = 60  # change appropriately
 
-    taxon = str(taxon)
-    clu_size = str(clu_size).rstrip()
-    print(clu_size)
-    """
 
-}
-
-process getUniRefQuery {
-
-    label "geneidx"
-
-    tag "${file_name}"
-
-    input:
-    val file_name
-
-    output:
-    stdout emit: query
-
-    script:
-    """
-    #!/usr/bin/env python3
-    # coding: utf-8
-
-    taxon, clu_size = "${file_name}".split(",")
-    identity = ${params.uniref_identity}
     search_type = "stream"
     format_type = "fasta"
     initial_query = "https://rest.uniprot.org/uniref/{}?format={}".format(search_type, format_type)
     query = initial_query + "&compressed=true&query=(taxonomy_id:{})%20AND%20(identity:{})%20AND%20(count:[{}%20TO%20*])".format(taxon, identity, clu_size)
+    filename = "UniRef{}.{}.{}+".format(int(identity * 100), taxon, clu_size)
 
-    print(query)    
+    content_to_write = filename + "\t" + query
+    print(content_to_write)
     """
-}
 
+}
 
 
 workflow diamond_blastx {
     
     take:
     genome
+    taxid
 
     main:
 
-    name = getProteinFileName(params.proteins_lower_lim, params.proteins_upper_lim)
-
-    name.view()
-
-    path = getUniRefQuery(name) 
+    protein_db = getUniRefQuery(taxid, params.proteins_lower_lim, params.proteins_upper_lim) | downloadProteins | createDB
     
-    // | splitFasta( file: params.OUTPUT )
-
-    path.view()
-
-    protein_db = createDB( name, path )
-
-    hsp_found = runDiamond( protein_db.map { file -> tuple(file.baseName, file)}, genome.map { file -> tuple(file.baseName, file)} )
+    hsp_found = runDiamond( protein_db, genome)
     
     emit:
     hsp_found

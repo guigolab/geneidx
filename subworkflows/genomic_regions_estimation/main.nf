@@ -11,27 +11,26 @@ process summarizeMatches {
     label "geneidx"
 
     // show in the log which input file is analysed
-    tag "${main_matches_name}"
+    tag "${name}"
 
     input:
     path (main_matches)
     val exon_margin
 
     output:
-    path ("${main_matches_name}.modified_exons.gff")
+    path ("${name}.modified_exons.gff")
 
     script:
-    main_matches_name = main_matches.BaseName
+    name = "main_matches"
     """
     sort -k1,1 -k4,5n -k9,9 ${main_matches} | \
               awk '!found[\$1"\t"\$2"\t"\$3"\t"\$4]++' | \
-              awk '!found[\$1"\t"\$2"\t"\$3"\t"\$5]++' > ${main_matches}.summarized_matches
+              awk '!found[\$1"\t"\$2"\t"\$3"\t"\$5]++' > ${name}.summarized_matches
 
     awk 'OFS="\t"{print \$1, \$4-${exon_margin}, \$5+${exon_margin}, \$9\$7}' \
-          ${main_matches}.summarized_matches | \
-          sort -k1,1 -k4,4 -k2,2n > ${main_matches_name}.modified_exons.gff
+          ${name}.summarized_matches | \
+          sort -k1,1 -k4,4 -k2,2n > ${name}.modified_exons.gff
 
-    rm ${main_matches}.summarized_matches
     """
 }
 
@@ -46,7 +45,7 @@ process pyComputeIntrons {
     label "geneidx"
 
     // show in the log which input file is analysed
-    tag "${main_matches_name}"
+    tag "${name}"
 
     input:
     path (main_matches)
@@ -54,10 +53,10 @@ process pyComputeIntrons {
     val max_intron_size
 
     output:
-    path ("${main_matches_name}.introns.gff")
+    path ("${name}.introns.gff")
 
     script:
-    main_matches_name = main_matches.BaseName
+    name = "main_matches"
 
     """
     #!/usr/bin/env python3
@@ -110,7 +109,7 @@ process pyComputeIntrons {
 
     dd_intron = dd_intron.sort_values(by = ['seq', 'start', 'end']).reset_index(drop = True)
 
-    dd_intron.to_csv("${main_matches_name}.introns.gff",
+    dd_intron.to_csv("${name}.introns.gff",
                      sep = "\t",
                      header = None,
                      index = None)
@@ -137,8 +136,8 @@ process removeProtOverlappingIntrons {
     path ("${introns_name}.non_overlapping_matches.gff")
 
     script:
-    main_matches_name = main_matches.BaseName
-    introns_name = introns.BaseName
+    main_matches_name ="main_matches"
+    introns_name = "introns"
     """
     sort -k1,1 -k4,5n ${introns} > ${introns}.sorted;
     sort -k1,1 -k4,5n ${main_matches} > ${main_matches}.sorted;
@@ -160,44 +159,42 @@ process removeProtOverlappingIntrons {
 process mergeMatches {
 
     // show in the log which input file is analysed
-    tag "${file_name}"
+    tag "${name}"
 
     // indicates to use as a label the value indicated in the parameter
     label "geneidx"
 
     input:
-    tuple val(file_name), path(file_path)
+    path(file_path)
 
     output:
-    path ("${file_name}.gff3")
+    path ("${name}.gff3")
 
     script:
+    name = "merged_matches"
     
     """
     # get the sequences that have matches
-    cut -f1 ${file_path} | uniq | sort -u > ${file_name}.seqs
+    cut -f1 ${file_path} | uniq | sort -u > ${name}.seqs
 
     # iterate the sequences with matches, running blast2gff for each of them
     while read seq; do
         awk -F '\t' -v myvar=\$seq '\$1==myvar {print > (myvar".gff"); next} {print > ("REST.txt")}' ${file_path};
         mv REST.txt ${file_path};
-        blast2gff -vg \${seq}.gff >> ${file_name}.SR.gff;
+        blast2gff -vg \${seq}.gff >> ${name}.SR.gff;
         rm \${seq}.gff;
     #    break
-    done < ${file_name}.seqs;
-
-    rm ${file_name}.seqs;
+    done < ${name}.seqs;
 
     # remove the header rows of all files
-    grep -v '#' ${file_name}.SR.gff > ${file_name}.SR.gff.tmp;
-    mv ${file_name}.SR.gff.tmp ${file_name}.SR.gff;
+    grep -v '#' ${name}.SR.gff > ${name}.SR.gff.tmp;
+    mv ${name}.SR.gff.tmp ${name}.SR.gff;
 
     # change from GFF to GFF3 making each line a different "transcript"
-    grep -v '#' ${file_name}.SR.gff | \
+    grep -v '#' ${name}.SR.gff | \
             awk '{\$3="CDS";print \$0,"ID="NR";Parent="NR";"}' | \
-            sed -e 's/ /\t/g' > ${file_name}.gff3
+            sed -e 's/ /\t/g' > ${name}.gff3
 
-    rm ${file_name}.SR.gff;
     """
 }
 
@@ -207,19 +204,20 @@ process mergeMatches {
 process filterByScore {
 
     // show in the log which input file is analysed
-    tag "${gff3_name}"
+    tag "${name}"
 
     // indicates to use as a label the value indicated in the parameter
     input:
-    tuple val(gff3_name), path(gff3_file)
+    path(gff3_file)
     val score
 
     output:
-    path ("${gff3_name}.over${score}.gff3")
+    path ("${name}.over${score}.gff3")
 
     script:
+    name = "filtered_matches"
     """
-    awk '\$6>=${score}' ${gff3_file} > ${gff3_name}.over${score}.gff3
+    awk '\$6>=${score}' ${gff3_file} > ${name}.over${score}.gff3
     """
 }
 
@@ -235,22 +233,21 @@ process findORF {
     label (params.LABEL)
 
     // show in the log which input file is analysed
-    tag "${seqs_file}"
+    tag "${name}"
 
     input:
-    path (seqs_file)
+    path(seqs_file)
     val min_orf_len
 
     output:
-    path ("${seqs_file_name}_longest.bed")
+    path ("${name}_longest.bed")
 
     script:
-    seqs_file_name = seqs_file.BaseName
+    name = "orfs_found"
     """
-    orfipy ${seqs_file} --strand f --bed ${seqs_file_name}.bed --longest \
+    orfipy ${seqs_file} --strand f --bed ${name}.bed --longest \
                         --min ${min_orf_len} --between-stops \
                         --outdir .
-    rm ${seqs_file_name}.bed
     """
 }
 
@@ -260,23 +257,23 @@ process findORF {
  and have the python script in the container also
  see docker with "sgp_getHSPSR.pl" file for an example on how to do it.
  */
-process updateGFFcoords {
+process updateCoords {
 
     // indicates to use as a label the value indicated in the parameter
     label "geneidx"
 
     // show in the log which input file is analysed
-    tag "${original_gff3}"
+    tag "${name}"
 
     input:
     path (original_gff3)
     path (relative_coords_file)
 
     output:
-    path ("${original_gff3_basename}.ORFs.gff3")
+    path ("${name}.ORFs.gff3")
 
     script:
-    original_gff3_basename = original_gff3.BaseName
+    name = "orf_to_gff"
     """
     #!/usr/bin/env python3
 
@@ -306,7 +303,7 @@ process updateGFFcoords {
 
     # print(merged_orf_gff3.columns)
     ORF_coords = merged_orf_gff3[['chr', 'program', 'region', 'start', 'end', 'value', 'strand', 'frame', 'id']]
-    ORF_coords.to_csv("${original_gff3_basename}.ORFs.gff3", sep='\t', index=False, header=False)
+    ORF_coords.to_csv("${name}.ORFs.gff3", sep='\t', index=False, header=False)
     """
 }
 
@@ -319,27 +316,26 @@ process getCDSMatrices {
     label "geneidx"
 
     // show in the log which input file is analysed
-    tag "${cds_name}"
+    tag "${name}"
 
     input:
     path (cds)
 
     output:
-    path ("${cds_name}.5.initial"), emit: initial
-    path ("${cds_name}.5.transition"), emit: transition
+    path ("${name}.5.initial"), emit: initial
+    path ("${name}.5.transition"), emit: transition
 
     script:
-    cds_name = cds.BaseName
+    name = "cds_matrices"
     """
-    FastaToTbl ${cds} > ${cds_name}.tbl
+    FastaToTbl ${cds} > ${name}.tbl
 
-    gawk '{print \$1,substr(\$2,1,length(\$2)-3)}' ${cds_name}.tbl | \
-                    gawk -f /scripts/MarkovMatrices.awk 5 ${cds_name}
+    gawk '{print \$1,substr(\$2,1,length(\$2)-3)}' ${name}.tbl | \
+                    gawk -f /scripts/MarkovMatrices.awk 5 ${name}
 
-    sort +1 -2  -o ${cds_name}.5.initial ${cds_name}.5.initial
-    sort +1 -2  -o ${cds_name}.5.transition ${cds_name}.5.transition
+    sort +1 -2  -o ${name}.5.initial ${name}.5.initial
+    sort +1 -2  -o ${name}.5.transition ${name}.5.transition
 
-    rm ${cds_name}.tbl
     """
 }
 
@@ -398,7 +394,7 @@ process combineIni {
     path ("${cds_name}.cds-intron.5.initial.geneid")
 
     script:
-    cds_name = cds_mats_ini.BaseName
+    cds_name = "cds_ini"
     """
     ##  Compute log-likelihood exon matrices, assuming intron
     ##  matrices describing background probabilities
@@ -432,7 +428,7 @@ process combineTrans {
     path ("${cds_name}.cds-intron.5.transition.geneid")
 
     script:
-    cds_name = cds_mats_trans.BaseName
+    cds_name = "cds_trans"
     """
     ##  Compute log-likelihood exon matrices, assuming intron
     ##  matrices describing background probabilities
@@ -453,27 +449,30 @@ process combineTrans {
 workflow cds_workflow {
 
     take:
-    ref_file
+    genome
     hsp_file
-    min_Match_score
-    minMatchORF
 
     main:
 
-    original_HSP_gff3 = mergeMatches(hsp_file)
+    hsp_gff3 = mergeMatches(hsp_file)
 
-    filtered_HSPs_gff3 = filterByScore(original_HSP_gff3, min_Match_score).map { file -> tuple(file.baseName, file) }
+    filtered_hsp_gff3 = filterByScore(hsp_gff3, params.match_score_min)
+    
+    unzipped_genome = unzipFasta(genome)
 
-    matches_seqs = getFASTA(filtered_HSPs_gff3, ref_file)
+    matches_seqs = getFASTA(filtered_hsp_gff3, unzipped_genome)
 
-    hsp_rel_ORFs_coords = findORF(matches_seqs, minMatchORF)
+    hsp_rel = findORF(matches_seqs, params.match_ORF_min)
 
-    hsp_abs_ORFs_coords = updateGFFcoords(original_HSP_gff3, hsp_rel_ORFs_coords)
+    hsp_abs = updateCoords(hsp_gff3, hsp_rel)
 
-    hspORFs_seqs = getFASTA2(hsp_abs_ORFs_coords, ref_file)
+    hsp_seqs = getFASTA2(hsp_abs, unzipped_genome)
+
+    cds_matrix = getCDSMatrices(hsp_seqs)
 
     emit:
-    hspORFs_seqs
+    cds_mats_ini=cds_matrix.initial
+    cds_mats_trans=cds_matrix.transition
 
 }
 
@@ -484,24 +483,24 @@ workflow cds_workflow {
 workflow intron_workflow {
 
     take:
-    ref_file
+    genome
     hsp_file
-    intron_margins
-    min_size
-    max_size
 
     main:
 
-    gff_reduced = summarizeMatches(hsp_file, intron_margins)
+    gff_reduced = summarizeMatches(hsp_file, params.intron_margin)
 
-    computed_introns = pyComputeIntrons(gff_reduced, min_size, max_size)
+    computed_introns = pyComputeIntrons(gff_reduced, params.min_intron_size, params.max_intron_size)
 
     non_overlapping_introns = removeProtOverlappingIntrons(hsp_file, computed_introns)
 
-    introns_seq = getFASTA(non_overlapping_introns, ref_file)
+    introns_seq = getFASTA(non_overlapping_introns, unzipFasta(genome))
+
+    intron_matrix = getIntronMatrices(introns_seq)
 
     emit:
-    introns_seq
+    intron_mats_ini=intron_matrix.initial
+    intron_mats_trans=intron_matrix.transition
 
 }
 
@@ -513,31 +512,17 @@ workflow genomic_regions_estimation {
 
     // definition of input
     take:
-    ref_file
+    genome
     hsp_file
-    min_match_score
-    min_match_ORF
-    intron_margins
-    min_intron
-    max_intron
 
     main:
 
     
 
     // requirements:
-    cds_seq = cds_workflow(ref_file, hsp_file,
-                            min_match_score, min_match_ORF)
-                            
-    cds_mats = getCDSMatrices(cds_seq)
-    cds_mats_ini = cds_mats.initial
-    cds_mats_trans = cds_mats.transition
+    (cds_mats_ini, cds_mats_trans) = cds_workflow(genome, hsp_file)
 
-    introns_seq = intron_workflow(ref_file, hsp_file,
-                            intron_margins, min_intron, max_intron)
-    intron_mats = getIntronMatrices(introns_seq)
-    intron_mats_ini = intron_mats.initial
-    intron_mats_trans = intron_mats.transition
+    (intron_mats_ini, intron_mats_trans) = intron_workflow(genome, hsp_file)
 
     combine_matrices_ini = combineIni(cds_mats_ini, intron_mats_ini)
     combine_matrices_trans = combineTrans(cds_mats_trans, intron_mats_trans)

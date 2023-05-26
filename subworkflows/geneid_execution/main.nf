@@ -3,17 +3,15 @@ OutputFolder = "${params.output}"
 
 subwork_folder = "${projectDir}/subworkflows/"
 
-include { indexFasta } from "${subwork_folder}/tools" addParams(OUTPUT: OutputFolder)
-
 
 process runGeneid {
 
     label "geneidx"
 
-    tag "run Geneid ${seq_file_name}"
+    tag "run Geneid"
 
     input:
-    tuple val(seq_file_name), path(seq_file_path)
+    path(seq_file_path)
     path(geneid_param)
     path(protein_matches)
 
@@ -21,7 +19,7 @@ process runGeneid {
     path ("${seq_file_name}.gff3")
 
     script:
-    
+    seq_file_name = "geneid_result"
     """
     # prepare evidence
 
@@ -39,9 +37,6 @@ process runGeneid {
     blast2gff -vg ${seq_file_name}.hsp.gff > ${seq_file_name}.SR.gff
     sgp_getHSPSR.pl \"${seq_file_name}\" < ${seq_file_name}.SR.gff > ${seq_file_name}.HSP_SR.gff
 
-    rm ${seq_file_name}.hsp.gff
-    rm ${seq_file_name}.SR.gff
-
     # run Geneid + protein evidence
     geneid -3P ${geneid_param} -S ${seq_file_name}.HSP_SR.gff ${seq_file_path} \
                 | sed -e 's/geneid_v1.4/geneidx/g' | egrep -v '^# ' | grep -vFw '###' \
@@ -58,17 +53,14 @@ process runGeneid {
 workflow geneid_execution {
 
     take:
-    ref_file
+    genome
     geneid_param
     hsp_file
 
 
     main:
 
-    genome = channel.fromPath(ref_file)
-
-    genome.splitFasta( file: true ).map { file -> tuple(file.baseName, file) }
-    .set { sequence }
+    sequence = genome.splitFasta( file: true )
 
     predictions = runGeneid(sequence, geneid_param, hsp_file)
 

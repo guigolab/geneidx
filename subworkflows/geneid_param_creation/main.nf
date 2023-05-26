@@ -1,19 +1,5 @@
 
-
-// process getMissingParams {
-//     input:
-//         val params
-//         val param_keys
-//     output:
-//         val missing_params
-//     exec:
-//         keys_from_user = params.collect{ it.key }
-//         missing_params = param_keys.findAll { !keys_from_user.contains(it) }
-// }
 process getParamValues {
-
-    // indicates to use as a container the value indicated in the parameter
-    // container "ferriolcalvet/python-geneid-params"
 
     // indicates to use as a label the value indicated in the parameter
     label 'geneidx'
@@ -153,6 +139,7 @@ process getLineage {
         response = new URL("https://www.ebi.ac.uk/ena/browser/api/xml/${taxid}?download=false").text
         xml = new XmlSlurper().parseText(response)
         lineage = xml[0].children()[0].children()[0].children().collect { it.attributes()['taxId']}
+        println lineage
 }
 
 
@@ -237,14 +224,14 @@ process splitParams {
                 fW.close()
     """
 }
-workflow geneid_param_selection {
+workflow geneid_parameter_file_selection {
 
     take:
     taxid
 
     main:
 
-    lineage = getLineage(taxid) 
+    lineage = getLineage(taxid)
     matrix = file(params.auto_params_selection_matrix_path)
     selected_parameter_file = getFileFromTaxon(lineage, matrix) 
 
@@ -262,7 +249,7 @@ workflow geneid_param_values {
     param_vals_out = getParamValues(param_file, param_list)
 
     emit:
-   param_vals_out.list_params
+    param_vals_out.list_params
 
 }
 
@@ -290,11 +277,11 @@ workflow geneid_param_creation {
 
     main:
 
-    param_file = geneid_param_selection(params.taxid).param_file
+    parameter_file = geneid_parameter_file_selection(taxid).param_file
 
-    (acc_pwm, don_pwm, sta_pwm, sto_pwm) = geneid_param_profiles(param_file)
+    (acc_pwm, don_pwm, sta_pwm, sto_pwm) = geneid_param_profiles(parameter_file)
 
-    param_values = geneid_param_values(param_file, params.maps_param_values)
+    param_values = geneid_param_values(parameter_file, params.maps_param_values)
 
     emit:
     acc_pwm
