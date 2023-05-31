@@ -1,18 +1,17 @@
  process joinGffs {
     // show in the log which input file is analysed
-    tag "joining gffs to ${output_file}"
+    tag "joining gffs to ${name}"
 
     input:
     path (gffs_outputs)
-    val (output_file)
 
     output:
-    path ("${output_file}")
+    path (name)
 
     script:
+    name = "${gffs_outputs.BaseName}_parsed.gff3"
     """
-    cat ${gffs_outputs} | egrep -v '^# ' | egrep -vw '###' | sort -u | sort -k1,1 -k4,5n > ${output_file}
-    rm ${gffs_outputs}
+    cat ${gffs_outputs} | egrep -v '^# ' | egrep -vw '###' | sort -u | sort -k1,1 -k4,5n > ${name}
     """
 }
 
@@ -210,12 +209,10 @@ workflow geneid_result_parsing {
     take:
     gff_files
     hsp_found
-    output_name
 
     main:
 
-
-    merged_gff = joinGffs(gff_files, output_name)
+    merged_gff = joinGffs(gff_files)
 
     labeled_gff = add_labels(merged_gff, hsp_found)
 

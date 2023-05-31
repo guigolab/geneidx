@@ -21,8 +21,6 @@ params.help             = false
 // keys of the geneid params (path) that can be tuned
 param_keys = ['Acceptor_profile', 'Donor_profile', 'Start_profile', 'Stop_profile']
 
-user_defined_params = params.grep( param -> param_keys.contains(param.key))
-
 
 log.info """
 GENEID+BLASTx - NextflowPipeline
@@ -47,7 +45,7 @@ species_dir = "${output_dir}/species/${params.taxid}"
 subwork_folder = "${projectDir}/subworkflows"
 
 //imported processes
-include { unzipFasta; createParamFile } from "${subwork_folder}/tools"
+include { createParamFile } from "${subwork_folder}/tools"
 //imported subworkflows
 include { geneid_param_creation } from "${subwork_folder}/geneid_param_creation"
 
@@ -57,51 +55,48 @@ include { genomic_regions_estimation } from "${subwork_folder}/genomic_regions_e
 
 include { geneid_execution } from "${subwork_folder}/geneid_execution"
 
-include { geneid_result_parsing } from "${subwork_folder}/geneid_result_parsing" addParams(OUTPUT: species_dir)
+include { geneid_result_parsing } from "${subwork_folder}/geneid_result_parsing"
 
 workflow {
-
-  if(params.genome){
-    genomes = channel.fromList([tuple("${params.taxid}_${params.result_name}", params.taxid, file(params.genome))])
-  }else {
+  //convert genome(s) to factory channel of tuples
+  // if(params.genome){
+  //   genomes = channel.fromList([tuple("${params.taxid}_${params.result_name}", params.taxid, file(params.genome))])
+  // }else {
     genomes = channel.fromPath(params.tsv)
     .splitCsv( sep: '\t', header:true )
     .map { row -> tuple(row[params.row_id], row[params.row_taxid], file(row[params.row_path])) }
-  }
-
-
-  // send genomes from tsv
-
-
-  // genome = channel.fromPath(params.genome)
-
-  // if(!params.result_name){
-  //   params.result_name = "${params.taxid}"
   // }
-  // // create parameters to run geneid
-  // (acc_pwm, don_pwm, sta_pwm, sto_pwm, geneid_param_values) = geneid_param_creation(params.taxid)
+  // genomes = channel.fromList([
+  //   tuple("1983395_${params.result_name}", "1983395", file(params.genome)),
+  //   tuple("254365_${params.result_name}", "254365", file(params.genome))
+  //   ])
 
-  // // Run DIAMOND to find matches between genome and proteins
-  // hsp_found = diamond_blastx(genome)
+    // genomes = channel.fromPath(params.tsv)
+    // .splitCsv( sep: '\t', header:true )
+    // .map { row -> tuple(row[params.row_id], row[params.row_taxid], file(row[params.row_path])) }
 
-  // // estimate genomic regions
-  // new_mats = genomic_regions_estimation(genome, hsp_found)
+  // create parameters to run geneid
+  (acc_pwm,don_pwm,sta_pwm,sto_pwm, param_values) = geneid_param_creation(genomes)
 
-  // // create parameter file to run geneid
-  // new_param_file = createParamFile(
-  //                                   params.taxid,
-  //                                   geneid_param_values,
-  //                                   sta_pwm,
-  //                                   acc_pwm,
-  //                                   don_pwm,
-  //                                   sto_pwm,
-  //                                   new_mats.ini_comb,
-  //                                   new_mats.trans_comb,
-  //                                   params.general_gene_params
-  //                                 )
+  //run diamond blastx
+  hsp_found = diamond_blastx(genomes)
 
-  // // execute geneid
-  // predictions = geneid_execution(genome, new_param_file, hsp_found)
+  // estimate genomic regions
+  new_mats =  genomic_regions_estimation(genomes, hsp_found) 
+
+  // create parameter file to run geneid
+  new_param_file = createParamFile(
+                                    genomes,
+                                    param_values,
+                                    sta_pwm,
+                                    acc_pwm,
+                                    don_pwm,
+                                    sto_pwm,
+                                    new_mats.ini_comb,
+                                    new_mats.trans_comb,
+                                  )
+  // execute geneid
+  predictions = geneid_execution(genomes, new_param_file, hsp_found) | view
 
   // if (params.output_name) {
   //   output_name = param.result_file_name
@@ -109,12 +104,17 @@ workflow {
   //   output_name = "${params.taxid}.gff3"
   // }
 
-  //   (gff3, gff3_gz, gff3_gz_tbi) = geneid_result_parsing(predictions.collect(), hsp_found, output_name)
+  //parse and merge geneid predictions
+  // (gff3, gff3_gz, gff3_gz_tbi) = geneid_result_parsing(predictions, hsp_found)
 
 }
 /*
  *  When complete print a message
  */
 workflow.onComplete {
-	println ( workflow.success ? "\nDone!\n" : "Oops ...\n" )
+	println ( "\nDone!\n" )
 }
+
+// workflow.onError {
+//   println "Oops... Pipeline execution stopped with the following message: ${workflow.errorMessage}"
+// }

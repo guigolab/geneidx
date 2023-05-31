@@ -8,10 +8,10 @@ process runGeneid {
 
     label "geneidx"
 
-    tag "run Geneid"
+    tag "run Geneid against ${seq_file_name}"
 
     input:
-    path(seq_file_path)
+    tuple val(id), val(taxid), path(seq_file_path)
     path(geneid_param)
     path(protein_matches)
 
@@ -19,7 +19,7 @@ process runGeneid {
     path ("${seq_file_name}.gff3")
 
     script:
-    seq_file_name = "geneid_result"
+    seq_file_name = seq_file_path.BaseName
     """
     # prepare evidence
 
@@ -42,7 +42,6 @@ process runGeneid {
                 | sed -e 's/geneid_v1.4/geneidx/g' | egrep -v '^# ' | grep -vFw '###' \
                 >> ${seq_file_name}.gff3
 
-    rm ${seq_file_name}.HSP_SR.gff
     """
 }
 
@@ -53,14 +52,14 @@ process runGeneid {
 workflow geneid_execution {
 
     take:
-    genome
+    genomes
     geneid_param
     hsp_file
 
 
     main:
 
-    sequence = genome.splitFasta( file: true )
+    sequence = genomes.splitFasta( file: true )
 
     predictions = runGeneid(sequence, geneid_param, hsp_file)
 

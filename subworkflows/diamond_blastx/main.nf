@@ -5,19 +5,19 @@ process createDB {
 
     label 'diamond'
 
-    tag "building ${name} database"
+    tag "building ${id} database"
 
     input:
     path(proteins_path)
+    tuple val(id), val(taxid), path(genome)
 
     output:
-    path ("${name}.dmnd")
+    path ("${id}.dmnd")
 
     script:
-    name = "diamond_output"
     """
-        echo "Building ${name}.dmnd database"
-        diamond makedb --in ${proteins_path} -d ${name};
+        echo "Building ${id}.dmnd database"
+        diamond makedb --in ${proteins_path} -d ${id};
     """
 }
 
@@ -35,13 +35,12 @@ process runDiamond {
 
     input:
     path(dmnd_database_file)
-    path(genome)
+    tuple val(id), val(taxid), path(genome)
 
     output:
-    path ("${name}.hsp.gff")
+    path ("${id}.hsp.gff")
 
     script:
-    name = "diamond_output"
     """
     fmt6_custom='6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qstrand qframe'
     diamond blastx --db ${dmnd_database_file} \
@@ -52,11 +51,11 @@ process runDiamond {
                     --evalue 0.0001 \
                     --block-size 0.8 \
                     --threads ${task.cpus} \
-                    --out ${name}.hsp.out
+                    --out ${id}.hsp.out
 
     awk 'BEGIN{OFS="\t"}{if (\$13=="-"){frame=-(\$14);print \$1,"blastx","hsp",\$8,\$7,\$12,\$13,frame,\$2}else if(\$13=="+"){print \$1,"blastx","hsp",\$7,\$8,\$12,\$13,\$14,\$2}}' \
-                ${name}.hsp.out | sort -k1,1 -k4,5n -k9,9 \
-                | egrep -vw '^MT' | cut -d '|' -f1 > ${name}.hsp.gff
+                ${id}.hsp.out | sort -k1,1 -k4,5n -k9,9 \
+                | egrep -vw '^MT' | cut -d '|' -f1 > ${id}.hsp.gff
     """
 }
 
@@ -100,9 +99,6 @@ process getUniRefQuery {
     // where to store the results and in which way
     // publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff3')
 
-    // indicates to use as a container the value indicated in the parameter
-    container "ferriolcalvet/geneidx"
-
     // indicates to use as a label the value indicated in the parameter
     label 'geneidx'
 
@@ -110,15 +106,15 @@ process getUniRefQuery {
     tag "${taxid}"
 
     input:
-    val taxid
-    val lower_lim_proteins
-    val upper_lim_proteins
+    tuple val(id), val(taxid), path(genome)
 
     output:
     stdout emit: description
-
+    
 
     script:
+    upper_lim_proteins = params.proteins_upper_lim
+    lower_lim_proteins = params.proteins_lower_lim
     """
     #!/usr/bin/env python3
 
@@ -246,15 +242,17 @@ process getUniRefQuery {
 workflow diamond_blastx {
     
     take:
-    genome
-    taxid
+    genomes
 
     main:
 
-    protein_db = getUniRefQuery(taxid, params.proteins_lower_lim, params.proteins_upper_lim) | downloadProteins | createDB
+    proteins = getUniRefQuery(genomes) | downloadProteins 
     
-    hsp_found = runDiamond( protein_db, genome)
+    dbs = createDB(proteins, genomes)
+
+    hsp_found = runDiamond(dbs, genomes)
     
     emit:
     hsp_found
+
 }

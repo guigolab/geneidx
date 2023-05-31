@@ -9,13 +9,12 @@ process getParamValues {
 
     input:
     path param_file
-    val params_available
 
     output:
     stdout emit: list_params
 
-
     script:
+    params_available = "${params.maps_param_values}"
     param_file_name = param_file.BaseName
     """
     #!/usr/bin/env python3
@@ -132,7 +131,7 @@ process getFileFromTaxon {
 
 process getLineage {
     input:
-        val taxid
+        tuple val(id), val(taxid), path(genome)
     output:
         val lineage
     exec:
@@ -152,10 +151,10 @@ process splitParams {
     path param_file
 
     output:
-    path ("${param_file_name}.acceptor_profile.param"), emit: acceptor
-    path ("${param_file_name}.donor_profile.param"), emit: donor
-    path ("${param_file_name}.start_profile.param"), emit: start
-    path ("${param_file_name}.stop_profile.param"), emit: stop
+    path ("${param_file_name}.acceptor_profile.param")
+    path ("${param_file_name}.donor_profile.param")
+    path ("${param_file_name}.start_profile.param")
+    path ("${param_file_name}.stop_profile.param")
 
 
     script:
@@ -224,64 +223,29 @@ process splitParams {
                 fW.close()
     """
 }
-workflow geneid_parameter_file_selection {
 
-    take:
-    taxid
 
-    main:
 
-    lineage = getLineage(taxid)
-    matrix = file(params.auto_params_selection_matrix_path)
-    selected_parameter_file = getFileFromTaxon(lineage, matrix) 
 
-    emit:
-    param_file = selected_parameter_file
 
-}
-
-workflow geneid_param_values {
-    take:
-    param_file
-    param_list
-
-    main:
-    param_vals_out = getParamValues(param_file, param_list)
-
-    emit:
-    param_vals_out.list_params
-
-}
-
-workflow geneid_param_profiles {
-
-    take:
-    param_file
-
-    main:
-    param_file_outs = splitParams(param_file)
-
-    emit:
-    acceptor_pwm = param_file_outs.acceptor
-    donor_pwm = param_file_outs.donor
-    start_pwm = param_file_outs.start
-    stop_pwm = param_file_outs.stop
-
-}
 
 
 workflow geneid_param_creation {
 
     take:
-    taxid
+    genomes
 
     main:
 
-    parameter_file = geneid_parameter_file_selection(taxid).param_file
+    lineage = getLineage(genomes)
 
-    (acc_pwm, don_pwm, sta_pwm, sto_pwm) = geneid_param_profiles(parameter_file)
+    matrix = file(params.auto_params_selection_matrix_path)
 
-    param_values = geneid_param_values(parameter_file, params.maps_param_values)
+    selected_parameter_file = getFileFromTaxon(lineage, matrix)
+
+    (acc_pwm, don_pwm, sta_pwm, sto_pwm) = splitParams(selected_parameter_file)
+
+    param_values = getParamValues(selected_parameter_file)
 
     emit:
     acc_pwm

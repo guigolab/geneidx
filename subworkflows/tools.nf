@@ -6,22 +6,19 @@ process unzipFasta {
     label "geneidx"
 
     // show in the log which input file is analysed
-    tag "${ref_to_index}"
+    tag "${id}"
 
     input:
-    path (ref_to_index)
+    tuple val(id), val(taxid), path(genome)
 
     output:
-    path ("${main_genome_file}")
+    path(name)
 
     script:
-    main_genome_file = ref_to_index.BaseName
-
+    name = "${id}_unzipped.fa"
     """
-    if [ ! -s  ${main_genome_file} ]; then
-        echo "unzipping genome ${main_genome_file}.gz"
-        gunzip -c ${main_genome_file}.gz > ${main_genome_file};
-    fi
+    echo "unzipping genome ${genome}"
+    gunzip -c ${genome} > ${name};
     """
 }
 
@@ -59,7 +56,7 @@ process changeChromosomeName {
      container "quay.io/biocontainers/gffread:0.12.7--hd03093a_1"
 
      // show in the log which input file is analysed
-     tag "${genome_path}"
+     tag "${name}"
 
      // indicates to use as a label the value indicated in the parameter
      label (params.LABEL)
@@ -69,10 +66,10 @@ process changeChromosomeName {
      path(genome)
 
      output:
-     path ("${name}")
+     path(name)
 
      script:
-     name= "gff_sequences.fa"
+     name = "${genome.BaseName}_gffread.fa"
      """
      gffread -x ${name} -g ${genome} ${gff3};
      """
@@ -85,8 +82,7 @@ process createParamFile {
     // // show in the log which input file is analysed
     // tag "${output_param}"
     input:
-
-    val (taxid)
+    tuple val(id), val(taxid), path(genome)
     val (params_list)
     path (start_pwm)
     path (acceptor_pwm)
@@ -94,7 +90,6 @@ process createParamFile {
     path (stop_pwm)
     path (initial_probability_matrix)
     path (transition_probability_matrix)
-    path (genome)
 
     output:
     path ("${output_param}")
@@ -216,7 +211,5 @@ process createParamFile {
     cat ${output_param}.end >> ${output_param};
 
     cat ${params.general_gene_params} >> ${output_param};
-
-    rm ${output_param}.end;
     """
 }
