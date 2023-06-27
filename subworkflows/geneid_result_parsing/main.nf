@@ -1,12 +1,12 @@
- process joinGffs {
+ process joinPredictions {
     // show in the log which input file is analysed
     tag "joining gffs to ${name}"
 
     input:
-    path (gffs_outputs)
+    tuple val(id), path(gffs_outputs)
 
     output:
-    path (name)
+    tuple val(id), path(name)
 
     script:
     name = "${gffs_outputs.BaseName}_parsed.gff3"
@@ -30,11 +30,10 @@ process intersectHints {
     tag "${annotations_file}"
 
     input:
-    path (annotations_file)
-    path (matches_file)
+    tuple val(id), path(annotations_file), path(matches_file)
 
     output:
-    path ("${annotations_file_name}.labelled.tsv")
+    tuple val(id),path("${annotations_file_name}.labelled.tsv")
 
     script:
     annotations_file_name = annotations_file.getSimpleName()
@@ -59,10 +58,10 @@ process processLabels {
     tag "${annotations_file}"
 
     input:
-    path (annotations_file)
+    tuple val(id), path(annotations_file)
 
     output:
-    path ("${annotations_file_name}.gff3")
+    tuple val(id), path("${annotations_file_name}.gff3")
 
     script:
     annotations_file_name = annotations_file.BaseName
@@ -103,11 +102,11 @@ process splitGff3 {
     tag "${annotations_file}"
 
     input:
-    path (annotations_file)
+    tuple val(id), path(annotations_file)
 
     output:
-    path ("${annotations_file_name}.head")
-    path ("${annotations_file_name}.content")
+    tuple val(id), path("${annotations_file_name}.head")
+    tuple val(id), path ("${annotations_file_name}.content")
 
     script:
     annotations_file_name = annotations_file.getSimpleName()
@@ -129,11 +128,10 @@ process mergeGff3 {
     tag "${annotations_file_name}"
 
     input:
-    path (annotations_file_head)
-    path (annotations_file_content)
+    tuple val(id), path(annotations_file_head), path(annotations_file_content)
 
     output:
-    path ("${annotations_file_name}.gff3")
+    tuple val(id), path("${annotations_file_name}.gff3")
 
     script:
     annotations_file_name = annotations_file_head.getSimpleName()
@@ -148,7 +146,7 @@ process mergeGff3 {
 process indexGff3 {
 
     // where to store the results and in which way
-    publishDir(params.OUTPUT, mode : 'copy')
+    publishDir "${params.OUTPUT}/${taxid}", mode : 'copy'
 
     // indicates to use as a container the value indicated in the parameter
     label "samtools"
@@ -160,12 +158,10 @@ process indexGff3 {
     tag "${annotations_file}"
 
     input:
-    path (annotations_file)
+    tuple val(id), val(taxid), path(annotations_file)
 
     output:
-    path ("${annotations_file}")
-    path ("${annotations_file}.gz")
-    path ("${annotations_file}.gz.tbi")
+    tuple val(id), path("${annotations_file}"), path("${annotations_file}.gz"), path("${annotations_file}.gz.tbi")
 
     script:
     """
@@ -185,41 +181,25 @@ process indexGff3 {
     """
 }
 
-workflow add_labels {
-
-    take:
-    annotation_file
-    hints_file
-
-    main:
-
-    (gff3_head, gff3_content) = splitGff3(annotation_file)
-
-    labelled_content = intersectHints(gff3_content, hints_file) | processLabels
-
-    final_gff3 = mergeGff3(gff3_head, labelled_content)
-
-    emit:
-    final_gff3
-}
-
-
 workflow geneid_result_parsing {
     
     take:
-    gff_files
-    hsp_found
+    meta
+    predictions
+    hsp_files
 
     main:
 
-    merged_gff = joinGffs(gff_files)
+    merged_predictions = joinPredictions(predictions)
 
-    labeled_gff = add_labels(merged_gff, hsp_found)
+    (gff3_head, gff3_content) = splitGff3(hsp_files)
 
-    (gff3, gff3_gz, gff3_gz_tbi) = indexGff3(labeled_gff)
+    labeled_content = intersectHints(gff3_content.join(hsp_files)) | processLabels
+
+    labeled_predictions = mergeGff3(gff3_head.join(labeled_content))
+
+    output = indexGff3(meta.join(labeled_predictions))
 
     emit:
-    gff3
-    gff3_gz
-    gff3_gz_tbi
+    output
 }

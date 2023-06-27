@@ -11,12 +11,10 @@ process runGeneid {
     tag "run Geneid against ${seq_file_name}"
 
     input:
-    tuple val(id), val(taxid), path(seq_file_path)
-    path(geneid_param)
-    path(protein_matches)
+    tuple val(id), path(seq_file_path), path(geneid_param), path(protein_matches)
 
     output:
-    path ("${seq_file_name}.gff3")
+    tuple val(id), path("${seq_file_name}.gff3")
 
     script:
     seq_file_name = seq_file_path.BaseName
@@ -53,16 +51,14 @@ workflow geneid_execution {
 
     take:
     genomes
-    geneid_param
-    hsp_file
+    geneid_inputs
 
 
     main:
 
-    sequence = genomes.splitFasta( file: true )
+    sequences = genomes.splitFasta( file: true )
 
-    predictions = runGeneid(sequence, geneid_param, hsp_file)
-
+    predictions = runGeneid(sequences.join(geneid_inputs))
 
     emit:
     predictions

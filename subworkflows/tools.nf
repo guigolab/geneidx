@@ -62,14 +62,13 @@ process changeChromosomeName {
      label (params.LABEL)
 
      input:
-     path(gff3)
-     path(genome)
+     tuple val(id), path(gff3), path(genome)
 
      output:
-     path(name)
+     tuple val(id), path(name)
 
      script:
-     name = "${genome.BaseName}_gffread.fa"
+     name = "${id}_gffread.fa"
      """
      gffread -x ${name} -g ${genome} ${gff3};
      """
@@ -82,12 +81,7 @@ process createParamFile {
     // // show in the log which input file is analysed
     // tag "${output_param}"
     input:
-    tuple val(id), val(taxid), path(genome)
-    val (params_list)
-    path (start_pwm)
-    path (acceptor_pwm)
-    path (donor_pwm)
-    path (stop_pwm)
+    tuple val(id), path(acceptor_pwm), path(donor_pwm), path(start_pwm), path(stop_pwm), val(params_list)
     path (initial_probability_matrix)
     path (transition_probability_matrix)
 

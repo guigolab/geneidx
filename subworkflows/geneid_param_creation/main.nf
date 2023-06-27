@@ -1,3 +1,5 @@
+import groovy.json.JsonSlurper
+
 
 process getParamValues {
 
@@ -8,10 +10,10 @@ process getParamValues {
     tag "${param_file_name}"
 
     input:
-    path param_file
+    tuple val(id), path(param_file)
 
     output:
-    stdout emit: list_params
+    tuple val(id), stdout
 
     script:
     params_available = "${params.maps_param_values}"
@@ -72,11 +74,11 @@ process getFileFromTaxon {
     label 'geneidx'
 
     input:
-        val target_lineage
+        tuple val(id), val(target_lineage)
         path matrix
 
     output:
-        stdout emit: param_file
+        tuple val(id), stdout
     
     script:
     params_path = params.auto_params_selection_files_path
@@ -131,14 +133,14 @@ process getFileFromTaxon {
 
 process getLineage {
     input:
-        tuple val(id), val(taxid), path(genome)
+        tuple val(id), val(taxid)
     output:
-        val lineage
+        tuple val(id), val(lineage)
     exec:
-        response = new URL("https://www.ebi.ac.uk/ena/browser/api/xml/${taxid}?download=false").text
-        xml = new XmlSlurper().parseText(response)
-        lineage = xml[0].children()[0].children()[0].children().collect { it.attributes()['taxId']}
-        println lineage
+        response = new URL("https://api.ncbi.nlm.nih.gov/datasets/v2alpha/taxonomy/taxon/${taxid}").text
+        json = new JsonSlurper().parseText(response)
+        lineage = json.taxonomy_nodes[0].taxonomy.lineage.reverse()
+        return lineage
 }
 
 
@@ -148,14 +150,10 @@ process splitParams {
     label 'geneidx'
 
     input:
-    path param_file
+    tuple val(id), path(param_file)
 
     output:
-    path ("${param_file_name}.acceptor_profile.param")
-    path ("${param_file_name}.donor_profile.param")
-    path ("${param_file_name}.start_profile.param")
-    path ("${param_file_name}.stop_profile.param")
-
+    tuple val(id), path("${param_file_name}.acceptor_profile.param"), path ("${param_file_name}.donor_profile.param"), path ("${param_file_name}.start_profile.param"), path ("${param_file_name}.stop_profile.param")
 
     script:
     param_file_name = param_file.getName()
@@ -233,26 +231,31 @@ process splitParams {
 workflow geneid_param_creation {
 
     take:
-    genomes
+    meta
 
     main:
 
-    lineage = getLineage(genomes)
+    lineage = getLineage(meta)
 
     matrix = file(params.auto_params_selection_matrix_path)
 
     selected_parameter_file = getFileFromTaxon(lineage, matrix)
 
-    (acc_pwm, don_pwm, sta_pwm, sto_pwm) = splitParams(selected_parameter_file)
+    splitted_params = splitParams(selected_parameter_file)
 
     param_values = getParamValues(selected_parameter_file)
 
+    //emit tuple val(id), path(acceptor), path(donor), path(start), path(stop), stdout params
+    geneid_parameters = splitted_params.join(param_values)
+    
     emit:
-    acc_pwm
-    don_pwm
-    sta_pwm
-    sto_pwm
-    param_values
+    geneid_parameters
+    // acc_pwm
+    // don_pwm
+    // sta_pwm
+    // sto_pwm
+    // param_valuesgetParamValues
+    // id
     
 
 }

@@ -1,4 +1,2 @@
 Assembly Accession	Assembly Name	Organism Name	Organism Taxonomic ID	Path
-GCA_905340225.1	ilAbrTrip1.1	Abrostola tripartita	938171	https://www.ebi.ac.uk/ena/browser/api/fasta/GCA_905340225.1
-GCA_946251915.1	ilAbrTril1.1	Abrostola triplasia	254365	https://www.ebi.ac.uk/ena/browser/api/fasta/GCA_946251915.1
-GCA_930367205.1	ihAcaHaem1.1	Acanthosoma haemorrhoidale	483950	https://www.ebi.ac.uk/ena/browser/api/fasta/GCA_930367205.1
+TEST_1	uoEpiScrs1.2	Epithemia pelagica	35525	/home/emilior/geneidx/data/SampleGenome.fa.gz
