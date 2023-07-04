@@ -71,8 +71,7 @@ workflow {
   //   ])
 
   tsv = channel.fromPath(params.tsv)
-
-
+  
   /*
   NOTES:
     nextflow manages the ena url in a weird way, it seems to stream the file instead of downloading it
@@ -82,7 +81,6 @@ workflow {
   genomes = tsv.splitCsv( sep: '\t', header:true )
   .collectFile(){ row -> ["${row[params.row_id]}-.fa.gz", file(row[params.row_path])]}
   .map { it -> tuple(it.baseName.tokenize('-')[0],it)}
-
   //metadata channel
   meta = tsv.splitCsv( sep: '\t', header:true )
   .map { row -> tuple(row[params.row_id], row[params.row_taxid]) }
@@ -102,49 +100,15 @@ workflow {
   //tuple val(id), path(param_file)
   param_files = parameter_file_creation(geneid_parameters, combined_matrices)
   
-  geneid_inputs = param_files.join(combined_matrices)
+  geneid_inputs = param_files.join(hsp_files)
 
   //tuple val(id), path(predictions)
   predictions = geneid_execution(genomes, geneid_inputs)
+  .collectFile(){ item -> [ "${item[0]}-.gff3", item[1].text ]}
+  .map { it -> tuple(it.baseName.tokenize('-')[0] ,it)} | view
   
   //tuple val(id), val(taxid), path(predictions), path(hsp_found)
   geneid_result_parsing(meta, predictions, hsp_files)
-  /*
-  download proteins
-  splitFasta and run diamond
-  collect and parse diamond output
-  compute cds and introns
-  create parameter file
-  run geneid
-*/
-  //run diamond blastx
-  // hsp_found = diamond_blastx(genomes) | view
-
-  // // estimate genomic regions
-  // new_mats =  genomic_regions_estimation(genomes, hsp_found) 
-
-  // // create parameter file to run geneid
-  // param_file = createParamFile(
-  //                               genomes,
-  //                               param_values,
-  //                               sta_pwm,
-  //                               acc_pwm,
-  //                               don_pwm,
-  //                               sto_pwm,
-  //                               combine_matrices_ini,
-  //                               combine_matrices_trans,
-  //                             )
-  // // execute geneid
-  // predictions = geneid_execution(genomes, new_param_file, hsp_found) | view
-
-  // if (params.output_name) {
-  //   output_name = param.result_file_name
-  // } else {
-  //   output_name = "${params.taxid}.gff3"
-  // }
-
-  //parse and merge geneid predictions
-  // (gff3, gff3_gz, gff3_gz_tbi) = geneid_result_parsing(predictions, hsp_found)
 
 }
 /*

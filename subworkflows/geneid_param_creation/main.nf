@@ -1,6 +1,5 @@
 import groovy.json.JsonSlurper
 
-
 process getParamValues {
 
     // indicates to use as a label the value indicated in the parameter
@@ -10,7 +9,7 @@ process getParamValues {
     tag "${param_file_name}"
 
     input:
-    tuple val(id), path(param_file)
+    tuple val(id), val(taxid), path(param_file)
 
     output:
     tuple val(id), stdout
@@ -74,11 +73,11 @@ process getFileFromTaxon {
     label 'geneidx'
 
     input:
-        tuple val(id), val(target_lineage)
+        tuple val(id), val(taxid), val(target_lineage)
         path matrix
 
     output:
-        tuple val(id), stdout
+        tuple val(id), val(taxid), stdout
     
     script:
     params_path = params.auto_params_selection_files_path
@@ -135,7 +134,7 @@ process getLineage {
     input:
         tuple val(id), val(taxid)
     output:
-        tuple val(id), val(lineage)
+        tuple val(id), val(taxid), val(lineage)
     exec:
         response = new URL("https://api.ncbi.nlm.nih.gov/datasets/v2alpha/taxonomy/taxon/${taxid}").text
         json = new JsonSlurper().parseText(response)
@@ -150,10 +149,10 @@ process splitParams {
     label 'geneidx'
 
     input:
-    tuple val(id), path(param_file)
+    tuple val(id), val(taxid), path(param_file)
 
     output:
-    tuple val(id), path("${param_file_name}.acceptor_profile.param"), path ("${param_file_name}.donor_profile.param"), path ("${param_file_name}.start_profile.param"), path ("${param_file_name}.stop_profile.param")
+    tuple val(id), val(taxid), path("${param_file_name}.acceptor_profile.param"), path ("${param_file_name}.donor_profile.param"), path ("${param_file_name}.start_profile.param"), path ("${param_file_name}.stop_profile.param")
 
     script:
     param_file_name = param_file.getName()
@@ -222,12 +221,6 @@ process splitParams {
     """
 }
 
-
-
-
-
-
-
 workflow geneid_param_creation {
 
     take:
@@ -256,6 +249,4 @@ workflow geneid_param_creation {
     // sto_pwm
     // param_valuesgetParamValues
     // id
-    
-
 }

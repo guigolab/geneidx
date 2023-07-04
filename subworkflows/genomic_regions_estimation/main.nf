@@ -131,14 +131,14 @@ process removeProtOverlappingIntrons {
     tag "${introns_name}"
 
     input:
-    tuple val(id), path (introns), path (main_matches)
+    tuple val(id), path(introns), path(main_matches)
 
     output:
-    path ("${introns_name}.non_overlapping_matches.gff")
+    tuple val(id), path("${introns_name}.non_overlapping_matches.gff")
 
     script:
     main_matches_name ="main_matches"
-    introns_name = "introns"
+    introns_name = "${id}_introns"
     """
     sort -k1,1 -k4,5n ${introns} > ${introns}.sorted;
     sort -k1,1 -k4,5n ${main_matches} > ${main_matches}.sorted;
@@ -375,10 +375,10 @@ process getIntronMatrices {
 process combineMatrices {
     label "geneidx"
 
-    tag "${name}"
+    tag "${id}"
 
     input:
-    tuple val(id), path(cds_mats_ini), path (cds_mats_trans), path(introns_mats_ini), path(introns_mats_trans)
+    tuple val(id), path(cds_mats_ini), path(cds_mats_trans), path(introns_mats_ini), path(introns_mats_trans)
 
     output:
     tuple val(id), path(cds_intron_init_geneid), path(cds_intron_trans_geneid)
@@ -387,13 +387,13 @@ process combineMatrices {
     cds_intron_init = "${id}.cds-intron.5.initial"
     cds_intron_trans = "${id}.cds-intron.5.transition."
     cds_intron_init_geneid = "${cds_intron_init}.geneid"
-    cds_intron_trans_geneid = "${cds_trans_init}.geneid"
+    cds_intron_trans_geneid = "${cds_intron_trans}.geneid"
 
     """
     ##  Compute log-likelihood exon matrices, assuming intron
     ##  matrices describing background probabilities
 
-    gawk -f /scripts/pro2log_ini.awk ${intron_mats_ini} ${cds_mats_ini} \
+    gawk -f /scripts/pro2log_ini.awk ${introns_mats_ini} ${cds_mats_ini} \
           >  ${cds_intron_init}
 
     gawk 'BEGIN {p=-1}{if (((NR+2) % 3)==0) p+=1; print \$2,p,\$1,\$3}' \
@@ -401,10 +401,7 @@ process combineMatrices {
 
     sed -i '1 i\\Markov_Initial_probability_matrix' ${cds_intron_init_geneid}
 
-    ##  Compute log-likelihood exon matrices, assuming intron
-    ##  matrices describing background probabilities
-
-    gawk -f /scripts/pro2log_tran.awk ${intron_mats_trans} ${cds_mats_trans} \
+    gawk -f /scripts/pro2log_tran.awk ${introns_mats_trans} ${cds_mats_trans} \
           >  ${cds_intron_trans}
 
     gawk 'BEGIN {p=-1}{if (((NR+2) % 3)==0) p+=1; print \$2,p,\$1,\$4}' \
@@ -414,73 +411,6 @@ process combineMatrices {
     """
 }
 
-/*
- * Get the initial probability matrices of the introns
- */
-process combineIni {
-
-    // indicates to use as a label the value indicated in the parameter
-    label "geneidx"
-
-    // show in the log which input file is analysed
-    tag "${name}"
-
-    input:
-    path (cds_mats_ini)
-    path (intron_mats_ini)
-
-    output:
-    path ("${name}.cds-intron.5.initial.geneid")
-
-    script:
-    name = "${cds_mats_ini.BaseName}_${intron_mats_ini.BaseName}"
-    """
-    ##  Compute log-likelihood exon matrices, assuming intron
-    ##  matrices describing background probabilities
-
-    gawk -f /scripts/pro2log_ini.awk ${intron_mats_ini} ${cds_mats_ini} \
-          >  ${name}.cds-intron.5.initial
-
-    gawk 'BEGIN {p=-1}{if (((NR+2) % 3)==0) p+=1; print \$2,p,\$1,\$3}' \
-      ${name}.cds-intron.5.initial > ${name}.cds-intron.5.initial.geneid
-
-    sed -i '1 i\\Markov_Initial_probability_matrix' ${name}.cds-intron.5.initial.geneid
-    """
-}
-
-/*
- * Get the transition probability matrices of the introns
- */
-process combineTrans {
-
-    // indicates to use as a label the value indicated in the parameter
-    label "geneidx"
-
-    // show in the log which input file is analysed
-    tag "${name}"
-
-    input:
-    path (cds_mats_trans)
-    path (intron_mats_trans)
-
-    output:
-    path ("${name}.cds-intron.5.transition.geneid")
-
-    script:
-    name = "${cds_mats_trans}_${intron_mats_trans}"
-    """
-    ##  Compute log-likelihood exon matrices, assuming intron
-    ##  matrices describing background probabilities
-
-    gawk -f /scripts/pro2log_tran.awk ${intron_mats_trans} ${cds_mats_trans} \
-          >  ${name}.cds-intron.5.transition
-
-    gawk 'BEGIN {p=-1}{if (((NR+2) % 3)==0) p+=1; print \$2,p,\$1,\$4}' \
-      ${name}.cds-intron.5.transition > ${name}.cds-intron.5.transition.geneid
-
-    sed -i '1 i\\Markov_Transition_probability_matrix' ${name}.cds-intron.5.transition.geneid
-    """
-}
 /*
  * Uncompressing if needed
  */
@@ -548,7 +478,7 @@ workflow intron_workflow {
 
     main:
 
-    non_overlapping_introns =summarizeMatches(hsp_files) | pyComputeIntrons| removeProtOverlappingIntrons
+    non_overlapping_introns = summarizeMatches(hsp_files) | pyComputeIntrons | removeProtOverlappingIntrons
 
     non_overlapping_introns_genomes = non_overlapping_introns.join(unzipped_genomes)
 

@@ -1,9 +1,3 @@
-
-OutputFolder = "${params.output}"
-
-subwork_folder = "${projectDir}/subworkflows/"
-
-
 process runGeneid {
 
     label "geneidx"
@@ -24,13 +18,6 @@ process runGeneid {
     query=\$(awk 'sub(/^>/, "")' ${seq_file_path})
 
     egrep -w \"^\$query\" ${protein_matches} > ${seq_file_name}.hsp.gff
-
-    # check if the evidence file is empty
-    if [ ! -s ${seq_file_name}.hsp.gff ];  then
-        echo "No protein evidence";
-    else
-        echo "Great, there is protein evidence";
-    fi
 
     blast2gff -vg ${seq_file_name}.hsp.gff > ${seq_file_name}.SR.gff
     sgp_getHSPSR.pl \"${seq_file_name}\" < ${seq_file_name}.SR.gff > ${seq_file_name}.HSP_SR.gff
@@ -56,9 +43,9 @@ workflow geneid_execution {
 
     main:
 
-    sequences = genomes.splitFasta( file: true )
+    args = genomes.splitFasta(file: true).combine(geneid_inputs, by: 0)
 
-    predictions = runGeneid(sequences.join(geneid_inputs))
+    predictions = runGeneid(args)
 
     emit:
     predictions

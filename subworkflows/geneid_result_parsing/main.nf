@@ -1,21 +1,3 @@
- process joinPredictions {
-    // show in the log which input file is analysed
-    tag "joining gffs to ${name}"
-
-    input:
-    tuple val(id), path(gffs_outputs)
-
-    output:
-    tuple val(id), path(name)
-
-    script:
-    name = "${gffs_outputs.BaseName}_parsed.gff3"
-    """
-    cat ${gffs_outputs} | egrep -v '^# ' | egrep -vw '###' | sort -u | sort -k1,1 -k4,5n > ${name}
-    """
-}
-
-
 /*
  * Adding information from matches
  */
@@ -47,8 +29,6 @@ process intersectHints {
     """
 }
 
-
-
 process processLabels {
 
     // indicates to use as a label the value indicated in the parameter
@@ -74,7 +54,8 @@ process processLabels {
     data = pd.read_table("${annotations_file}",
                          names=["seq", "source", "feature", "start", "end", "strand",
                                "score", "phase", "attributes", "protein"],
-                         header = None)
+                         header = None,
+                         dtype='unicode')
 
     grouped_data = data.groupby( ["seq", "source", "feature", "start", "end",
                                   "strand", "score", "phase",
@@ -94,9 +75,7 @@ process processLabels {
                            index = None)
     """
 }
-/*
- *
- */
+
 process splitGff3 {
 
     tag "${annotations_file}"
@@ -105,24 +84,19 @@ process splitGff3 {
     tuple val(id), path(annotations_file)
 
     output:
-    tuple val(id), path("${annotations_file_name}.head")
-    tuple val(id), path ("${annotations_file_name}.content")
+    tuple val(id), path(head)
+    tuple val(id), path(content)
 
     script:
-    annotations_file_name = annotations_file.getSimpleName()
+    head = "${id}.head"
+    content = "${id}.content"
     """
-    egrep '^##' ${annotations_file} | sort -u > ${annotations_file_name}.head;
-    egrep -v '^#' ${annotations_file} | sort -u | sort -k1,1 -k4,5n > ${annotations_file_name}.content;
+    egrep '^##' ${annotations_file} | sort -u > ${head};
+    egrep -v '^#' ${annotations_file} | sort -u | sort -k1,1 -k4,5n > ${content};
     """
 }
 
-
-/*
- *
- */
 process mergeGff3 {
-
-    publishDir(params.OUTPUT, mode: "copy", pattern : "*.gff3")
 
     // show in the log which input file is analysed
     tag "${annotations_file_name}"
@@ -170,9 +144,6 @@ process indexGff3 {
 
     cat ${annotations_file}.head ${annotations_file}.content <(echo '###') > ${annotations_file};
 
-    rm ${annotations_file}.head;
-    rm ${annotations_file}.content;
-
     echo "Compressing ${annotations_file}";
     bgzip -c ${annotations_file} > ${annotations_file}.gz;
 
@@ -190,9 +161,7 @@ workflow geneid_result_parsing {
 
     main:
 
-    merged_predictions = joinPredictions(predictions)
-
-    (gff3_head, gff3_content) = splitGff3(hsp_files)
+    (gff3_head, gff3_content) = splitGff3(predictions)
 
     labeled_content = intersectHints(gff3_content.join(hsp_files)) | processLabels
 
@@ -202,4 +171,5 @@ workflow geneid_result_parsing {
 
     emit:
     output
+    // output
 }

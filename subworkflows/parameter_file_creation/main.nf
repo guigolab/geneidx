@@ -1,10 +1,7 @@
 process createParamFile {
-    // indicates to use as a label the value indicated in the parameter
-    label (params.LABEL)
-    // // show in the log which input file is analysed
-    // tag "${output_param}"
+
     input:
-    tuple val(id), path(acceptor_pwm), path(donor_pwm), path(start_pwm), path(stop_pwm), val(params_list), path(initial_probability_matrix), path(transition_probability_matrix)
+    tuple val(id), val(taxid), path(acceptor_pwm), path(donor_pwm), path(start_pwm), path(stop_pwm), val(params_list), path(initial_probability_matrix), path(transition_probability_matrix)
 
     output:
     tuple val(id), path("${output_param}")
@@ -27,7 +24,7 @@ process createParamFile {
 
     ini_exon_weight = exon_weight + 1
     ini_coding_cutoff_oligos = coding_cutoff_oligos + 5
-    output_param = file(genome).BaseName.toString() + ".${params.match_score_min}.${params.match_ORF_min}.manually_created.param"
+    output_param = "${id}.${params.match_score_min}.${params.match_ORF_min}.manually_created.param"
 
     """
     cat <<EOF > ${output_param}
