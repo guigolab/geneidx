@@ -1,0 +1,6 @@
+assembly: "" 			# Your genome assembly
+rm_lib: false 			# repeats in FASTA format
+rm_species: false 		# Taxonomic group for repeat-masking
+npart_size: 200000000		# Split assembly into sizes of this
+min_contig_size: 5000		# Remove scaffolds smaller than this
+email: false			# Your Email adress
