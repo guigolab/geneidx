@@ -429,9 +429,15 @@ process unzipFasta {
 
     script:
     unzipped_genome = "${id}_unzipped.fa"
+    extension = genome.getExtension()
     """
-    echo "unzipping genome ${genome}"
-    gunzip -c ${genome} > ${unzipped_genome};
+
+    if [[ "${extension}" == "gz" ]]; then
+        gunzip -c ${genome} > ${unzipped_genome};
+    else
+       cat ${genome} > ${unzipped_genome}
+    fi
+
     """
 }
 /*

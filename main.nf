@@ -63,6 +63,7 @@ workflow {
 
     masked_genomes = GENOMEANNOTATOR(genomes, metadata)
 
+    results = GENEIDX(masked_genomes, metadata)
 
 }
 /*

@@ -32,13 +32,13 @@ workflow GENOMEANNOTATOR {
 
   ch_repeats = repeat_download(metadata, file(params.repeats_data_path))
   
-  REPEATMASKER(filtered_assemblies, ch_repeats)
+  masked_assemblies = REPEATMASKER(filtered_assemblies, ch_repeats)
     
   //   ch_versions = ch_versions.mix(REPEATMASKER.out.versions)
   //   ch_genome_rm = REPEATMASKER.out.fasta
 
-  // emit:
-  // ch_genome_rm
+  emit:
+  masked_assemblies
 }
 
 

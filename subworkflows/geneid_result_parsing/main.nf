@@ -137,6 +137,8 @@ process indexGff3 {
     output:
     tuple val(id), path("${annotations_file}"), path("${annotations_file}.gz"), path("${annotations_file}.gz.tbi")
 
+
+    //TODO: FIX SORTING, SHOULD USE GENOMETOOLS TO SORT PROPERLY
     script:
     """
     egrep '^##' ${annotations_file} | sort -u > ${annotations_file}.head;

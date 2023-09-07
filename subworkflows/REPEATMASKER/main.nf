@@ -51,9 +51,8 @@ workflow REPEATMASKER {
     masked_assemblies = REPEATMASKER_REPEATMASK(repeat_masker_input).groupTuple() | REPEATMASKER_CAT_FASTA
 
 
-    masked_assemblies.view()
 
-    // emit:
-    // fasta = REPEATMASKER_CAT_FASTA.out.fasta
+    emit:
+    masked_assemblies
 
 }
