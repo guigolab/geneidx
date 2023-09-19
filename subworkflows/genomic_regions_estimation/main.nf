@@ -511,10 +511,10 @@ workflow genomic_regions_estimation {
 
     unzipped_genomes = unzipFasta(genomes)
 
-    cds_matrix = cds_workflow(unzipped_genomes, hsp_files)
+    cds_matrix = cds_workflow(genomes, hsp_files)
 
     //tuple val(id), path(initial), path(transition)
-    intron_matrix = intron_workflow(unzipped_genomes, hsp_files)
+    intron_matrix = intron_workflow(genomes, hsp_files)
 
     //tuple val(id), path(initial), path(trans)
     combined_matrices = combineMatrices(cds_matrix.join(intron_matrix))

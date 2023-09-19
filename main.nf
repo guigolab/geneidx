@@ -14,65 +14,46 @@
  * The configuration is in nextflow.config file
  */
 
-// this prevents a warning of undefined parameter
 nextflow.enable.dsl=2
-params.help             = false
 
 log.info """
-GENEID+BLASTx - NextflowPipeline
+GENOMEMASKING+GENEID+BLASTx - NextflowPipeline
 =============================================
-output			: ${params.output}
-genome			: ${params.genome}
-taxon			: ${params.taxid}
+output path: ${params.output}
+tsv input path: ${params.tsv}
+id column: ${params.column_id_value}
+taxid column: ${params.column_taxid_value}
+path column: ${params.column_path_value}
+mask genomes? ${params.use_masking}
 """
 
-// this prints the help in case you use --help parameter in the command line and it stops the pipeline
-if (params.help) {
-    log.info 'This is the GeneidX test pipeline in Nextflow'
-    log.info 'Please define the genome file and the taxid of the species.\n'
-    log.info 'To define additional parameters checkout the params.config file.\n'
-    log.info '\n'
-    exit 1
-}
-
-wk_folder = "${projectDir}/workflows"
+wk_folder = "${projectDir}/workflows"   
+subwk_folder = "${projectDir}/subworkflows"
 
 include { GENEIDX } from "${wk_folder}/GENEIDX"
-
 include { GENOMEANNOTATOR } from "${wk_folder}/GENOMEANNOTATOR"
+include { UNZIP_FASTA } from "${subwk_folder}/ASSEMBLY_PREPROCESS"
 
 workflow {
 
-  //get params --> genomeannotator --> geneidx
-  //convert genome(s) to factory channel of tuples
-  if(params.genome){
-    genomes = channel.fromList([tuple(params.taxid, params.taxid, file(params.genome))])
-    metadata = channel.fromList([tuple(params.taxid, params.taxid)])
-  
-  }else {
-
     tsv = channel.fromPath(params.tsv)
-
-    genomes = tsv.splitCsv( sep: '\t', header:true )
-    .collectFile(){ row -> ["${row[params.row_id]}-.fa.gz", file(row[params.row_path])]}
-    .map { it -> tuple(it.baseName.tokenize('-')[0], it)}
+    
+    input_genomes = tsv.splitCsv( sep: '\t', header:true )
+    .collectFile(){ row -> ["${row[params.column_id_value]}-.fa.gz", file(row[params.column_path_value])]}
+    .map { it -> tuple(it.baseName.tokenize('-')[0], it)} | UNZIP_FASTA
 
     metadata = tsv.splitCsv( sep: '\t', header:true )
-    .map { row -> tuple(row[params.row_id], row[params.row_taxid]) }
-    }
+    .map { row -> tuple(row[params.column_id_value], row[params.column_taxid_value]) }
 
-    masked_genomes = GENOMEANNOTATOR(genomes, metadata)
+    genomes = input_genomes
 
-    results = GENEIDX(masked_genomes, metadata)
+    if(params.use_masking) genomes = GENOMEANNOTATOR(input_genomes, metadata)
+
+    results = GENEIDX(genomes, metadata)
 
 }
-/*
- *  When complete print a message
- */
+
+
 workflow.onComplete {
 	println ( "\nDone!\n" )
 }
-
-// workflow.onError {
-//   println "Oops... Pipeline execution stopped with the following message: ${workflow.errorMessage}"
-// }

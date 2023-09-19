@@ -1,4 +1,3 @@
-
 process downloadProteins {
 
     // where to store the results and in which way
@@ -6,7 +5,7 @@ process downloadProteins {
 
     label 'geneidx'
     // show in the log which input file is analysed
-    tag "${prot_filename}"
+    tag "Downloading proteins ${prot_filename}"
 
     input:
     tuple val(id), val(text_desc)
@@ -40,7 +39,7 @@ process getUniRefQuery {
     label 'geneidx'
 
     // show in the log which input file is analysed
-    tag "${taxid}"
+    tag "Creating uniref query for: ${taxid}"
 
     input:
     tuple val(id), val(taxid)
@@ -179,7 +178,6 @@ workflow uniref_query {
     meta
 
     main:
-
     uniref_proteins  = getUniRefQuery(meta) | downloadProteins
     
     emit:

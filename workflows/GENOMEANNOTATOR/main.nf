@@ -24,24 +24,11 @@ workflow GENOMEANNOTATOR {
 
   filtered_assemblies = ASSEMBLY_PREPROCESS(assemblies)
 
-  //tuple val(id), path(repeats)
-  // ch_repeats = params.repeat_modeler ?  
-  //   repeat_download(metadata, file(params.repeats_data_path)) :
-  //   REPEATMODELER(filtered_assemblies) --> memory exceed? do we need to use this?
-
-
   ch_repeats = repeat_download(metadata, file(params.repeats_data_path))
   
   masked_assemblies = REPEATMASKER(filtered_assemblies, ch_repeats)
-    
-  //   ch_versions = ch_versions.mix(REPEATMASKER.out.versions)
-  //   ch_genome_rm = REPEATMASKER.out.fasta
 
   emit:
   masked_assemblies
 }
 
-
-workflow.onComplete {
-    NfcoreTemplate.summary(workflow, params, log)
-}

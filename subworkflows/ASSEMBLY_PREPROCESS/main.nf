@@ -26,10 +26,8 @@ workflow ASSEMBLY_PREPROCESS {
     assemblies // tuple val(id), path(genome)
 
     main:
-
-    unzipped_assemblies = UNZIP_FASTA(assemblies)
        	
-    filtered_assemblies = GAAS_FASTAFILTERBYSIZE(unzipped_assemblies, params.min_contig_size) | GAAS_FASTACLEANER
+    filtered_assemblies = GAAS_FASTAFILTERBYSIZE(assemblies, params.min_contig_size) | GAAS_FASTACLEANER
 
     emit:
     filtered_assemblies

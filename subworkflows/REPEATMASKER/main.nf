@@ -26,9 +26,6 @@ workflow REPEATMASKER {
        multi: f.getClass() == ArrayList
     }.set { ch_fa_chunks }
 
-    // ch_fa_chunks.single.view { "$it single" }
-    // ch_fa_chunks.multi.view { "$it multi" }
-
     ch_fa_chunks.multi.flatMap { id, fastas ->
        fastas.collect { [ id, file(it)] }
     }.set { ch_chunks_split }
@@ -49,7 +46,6 @@ workflow REPEATMASKER {
             .combine(rm_lib, by:0)
     
     masked_assemblies = REPEATMASKER_REPEATMASK(repeat_masker_input).groupTuple() | REPEATMASKER_CAT_FASTA
-
 
 
     emit:
