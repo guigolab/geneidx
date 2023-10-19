@@ -199,10 +199,7 @@ process getProtRepeats {
 process downloadRepFasta {
 
     // where to store the results and in which way
-    publishDir(params.OUTPUT, mode : 'copy', pattern : '*.fa')
-
-    // indicates to use as a container the value indicated in the parameter
-    // container "ferriolcalvet/geneidx"
+    storeDir(params.OUTPUT)
 
     // indicates to use as a label the value indicated in the parameter
     label "geneidx"

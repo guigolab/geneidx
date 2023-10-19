@@ -1,5 +1,7 @@
 process createDB {
 
+    storeDir(params.OUTPUT)
+
     label 'diamond'
 
     tag "building ${id} database"
@@ -11,17 +13,17 @@ process createDB {
     tuple val(id), path(diamond_db)
 
     script:
-    diamond_db = "${id}.dmnd"
+    proteins_name = proteins_path.BaseName
+    diamond_db = "${proteins_name}.dmnd"
     """
         echo "Building ${diamond_db} database"
-        diamond makedb --in ${proteins_path} -d ${id};
+        diamond makedb --in ${proteins_path} -d ${proteins_name};
     """
 }
 
 //get hsp in gff3
 process runDiamond {
 
-    publishDir(params.OUTPUT, mode : 'copy')
     label "diamond"
 
     // show in the log which input file is analysed

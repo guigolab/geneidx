@@ -1,3 +1,7 @@
+
+output_dir = "${params.output}"
+species_dir = "${output_dir}/species"
+
 process UNZIP_FASTA {
 
     label "geneidx"

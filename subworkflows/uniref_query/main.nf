@@ -1,7 +1,7 @@
 process downloadProteins {
 
     // where to store the results and in which way
-    // publishDir(params.OUTPUT, mode : 'copy', pattern : '*.fa.gz')
+    storeDir(params.OUTPUT)
 
     label 'geneidx'
     // show in the log which input file is analysed
@@ -15,7 +15,6 @@ process downloadProteins {
 
     script:
     (prot_desc, prot_filename, prot_query ) = (text_desc =~ /([A-Za-z\d\.\+]+)\s(.*)/)[0]
-
     """
     #!/usr/bin/env python3
 
@@ -31,9 +30,6 @@ process downloadProteins {
 }
 
 process getUniRefQuery {
-
-    // where to store the results and in which way
-    // publishDir(params.OUTPUT, mode : 'copy', pattern : '*.gff3')
 
     // indicates to use as a label the value indicated in the parameter
     label 'geneidx'
