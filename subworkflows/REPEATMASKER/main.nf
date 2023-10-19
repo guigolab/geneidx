@@ -19,7 +19,6 @@ workflow REPEATMASKER {
 
     splitted_fastas = FASTASPLITTER(assemblies, params.npart_size)
 
-    // splitted_fastas | view
     // If chunks == 1, forward - else, map each chunk to the meta hash
     splitted_fastas.branch { id,f ->
        single: f.getClass() != ArrayList
@@ -30,7 +29,6 @@ workflow REPEATMASKER {
        fastas.collect { [ id, file(it)] }
     }.set { ch_chunks_split }
 
-    // ch_chunks_split | view {it -> print "$it"}
 
      stage_lib = REPEATMASKER_STAGELIB(
          rm_lib,

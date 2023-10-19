@@ -116,9 +116,6 @@ process manageGff3sectionSplit {
  */
 process manageGff3sectionMerge {
 
-    // where to store the results and in which way
-    // publishDir(params.OUTPUT, mode : 'copy')
-
     // indicates to use as a label the value indicated in the parameter
     label (params.LABEL)
 

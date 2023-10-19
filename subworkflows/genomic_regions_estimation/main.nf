@@ -206,7 +206,7 @@ process mergeMatches {
 process filterByScore {
 
     // show in the log which input file is analysed
-    tag "${name}"
+    tag "${id}"
 
     // indicates to use as a label the value indicated in the parameter
     input:
@@ -505,11 +505,8 @@ workflow genomic_regions_estimation {
     take:
     genomes
     hsp_files    
-    // unzipped_genomes = unzipFasta(genomes)
 
     main:
-
-    unzipped_genomes = unzipFasta(genomes)
 
     cds_matrix = cds_workflow(genomes, hsp_files)
 
