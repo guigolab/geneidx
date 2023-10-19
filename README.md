@@ -12,15 +12,61 @@ Stay tuned for an article with detailed descriptions and feel free to [contact u
 <!-- ![Summary of vertebrate benchmark](images/Benchmarking4GitHubX.svg) -->
 
 
+## Before running GeneidX
 
-## Running GeneidX
-Having defined the parameters and ensuring that Nextflow and a container technology are installed.
+### DEPENDENCIES
+Make sure ( Docker or Singularity ) and Nextflow are installed in your computer
+  - [Docker](https://docs.docker.com/engine/install/)
+  - [Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html#)
+  - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
 
-This pipeline requires the compressed genome assembly and the taxid of the species to annotate.
+### MANDATORY PARAMETERS
+Required parameters to run GeneidX
+
+#### tsv
+the absolute path of the tsv file input file
+
+> The tsv file can contain multiple assemblies of different species, thus allowing the pipeline to annotate in parallel all the species contained in the tsv file
+
+##### example
+
+| ID    | PATH | TAXID |
+| ------- | --- | ------- |
+| GCA_951394045.1   | https://www.ebi.ac.uk/ena/browser/api/fasta/GCA_946965045.2?download=true&gzip=true  | 2809013     |
+| humanAssembly     | /absolutePath/humanAssembly.fa.gz  | 9606  |
+
+__IMPORTANT__
+- the provided paths must point to gzipped files (__.gz__ extension is expected from the pipeline's processes)
+- the path can also be a URL
+
+#### column_id_value
+the column name of the row id, in the example above is `ID` __it must be unique__
+
+#### column_path_value 
+the column name of the path pointing to the fasta file, in the example above is `PATH`
+
+#### column_taxid_value 
+the column name of the [taxid](https://www.ncbi.nlm.nih.gov/taxonomy) value, in the example above is `TAXID`
+
+### OPTIONAL PARAMETERS
+
+### use_masking (default = true)
+Whether to mask the genomes or not -> boolean
+
+### store_param_files (default=false)
+Whether to store the generated geneid param file in the target species folder -> boolean
+
+### assemblies_dir (default="")
+Path to the directory where the downloaded assemblies will be stored. In case of many assemblies -> string
+
+
+## Running GeneidX example:
 ```
 nextflow run guigolab/geneidx -profile <docker/singularity>
-                                        --assembly <GENOME>.fa,gz
-                                        --taxid <TAXID>
+                                        --tsv <PATH_TO_TSV>
+                                        --column_taxid_value <TAXID_COLUMN_NAME>
+                                        --column_path_value <PATH_COLUMN_NAME>
+                                        --column_id_value <ID_COLUMN_NAME>
                                         --outdir <OUTPUT_directory>
 ```
 
@@ -29,34 +75,16 @@ or alternatively, clone the repository and then run it (highly recommended)
 git clone https://github.com/guigolab/geneidx.git
 cd geneidx
 nextflow run main.nf -profile <docker/singularity>
-                      --assembly <GENOME>.fa.gz
-                      --taxid <TAXID>
-                      --outdir <OUTPUT_directory>
+                              --tsv <PATH_TO_TSV>
+                              --column_taxid_value <TAXID_COLUMN_NAME>
+                              --column_path_value <PATH_COLUMN_NAME>
+                              --column_id_value <ID_COLUMN_NAME>
+                              --outdir <OUTPUT_directory>
 ```
 
 
 Revise the DETAILS section below for the minor specifications of each parameter.
 
-
-## Before running GeneidX
-1. **Make sure ( Docker or Singularity ) and Nextflow are installed in your computer.**
-  - [Docker](https://docs.docker.com/engine/install/)
-  - [Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html#)
-  - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
-
-2. Define the input parameters:
-  - Compressed FASTA file with `.fa.gz` termination.
-  - Taxid of the species to annotate or from the closest relative described with taxid. You can find this information in [NCBI Taxonomy database](https://www.ncbi.nlm.nih.gov/taxonomy).
-
-
-3. Optional parameters:
-  - Proteins from closely related species: (choose one of these options)
-      - Provide a compressed FASTA file with the proteins selected.
-      - Let the pipeline download the proteins automatically from UniRef90 (nothing should be provided in this case.)
-  - Tune parameters for the gene prediction process.
-      - Indicate the values for each Geneid parameter.
-      - Let the pipeline select them from the closest pretrained Geneid parameter file. (find the parameters in data/Parameter_files.taxid/)
-      - Find more information here: [GENEID parameter files](https://genome.crg.es/software/geneid/index.html#parameters)
 
 
 
@@ -90,10 +118,9 @@ This is done in parallel for each independent sequence inside the genome FASTA f
   - It is recommended to clone the repository and then run the pipeline from there.
   - So far the output of the predictions is not stored in the path indicated when running the pipeline, but in output/species/{taxid of the species}.
   - If you are running the pipeline multiple times, it is recommended that you define a directory for downloading the docker/singularity images to avoid having to download them multiple times. See `singularity.cacheDir variable` in `nextflow.config`.
-  - If you are starting from an unmasked genome assembly, check another version of this pipeline integrating the genome masking process. [GeneidXmask](https://github.com/FerriolCalvet/geneidXmask) repository.
+  - If you have used Geneid in the past and have manually trained a parameter file, we are open to receive them and share them in our repositories giving credit to the users who generated them: to view the complete list of the available parameter files [see](https://github.com/guigolab/geneid-parameter-files)
 
-  - If you have used Geneid in the past and have manually trained a parameter file, we are open to receive them and share them in our repositories giving credit to the users who generated them.
-  Contact us at [ferriol.calvet@crg.eu](mailto:ferriol.calvet@crg.eu).
+Contact us at [ferriol.calvet@crg.eu](mailto:ferriol.calvet@crg.eu).
 
 
 Follow us on Twitter ([@GuigoLab](https://twitter.com/GuigoLab)) for updates in the article describing our method, and contact us for any questions or suggestions.
