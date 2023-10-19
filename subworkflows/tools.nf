@@ -26,6 +26,38 @@
 }
 
 
+process parseFastaHeader {
+
+    input:
+    tuple val(id), path(fasta)
+
+    output:
+    tuple val(id), path(out_fasta)
+
+    script:
+    out_fasta = "parsed_${fasta.BaseName}.fa"
+    
+    """
+    #!/usr/bin/env python3
+
+    with open("${fasta}", 'r') as infile, open("${out_fasta}", 'w') as outfile:
+        for line in infile:
+            if line.startswith('>'):
+                header = line.strip()
+                if 'ENA' in header:
+                    parts = header.split('|')
+                    if len(parts) > 2:
+                        new_header = f'>{parts[-1].split()[0]}\\n'
+                        outfile.write(new_header)
+                    else:
+                        outfile.write(header + '\\n')
+                else:
+                    outfile.write(header + '\\n')
+            else:
+                outfile.write(line)
+    """
+}
+
 process createParamFile {
     // indicates to use as a label the value indicated in the parameter
     label (params.LABEL)
