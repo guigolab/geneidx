@@ -59,6 +59,39 @@ Whether to store the generated geneid param file in the target species folder ->
 ### assemblies_dir (default="")
 Path to the directory where the downloaded assemblies will be stored. In case of many assemblies -> string
 
+### uniref_identity (default= 0.9)
+Refers to the level of homology of the proteins taken from UniRef.
+Can take values 0.5, 0.9 or 1.0
+
+> Proteins are automatically retrieved from UniRef. See [here](https://www.uniprot.org/help/uniref) for more information.
+> The set of proteins in non-redundant considering a more strict or less strict redundancy threshold. (UniRef50, less strict threshold (less proteins, different proteins in this set are really different), > UniRef100 the most strict threshold (more proteins, "more redundant" ))
+
+### proteins_lower_lim (default= 90000)
+Ensure that the set of proteins downloaded from UniRef has at least this many proteins.
+
+### proteins_upper_lim (default= 130000)
+Ensure that the set of proteins downloaded from UniRef has at most this many proteins.
+
+The downloader module will keep iterating and adjusting the query parameters until the number of proteins is within this range.
+
+### general_gene_params (default= "$projectDir/data/general_gene_model.param")
+Template for the basic parameters of the gene structures predicted by geneid. 
+
+### match_score_min (default= 300)
+This is the minimal score for a DIAMOND alignment to be used in the process of automatically training the coding potential estimation matrices.
+
+### match_ORF_min (default= 100)
+This is the minimal length of a ORF derived from DIAMOND protein alignments to be used in the process of automatically training the coding potential estimation matrices.
+
+### intron_margin (default= 40)
+To make sure that what we use as introns is truly non-coding sequence, this is the margin from the end of each predicted exon to the positions where we start assuming that corresponds to an intron.
+
+### min_intron_size (default= 20)
+### max_intron_size (default= 10000)
+These set the lower and upper boundaries of the size of introns that are being used for building the coding potential estimation matrices.
+
+### source_uniprot (default= 1)
+This is a "boolean" variable indicating whether the proteins of input come from uniprot/uniref or not. This information is used for producing a first "functional annotation" of the output GFF3 since it computes the intersection with the file of protein to genome matches in such a way that for each predicted gene we provide a list of which UniRef proteins are highly homologous to it.
 
 ## Running GeneidX example:
 ```
