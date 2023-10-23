@@ -18,7 +18,7 @@ process intersectHints {
     tuple val(id),path("${annotations_file_name}.labelled.tsv")
 
     script:
-    annotations_file_name = annotations_file.getSimpleName()
+    annotations_file_name = annotations_file.getBaseName()
     """
     sort -k1,1 -k4,5n ${annotations_file} > ${annotations_file}.sorted;
     sort -k1,1 -k4,5n ${matches_file} > ${matches_file}.sorted;
@@ -108,7 +108,7 @@ process mergeGff3 {
     tuple val(id), path("${annotations_file_name}.gff3")
 
     script:
-    annotations_file_name = annotations_file_head.getSimpleName()
+    annotations_file_name = annotations_file_head.getBaseName()
     """
     cat ${annotations_file_head} ${annotations_file_content} > ${annotations_file_name}.gff3;
     """
