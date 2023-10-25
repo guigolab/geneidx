@@ -131,6 +131,9 @@ process getFileFromTaxon {
 }
 
 process getLineage {
+    errorStrategy 'retry'
+    maxRetries 3
+
     input:
         tuple val(id), val(taxid)
     output:
@@ -227,7 +230,7 @@ workflow geneid_param_creation {
     meta
 
     main:
-
+    
     lineage = getLineage(meta)
 
     matrix = file(params.auto_params_selection_matrix_path)

@@ -10,21 +10,23 @@ class WorkflowGenomeannotator {
     public static void initialise(params, log) {
 
         //genomeExistsError(params, log)
+        
+        //  TODO revise if we need to add some other parameter here
 
-        if (!params.assembly) {
-            log.error "Genome assembly not specified with e.g. '--assembly genome.fa'"
+        if (!params.tsv) {
+            log.error "TSV input file not specified with e.g. '--tsv input_genomes.tsv'"
             System.exit(1)
         }
 
-        if (params.assembly.contains('*')) {
-            log.error "This pipeline is not currently designed to annotate multiple assemblies in parallel. Please start separate pipeline runs instead."
-            System.exit(1)
-        }
+        // if (params.assembly.contains('*')) {
+        //     log.error "This pipeline is not currently designed to annotate multiple assemblies in parallel. Please start separate pipeline runs instead."
+        //     System.exit(1)
+        // }
 
-        if (!params.taxid) {
-            log.error "Taxid of the genome assembly not specified with e.g. '--assembly 9606'\nFind the taxid required by searching for your species here: https://www.ncbi.nlm.nih.gov/taxonomy/"
-            System.exit(1)
-        }
+        // if (!params.taxid) {
+        //     log.error "Taxid of the genome assembly not specified with e.g. '--assembly 9606'\nFind the taxid required by searching for your species here: https://www.ncbi.nlm.nih.gov/taxonomy/"
+        //     System.exit(1)
+        // }
     }
 
     //

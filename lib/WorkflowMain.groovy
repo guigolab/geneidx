@@ -73,10 +73,10 @@ class WorkflowMain {
         NfcoreTemplate.awsBatch(workflow, params)
 
         // Check input has been provided
-        if (!params.assembly) {
-            log.error "Please provide an assembly as input. '--assembly genome.fa'"
-            System.exit(1)
-        }
+        // if (!params.assembly) {
+        //     log.error "Please provide an assembly as input. '--assembly genome.fa'"
+        //     System.exit(1)
+        // }
     }
 
     //

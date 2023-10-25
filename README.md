@@ -100,7 +100,7 @@ nextflow run guigolab/geneidx -profile <docker/singularity>
                                         --column_taxid_value <TAXID_COLUMN_NAME>
                                         --column_path_value <PATH_COLUMN_NAME>
                                         --column_id_value <ID_COLUMN_NAME>
-                                        --outdir <OUTPUT_directory>
+                                        --output <OUTPUT_directory>
 ```
 
 or alternatively, clone the repository and then run it (highly recommended)
@@ -112,7 +112,7 @@ nextflow run main.nf -profile <docker/singularity>
                               --column_taxid_value <TAXID_COLUMN_NAME>
                               --column_path_value <PATH_COLUMN_NAME>
                               --column_id_value <ID_COLUMN_NAME>
-                              --outdir <OUTPUT_directory>
+                              --output <OUTPUT_directory>
 ```
 
 

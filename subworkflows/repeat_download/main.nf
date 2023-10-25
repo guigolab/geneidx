@@ -12,6 +12,9 @@ process getProtRepeats {
     // indicates to use as a label the value indicated in the parameter
     label "geneidx"
 
+    errorStrategy 'retry'
+    maxRetries 3
+
     // show in the log which input file is analysed
     tag "${taxid}"
 

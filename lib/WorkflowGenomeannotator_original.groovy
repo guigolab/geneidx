@@ -11,14 +11,14 @@ class WorkflowGenomeannotator {
 
         //genomeExistsError(params, log)
 
-        if (!params.assembly) {
-            log.error "Genome assembly not specified with e.g. '--assembly genome.fa'"
-            System.exit(1)
-        }
-        if (params.assembly.contains('*')) {
-            log.error "This pipeline is not currently designed to annotate multiple assemblies in parallel. Please start separate pipeline runs instead."
-            System.exit(1)
-        }
+        // if (!params.assembly) {
+        //     log.error "Genome assembly not specified with e.g. '--assembly genome.fa'"
+        //     System.exit(1)
+        // }
+        // if (params.assembly.contains('*')) {
+        //     log.error "This pipeline is not currently designed to annotate multiple assemblies in parallel. Please start separate pipeline runs instead."
+        //     System.exit(1)
+        // }
         if (!params.aug_species) {
             log.error "Augustus profile model not specified with e.g. '--aug_species human'"
             System.exit(1)
