@@ -26,7 +26,8 @@ Required parameters to run GeneidX
 #### tsv
 the absolute path of the tsv file input file
 
-> The tsv file can contain multiple assemblies of different species, thus allowing the pipeline to annotate in parallel all the species contained in the tsv file
+> The tsv file can contain multiple assemblies of different species, thus allowing the pipeline to annotate in parallel all the species contained in the tsv file.
+See [data/assemblies.tsv](https://github.com/guigolab/geneidx/blob/dev/v2-fixes/data/assemblies.tsv) for an example.
 
 ##### example
 
@@ -95,30 +96,28 @@ This is a "boolean" variable indicating whether the proteins of input come from 
 
 ## Running GeneidX example:
 ```
-nextflow run guigolab/geneidx -profile <docker/singularity>
-                                        --tsv <PATH_TO_TSV>
-                                        --column_taxid_value <TAXID_COLUMN_NAME>
-                                        --column_path_value <PATH_COLUMN_NAME>
-                                        --column_id_value <ID_COLUMN_NAME>
-                                        --output <OUTPUT_directory>
+nextflow run guigolab/geneidx -profile <docker/singularity> \
+                                        --tsv <PATH_TO_TSV> \
+                                        --column_taxid_value <TAXID_COLUMN_NAME> \
+                                        --column_path_value <PATH_COLUMN_NAME> \
+                                        --column_id_value <ID_COLUMN_NAME> \
+                                        --outdir <OUTPUT_directory>
 ```
 
 or alternatively, clone the repository and then run it (highly recommended)
 ```
 git clone https://github.com/guigolab/geneidx.git
 cd geneidx
-nextflow run main.nf -profile <docker/singularity>
-                              --tsv <PATH_TO_TSV>
-                              --column_taxid_value <TAXID_COLUMN_NAME>
-                              --column_path_value <PATH_COLUMN_NAME>
-                              --column_id_value <ID_COLUMN_NAME>
-                              --output <OUTPUT_directory>
+git checkout dev/v2-fixes
+nextflow run main.nf -profile <docker/singularity> \
+                              --tsv <PATH_TO_TSV> \
+                              --column_taxid_value <TAXID_COLUMN_NAME> \
+                              --column_path_value <PATH_COLUMN_NAME> \
+                              --column_id_value <ID_COLUMN_NAME> \
+                              --outdir <OUTPUT_directory>
 ```
 
-
 Revise the DETAILS section below for the minor specifications of each parameter.
-
-
 
 
 ## Schema
@@ -149,7 +148,7 @@ This is done in parallel for each independent sequence inside the genome FASTA f
   - **Auto-train the parameter file always.**
 
   - It is recommended to clone the repository and then run the pipeline from there.
-  - So far the output of the predictions is not stored in the path indicated when running the pipeline, but in output/species/{taxid of the species}.
+  - The output of the predictions is stored in the path indicated when running the pipeline, in the following structure {provided outdir}/species/{taxid of the species}.
   - If you are running the pipeline multiple times, it is recommended that you define a directory for downloading the docker/singularity images to avoid having to download them multiple times. See `singularity.cacheDir variable` in `nextflow.config`.
   - If you have used Geneid in the past and have manually trained a parameter file, we are open to receive them and share them in our repositories giving credit to the users who generated them: to view the complete list of the available parameter files [see](https://github.com/guigolab/geneid-parameter-files)
 
