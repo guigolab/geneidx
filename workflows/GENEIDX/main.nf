@@ -1,5 +1,5 @@
 
-output_dir = "${params.output}"
+output_dir = "${params.outdir}"
 protein_db_dir = "${output_dir}/proteins"
 species_dir = "${output_dir}/species"
 subwork_folder = "${projectDir}/subworkflows"

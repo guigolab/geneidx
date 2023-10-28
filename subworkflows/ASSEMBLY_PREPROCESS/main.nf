@@ -1,5 +1,5 @@
 
-output_dir = "${params.output}"
+output_dir = "${params.outdir}"
 species_dir = "${output_dir}/species"
 
 process UNZIP_FASTA {

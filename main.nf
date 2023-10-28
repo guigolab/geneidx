@@ -19,7 +19,7 @@ nextflow.enable.dsl=2
 log.info """
 GENOMEMASKING+GENEID+BLASTx - NextflowPipeline
 =============================================
-output path: ${params.output}
+output path: ${params.outdir}
 tsv input path: ${params.tsv}
 id column: ${params.column_id_value}
 taxid column: ${params.column_taxid_value}
@@ -29,7 +29,7 @@ mask genomes? ${params.use_masking}
 
 wk_folder = "${projectDir}/workflows"   
 subwk_folder = "${projectDir}/subworkflows"
-species_dir = "${params.output}/species"
+species_dir = "${params.outdir}/species"
 
 include { GENEIDX } from "${wk_folder}/GENEIDX"
 include { GENOMEANNOTATOR } from "${wk_folder}/GENOMEANNOTATOR"
@@ -53,7 +53,7 @@ workflow {
     invalid_fasta = tsv.invalidFasta
     if(invalid_fasta.count()){
         invalid_fasta.count().view { it -> "A total of ${it} invalid assemblies have been found"}
-        invalid_fasta.collectFile(storeDir:params.output){ item ->
+        invalid_fasta.collectFile(storeDir:params.outdir){ item ->
             [ "INVALID_ASSEMBLIES.txt", "${item[0]}\t${item[1]}\t${item[2]}" + '\n' ]
         }
         .subscribe {

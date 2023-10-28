@@ -1,6 +1,6 @@
 // WorkflowGenomeannotator.initialise(params, log)
 
-repeats_folder = "${params.output}/repeats"
+repeats_folder = "${params.outdir}/repeats"
 
 subwork_folder = "${projectDir}/subworkflows"
 modules_folder = "${projectDir}/modules"
