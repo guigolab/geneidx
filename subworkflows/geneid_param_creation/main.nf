@@ -6,7 +6,7 @@ process getParamValues {
     label 'geneidx'
 
     // show in the log which input file is analysed
-    tag "${param_file_name}"
+    tag "${id}  ${param_file_name}"
 
     input:
     tuple val(id), val(taxid), path(param_file)
@@ -70,7 +70,10 @@ process getParamValues {
 }
 
 process getFileFromTaxon {
+
     label 'geneidx'
+
+    tag "${id}"
 
     input:
         tuple val(id), val(taxid), val(target_lineage)
@@ -88,7 +91,6 @@ process getFileFromTaxon {
 
     # Define an alternative in case everything fails
     selected_param = "Homo_sapiens.9606.param"
-
 
     data = pd.read_csv("${matrix}", sep = "\t")
 
@@ -134,6 +136,8 @@ process getLineage {
     errorStrategy 'retry'
     maxRetries 3
 
+    tag "${id}"
+
     input:
         tuple val(id), val(taxid)
     output:
@@ -147,6 +151,8 @@ process getLineage {
 
 
 process splitParams {
+
+    tag "${id}"
 
     // indicates to use as a label the value indicated in the parameter
     label 'geneidx'

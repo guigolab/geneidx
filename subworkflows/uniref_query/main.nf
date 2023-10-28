@@ -38,7 +38,7 @@ process getUniRefQuery {
     maxRetries 3
 
     // show in the log which input file is analysed
-    tag "Creating uniref query for: ${taxid}"
+    tag "${id} ${taxid}"
 
     input:
     tuple val(id), val(taxid)

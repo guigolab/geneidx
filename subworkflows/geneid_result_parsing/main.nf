@@ -5,8 +5,8 @@ process intersectHints {
     // indicates to use as a container the value indicated in the parameter
     container "quay.io/biocontainers/bedtools:2.27.1--he513fc3_4"
 
-    // indicates to use as a label the value indicated in the parameter
-    label (params.LABEL)
+    // // indicates to use as a label the value indicated in the parameter
+    // label (params.LABEL)
 
     // show in the log which input file is analysed
     tag "${annotations_file}"

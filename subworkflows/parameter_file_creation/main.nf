@@ -5,6 +5,8 @@ species_dir = "${output_dir}/species"
 
 process createParamFile {
 
+    tag "${id}"
+
     publishDir("${params.OUTPUT}/${taxid}", mode : 'copy', enabled: params.store_param_files)
 
     input:

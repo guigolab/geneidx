@@ -39,6 +39,10 @@ include { parseFastaHeader } from "${subwk_folder}/tools"
 
 workflow {
 
+    if (params.tsv) { tsv_input = file(params.tsv) } else {
+        exit 1, 'TSV samplesheet not specified!'
+    }
+
     tsv = channel.fromPath(params.tsv).splitCsv( sep: '\t', header:true )
     .collectFile(storeDir:params.assemblies_dir){ row -> ["${row[params.column_id_value]}-${row[params.column_taxid_value]}-.fa.gz", file(row[params.column_path_value])]}
     .map { it -> 
