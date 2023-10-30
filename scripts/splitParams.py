@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[44]:
-# ls *.param | grep -v profile | cut -d '.' -f 1 | tr -s '\n' ' ' | xargs -n 1 python splitParams.py 
-
 import re
 import sys
 
@@ -78,10 +72,4 @@ def taxid_to_splitted_files(taxid):
                 
     return "{} splitted into {}".format(taxid, files_created)
 
-
-# In[51]:
-
-
-
 print(taxid_to_splitted_files(taxid))
-

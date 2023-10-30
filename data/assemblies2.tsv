@@ -1,0 +1,4 @@
+Assembly Accession	Assembly Name	Organism Name	Organism Taxonomic ID	Path
+GCA_946965045.2	uoEpiScrs1.2	Epithemia pelagica	2809013	https://www.ebi.ac.uk/ena/browser/api/fasta/GCA_946965045.2?download=true&gzip=true
+GCA_951394045.1	pyDurOcul1.Nitzschia_sp_1.1	Nitzschia sp. DOCU1	3041873	https://www.ebi.ac.uk/ena/browser/api/fasta/GCA_951394045.1?download=true&gzip=true
+TEST_1	uoEpiScrs1.2	Epithemia pelagica	35525	/home/emilior/geneidx/data/SampleGenome.fa.gz
