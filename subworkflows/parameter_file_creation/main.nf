@@ -7,7 +7,7 @@ process createParamFile {
 
     tag "${id}"
 
-    publishDir("${params.OUTPUT}/${taxid}", mode : 'copy', enabled: params.store_param_files)
+    publishDir("${output_dir}/${taxid}", mode : 'copy', enabled: params.store_param_files)
 
     input:
     tuple val(id), val(taxid), path(acceptor_pwm), path(donor_pwm), path(start_pwm), path(stop_pwm), val(params_list), path(initial_probability_matrix), path(transition_probability_matrix)

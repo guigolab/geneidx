@@ -29,6 +29,8 @@
 process parseFastaHeader {
 
     tag "${id}"
+    
+    label "geneidx"
 
     input:
     tuple val(id), path(fasta)

@@ -27,7 +27,7 @@ Required parameters to run GeneidX
 the absolute path of the tsv file input file
 
 > The tsv file can contain multiple assemblies of different species, thus allowing the pipeline to annotate in parallel all the species contained in the tsv file.
-See [data/assemblies.tsv](https://github.com/guigolab/geneidx/blob/dev/v2-fixes/data/assemblies.tsv) for an example.
+See [data/assemblies.tsv](https://github.com/guigolab/geneidx/blob/dev/main/data/assemblies.tsv) for an example.
 
 ##### example
 
