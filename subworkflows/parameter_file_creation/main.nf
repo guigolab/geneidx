@@ -10,7 +10,7 @@ process createParamFile {
     publishDir("${output_dir}/${taxid}", mode : 'copy', enabled: params.store_param_files)
 
     input:
-    tuple val(id), val(taxid), path(acceptor_pwm), path(donor_pwm), path(start_pwm), path(stop_pwm), val(params_list), path(initial_probability_matrix), path(transition_probability_matrix)
+    tuple val(id), val(taxid), path(acceptor_pwm), path(donor_pwm), path(start_pwm), path(stop_pwm), path(gene_model_params), val(params_list), path(initial_probability_matrix), path(transition_probability_matrix)
 
     output:
     tuple val(id), path("${output_param}")
@@ -56,7 +56,7 @@ process createParamFile {
     # INITIAL PWM: ${initial_probability_matrix}
     # TRANSITION PWM: ${transition_probability_matrix}
     #
-    # General Gene Model parameters: ${params.general_gene_params}
+    # General Gene Model parameters: ${gene_model_params}
     # Comment lines must start with '#'
 
     # Non-homology
@@ -131,7 +131,10 @@ process createParamFile {
 
     cat ${output_param}.end >> ${output_param};
 
-    cat ${params.general_gene_params} >> ${output_param};
+    echo "# Global Parameters" >> ${output_param};
+    echo "# GENE MODEL: Rules about gene assembling (GenAmic)" >> ${output_param};
+
+    cat ${gene_model_params} >> ${output_param};
     """
 }
 

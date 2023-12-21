@@ -161,7 +161,7 @@ process splitParams {
     tuple val(id), val(taxid), path(param_file)
 
     output:
-    tuple val(id), val(taxid), path("${param_file_name}.acceptor_profile.param"), path ("${param_file_name}.donor_profile.param"), path ("${param_file_name}.start_profile.param"), path ("${param_file_name}.stop_profile.param")
+    tuple val(id), val(taxid), path("${param_file_name}.acceptor_profile.param"), path ("${param_file_name}.donor_profile.param"), path ("${param_file_name}.start_profile.param"), path ("${param_file_name}.stop_profile.param"), path ("${param_file_name}.general_gene_model.param")
 
     script:
     param_file_name = param_file.getName()
@@ -227,6 +227,34 @@ process splitParams {
 
                 # close the file as we finished adding that profile
                 fW.close()
+
+
+    # Function to check if a line has three columns separated by spaces
+    def has_three_columns(line):
+        columns = line.split()
+        return len(columns) == 3 or len(columns) == 4
+
+    # Define the output file name of the general gene models
+    output_file = "${param_file_name}.general_gene_model.param"
+
+    # Open the input file in read mode and output file in write mode
+    with open("${param_file_name}", 'r') as input_f, open(output_file, 'w') as output_f:
+        # Initialize a flag to indicate whether to write to the output file
+        write_flag = False
+
+        # Iterate through the lines in the input file
+        for line in input_f:
+            # Check if the line starts with '# GENE MODEL:'
+            if line.strip().startswith('General_Gene_Model'):
+                output_f.write(line)
+                write_flag = True
+                
+            # If the write flag is True and the line doesn't start with '#'
+            elif write_flag and not line.startswith('#'):
+                # Check if the line has three columns
+                if has_three_columns(line):
+                    # Write the line to the output file
+                    output_f.write(line)    
     """
 }
 
@@ -236,7 +264,7 @@ workflow geneid_param_creation {
     meta
 
     main:
-    
+
     lineage = getLineage(meta)
 
     matrix = file(params.auto_params_selection_matrix_path)
@@ -247,15 +275,16 @@ workflow geneid_param_creation {
 
     param_values = getParamValues(selected_parameter_file)
 
-    //emit tuple val(id), path(acceptor), path(donor), path(start), path(stop), stdout params
+    //emit tuple val(id), path(acceptor), path(donor), path(start), path(stop), path(generalgene_model), stdout params
     geneid_parameters = splitted_params.join(param_values)
-    
+
     emit:
     geneid_parameters
     // acc_pwm
     // don_pwm
     // sta_pwm
     // sto_pwm
+    // gene_model
     // param_valuesgetParamValues
     // id
 }
